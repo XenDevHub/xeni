@@ -1,0 +1,234 @@
+package products
+
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+
+	"github.com/xeni-ai/gateway/internal/models"
+	"github.com/xeni-ai/gateway/pkg/response"
+)
+
+// Handler holds product dependencies.
+type Handler struct {
+	DB *gorm.DB
+}
+
+// NewHandler creates a new products handler.
+func NewHandler(db *gorm.DB) *Handler {
+	return &Handler{DB: db}
+}
+
+func (h *Handler) getUserShop(userID string) (*models.Shop, error) {
+	uid, _ := uuid.Parse(userID)
+	var shop models.Shop
+	err := h.DB.Where("user_id = ?", uid).First(&shop).Error
+	return &shop, err
+}
+
+// CreateProduct handles POST /api/products.
+func (h *Handler) CreateProduct(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.BadRequest(c, "Create a shop first")
+	}
+
+	var req struct {
+		Name              string   `json:"name"`
+		NameBN            *string  `json:"name_bn"`
+		Description       *string  `json:"description"`
+		DescriptionBN     *string  `json:"description_bn"`
+		Price             float64  `json:"price"`
+		SKU               *string  `json:"sku"`
+		InitialStock      int      `json:"initial_stock"`
+		LowStockThreshold int      `json:"low_stock_threshold"`
+		Images            []string `json:"images"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body")
+	}
+	if req.Name == "" {
+		return response.BadRequest(c, "name is required")
+	}
+	if req.LowStockThreshold == 0 {
+		req.LowStockThreshold = 5
+	}
+
+	product := models.Product{
+		ShopID:            shop.ID,
+		Name:              req.Name,
+		NameBN:            req.NameBN,
+		Description:       req.Description,
+		DescriptionBN:     req.DescriptionBN,
+		Price:             req.Price,
+		SKU:               req.SKU,
+		InitialStock:      req.InitialStock,
+		CurrentStock:      req.InitialStock,
+		LowStockThreshold: req.LowStockThreshold,
+		IsOutOfStock:      req.InitialStock == 0,
+	}
+
+	if err := h.DB.Create(&product).Error; err != nil {
+		return response.InternalError(c)
+	}
+
+	return response.Created(c, product)
+}
+
+// ListProducts handles GET /api/products.
+func (h *Handler) ListProducts(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.Success(c, []models.Product{})
+	}
+
+	page := c.QueryInt("page", 1)
+	perPage := c.QueryInt("per_page", 20)
+	search := c.Query("search")
+	activeOnly := c.QueryBool("active_only", false)
+
+	if perPage > 100 {
+		perPage = 100
+	}
+
+	query := h.DB.Where("shop_id = ?", shop.ID)
+	if search != "" {
+		query = query.Where("name ILIKE ? OR sku ILIKE ?", "%"+search+"%", "%"+search+"%")
+	}
+	if activeOnly {
+		query = query.Where("is_active = true")
+	}
+
+	var total int64
+	query.Model(&models.Product{}).Count(&total)
+
+	var products []models.Product
+	query.Order("created_at DESC").Offset((page - 1) * perPage).Limit(perPage).Find(&products)
+
+	totalPages := int(total) / perPage
+	if int(total)%perPage > 0 {
+		totalPages++
+	}
+
+	return response.SuccessWithMeta(c, products, response.PaginationMeta{
+		Page:       page,
+		PerPage:    perPage,
+		Total:      total,
+		TotalPages: totalPages,
+	})
+}
+
+// GetProduct handles GET /api/products/:id.
+func (h *Handler) GetProduct(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.NotFound(c, "Shop not found")
+	}
+
+	pid, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.BadRequest(c, "Invalid product ID")
+	}
+
+	var product models.Product
+	if err := h.DB.Where("id = ? AND shop_id = ?", pid, shop.ID).First(&product).Error; err != nil {
+		return response.NotFound(c, "Product not found")
+	}
+
+	return response.Success(c, product)
+}
+
+// UpdateProduct handles PUT /api/products/:id.
+func (h *Handler) UpdateProduct(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.NotFound(c, "Shop not found")
+	}
+
+	pid, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.BadRequest(c, "Invalid product ID")
+	}
+
+	var product models.Product
+	if err := h.DB.Where("id = ? AND shop_id = ?", pid, shop.ID).First(&product).Error; err != nil {
+		return response.NotFound(c, "Product not found")
+	}
+
+	var req struct {
+		Name              *string  `json:"name"`
+		NameBN            *string  `json:"name_bn"`
+		Description       *string  `json:"description"`
+		DescriptionBN     *string  `json:"description_bn"`
+		Price             *float64 `json:"price"`
+		SKU               *string  `json:"sku"`
+		CurrentStock      *int     `json:"current_stock"`
+		LowStockThreshold *int     `json:"low_stock_threshold"`
+		IsActive          *bool    `json:"is_active"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body")
+	}
+
+	updates := make(map[string]interface{})
+	if req.Name != nil {
+		updates["name"] = *req.Name
+	}
+	if req.NameBN != nil {
+		updates["name_bn"] = *req.NameBN
+	}
+	if req.Description != nil {
+		updates["description"] = *req.Description
+	}
+	if req.DescriptionBN != nil {
+		updates["description_bn"] = *req.DescriptionBN
+	}
+	if req.Price != nil {
+		updates["price"] = *req.Price
+	}
+	if req.SKU != nil {
+		updates["sku"] = *req.SKU
+	}
+	if req.CurrentStock != nil {
+		updates["current_stock"] = *req.CurrentStock
+		updates["is_out_of_stock"] = *req.CurrentStock == 0
+	}
+	if req.LowStockThreshold != nil {
+		updates["low_stock_threshold"] = *req.LowStockThreshold
+	}
+	if req.IsActive != nil {
+		updates["is_active"] = *req.IsActive
+	}
+
+	if len(updates) > 0 {
+		h.DB.Model(&product).Updates(updates)
+	}
+
+	h.DB.First(&product, product.ID)
+	return response.Success(c, product)
+}
+
+// DeleteProduct handles DELETE /api/products/:id.
+func (h *Handler) DeleteProduct(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.NotFound(c, "Shop not found")
+	}
+
+	pid, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.BadRequest(c, "Invalid product ID")
+	}
+
+	result := h.DB.Where("id = ? AND shop_id = ?", pid, shop.ID).Delete(&models.Product{})
+	if result.RowsAffected == 0 {
+		return response.NotFound(c, "Product not found")
+	}
+
+	return response.Success(c, map[string]string{"message": "Product deleted successfully"})
+}

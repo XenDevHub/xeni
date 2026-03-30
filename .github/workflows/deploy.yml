@@ -1,0 +1,79 @@
+name: Xeni Production Checkout & Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  REPOSITORY_OWNER: xendevhub
+  GATEWAY_IMAGE: ghcr.io/xendevhub/xeni-gateway:latest
+  FRONTEND_IMAGE: ghcr.io/xendevhub/xeni-frontend:latest
+  # Provide similar envs for python workers if needed scaling.
+
+jobs:
+  build-and-push-images:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.CR_PAT }}
+
+      - name: Build and push Production Gateway
+        run: |
+          docker build --target production -t ${{ env.GATEWAY_IMAGE }} ./gateway
+          docker push ${{ env.GATEWAY_IMAGE }}
+
+      - name: Build and push Production Frontend
+        run: |
+          docker build --target production -t ${{ env.FRONTEND_IMAGE }} ./frontend
+          docker push ${{ env.FRONTEND_IMAGE }}
+
+      # Expand these to worker nodes natively via docker build ./workers as needed!
+
+  deploy-to-digitalocean:
+    needs: build-and-push-images
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH into Droplet & Execute Deployment
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            mkdir -p /opt/xeni
+            cd /opt/xeni
+            
+            # Pull repository for infrastructure files (nginx, prom, docker-compose)
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/XenDevHub/xeni.git .
+            else
+              git stash
+              git pull origin main
+            fi
+
+            # Inject the securely stored ENV_PRODUCTION block into .env locally
+            echo "${{ secrets.ENV_PRODUCTION }}" > .env
+            echo "${{ secrets.ENV_PRODUCTION }}" > ./gateway/.env
+            echo "${{ secrets.ENV_PRODUCTION }}" > ./frontend/.env
+            
+            # Login to GHCR to access the freshly built images
+            echo "${{ secrets.CR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
+            # Execute the Production Docker Architecture Pull & Reload
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            
+            echo "🔥 XENI E-Commerce Agent Stack Deployed Successfully"

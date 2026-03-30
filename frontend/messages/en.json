@@ -1,0 +1,168 @@
+{
+  "nav": {
+    "home": "Home",
+    "login": "Sign In",
+    "register": "Sign Up",
+    "dashboard": "Dashboard",
+    "billing": "Billing",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "landing": {
+    "hero_title": "Your Online Shop's AI Employee",
+    "hero_subtitle": "Xeni AI completely automates your customer conversations, product inventory, and sales intelligence so you can focus on growth.",
+    "cta": "Start Scaling",
+    "cta_secondary": "View the Agents",
+    "cta_login": "Sign In to Dashboard",
+    "features_title": "Meet Your AI Agents",
+    "learn_more": "Learn More"
+  },
+  "agents": {
+    "seo_audit": {
+      "name": "SEO Intelligence Agent",
+      "description": "Run comprehensive site audits and uncover critical performance gaps. Receive actionable, AI-driven optimization strategies to increase visibility and dominate search engine rankings.",
+      "features": [
+        "Automated technical SEO audits and error reporting.",
+        "Competitor keyword gap analysis.",
+        "On-page semantic content scoring.",
+        "Backlink monitoring and opportunity discovery."
+      ],
+      "locked_message": "Upgrade your plan to access the SEO Audit Agent",
+      "run_button": "Run SEO Audit"
+    },
+    "content_writing": {
+      "name": "Content Strategy & Creation Agent",
+      "description": "Publish high-converting, SEO-optimized content at scale. Generate compelling blog posts, technical articles, and persuasive marketing copy engineered to rank and drive conversions.",
+      "features": [
+        "Custom brand-voice training and enforcement.",
+        "NLP-optimized outlines and headings.",
+        "Auto-publishing integrations (WordPress, Webflow).",
+        "Automated internal linking strategies."
+      ],
+      "locked_message": "Upgrade to Basic to access Content Writer",
+      "run_button": "Write Content"
+    },
+    "lead_generation": {
+      "name": "Outbound Lead Generation Agent",
+      "description": "Accelerate your sales pipeline with intelligent prospecting. Automatically discover high-value targets, verify contact information, and enrich lead data for targeted outbound outreach.",
+      "features": [
+        "Multi-source prospect discovery.",
+        "Waterfall email and phone number enrichment.",
+        "Buying intent signal tracking.",
+        "Automated CRM syncing and data cleaning."
+      ],
+      "locked_message": "Upgrade to Pro to access Lead Generation",
+      "run_button": "Generate Leads"
+    },
+    "social_media": {
+      "name": "Social Media Automation Agent",
+      "description": "Scale your brand presence across all major platforms. Generate highly engaging, algorithm-optimized posts complete with tailored hashtags and data-backed scheduling strategies.",
+      "features": [
+        "Algorithm-tailored formatting for LinkedIn, X, and Instagram.",
+        "Trending topic and viral hook generation.",
+        "Optimal post timing based on audience analytics.",
+        "Automated reply engagement for standard comments."
+      ],
+      "locked_message": "Upgrade to Pro to access Social Media Agent",
+      "run_button": "Create Posts"
+    },
+    "email_marketing": {
+      "name": "Email Conversion Agent",
+      "description": "Architect high-performing email sequences that drive revenue. Optimize open rates with dynamic subject lines and deploy sophisticated drip campaigns that nurture prospects.",
+      "features": [
+        "Dynamic personalization and merge-tag mapping.",
+        "AI-driven subject line A/B testing.",
+        "Smart behavioral triggers (opens, clicks, replies).",
+        "Inbox deliverability monitoring and spam-trap avoidance."
+      ],
+      "locked_message": "Upgrade to Pro to access Email Marketing",
+      "run_button": "Create Campaign"
+    },
+    "analytics": {
+      "name": "Business Intelligence & Analytics Agent",
+      "description": "Transform complex raw datasets into clear, strategic advantages. Leverage predictive forecasting, advanced trend analysis, and dynamic visualizations to drive data-backed decisions.",
+      "features": [
+        "Custom KPI dashboard generation.",
+        "Real-time anomaly and drop-off detection.",
+        "Predictive revenue forecasting models.",
+        "Automated, board-ready weekly report generation."
+      ],
+      "locked_message": "Upgrade to Enterprise to access Analytics",
+      "run_button": "Run Analytics"
+    }
+  },
+  "auth": {
+    "email": "Email address",
+    "password": "Password",
+    "full_name": "Full Name",
+    "welcome_back": "Welcome Back",
+    "create_account": "Create Account",
+    "forgot_password": "Forgot Password?",
+    "no_account": "Don't have an account?",
+    "has_account": "Already have an account?",
+    "google_signin": "Continue with Google",
+    "google_login": "Continue with Google",
+    "or": "or",
+    "verify_title": "Verify Your Email",
+    "verify_subtitle": "Enter the 6-digit code sent to your email",
+    "login_title": "Welcome Back",
+    "login_subtitle": "Sign in to your XENI account",
+    "register_title": "Create Account",
+    "register_subtitle": "Get started with XENI for free"
+  },
+  "billing": {
+    "title": "Billing",
+    "free": "Free",
+    "basic": "Basic",
+    "pro": "Pro",
+    "enterprise": "Enterprise",
+    "month": "/month",
+    "current": "Current Plan",
+    "current_plan": "Current Plan",
+    "subscribe": "Subscribe Now",
+    "pay_sslcommerz": "Pay with bKash/Nagad",
+    "storage": "storage",
+    "tasks_per_day": "tasks/day",
+    "unlimited": "Unlimited",
+    "upgrade": "Upgrade Plan"
+  },
+  "settings": {
+    "title": "Settings",
+    "profile": "Profile",
+    "security": "Security",
+    "language": "Language",
+    "save": "Save Changes",
+    "save_changes": "Save Changes",
+    "change_password": "Change Password",
+    "current_password": "Current password",
+    "new_password": "New password",
+    "enable_2fa": "Enable Two-Factor Auth",
+    "select_language": "Language"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "tasks_today": "Tasks Today",
+    "agents_available": "Agents Available",
+    "plan": "Current Plan",
+    "recent_tasks": "Recent Tasks",
+    "quick_actions": "Quick Actions"
+  },
+  "common": {
+    "loading": "Loading...",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "back": "Back",
+    "save": "Save",
+    "delete": "Delete",
+    "search": "Search",
+    "view_all": "View All"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalid_email": "Please enter a valid email",
+    "invalid_credentials": "Invalid email or password",
+    "password_min": "Password must be at least 8 characters",
+    "server_error": "Something went wrong. Please try again."
+  }
+}

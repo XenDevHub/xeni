@@ -1,0 +1,224 @@
+package conversations
+
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+
+	"github.com/xeni-ai/gateway/internal/models"
+	"github.com/xeni-ai/gateway/pkg/response"
+)
+
+// Handler holds conversation dependencies.
+type Handler struct {
+	DB *gorm.DB
+}
+
+// NewHandler creates a new conversations handler.
+func NewHandler(db *gorm.DB) *Handler {
+	return &Handler{DB: db}
+}
+
+func (h *Handler) getUserShop(userID string) (*models.Shop, error) {
+	uid, _ := uuid.Parse(userID)
+	var shop models.Shop
+	err := h.DB.Where("user_id = ?", uid).First(&shop).Error
+	return &shop, err
+}
+
+// ListConversations handles GET /api/conversations.
+func (h *Handler) ListConversations(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.Success(c, []models.Conversation{})
+	}
+
+	page := c.QueryInt("page", 1)
+	perPage := c.QueryInt("per_page", 20)
+	status := c.Query("status", "open")
+
+	if perPage > 100 {
+		perPage = 100
+	}
+
+	query := h.DB.Where("shop_id = ?", shop.ID)
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	var total int64
+	query.Model(&models.Conversation{}).Count(&total)
+
+	var conversations []models.Conversation
+	query.Order("last_message_at DESC NULLS LAST").Offset((page - 1) * perPage).Limit(perPage).Find(&conversations)
+
+	totalPages := int(total) / perPage
+	if int(total)%perPage > 0 {
+		totalPages++
+	}
+
+	return response.SuccessWithMeta(c, conversations, response.PaginationMeta{
+		Page:       page,
+		PerPage:    perPage,
+		Total:      total,
+		TotalPages: totalPages,
+	})
+}
+
+// GetMessages handles GET /api/conversations/:id/messages.
+func (h *Handler) GetMessages(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.NotFound(c, "Shop not found")
+	}
+
+	cid, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.BadRequest(c, "Invalid conversation ID")
+	}
+
+	var conv models.Conversation
+	if err := h.DB.Where("id = ? AND shop_id = ?", cid, shop.ID).First(&conv).Error; err != nil {
+		return response.NotFound(c, "Conversation not found")
+	}
+
+	// Mark as read
+	h.DB.Model(&conv).Update("unread_count", 0)
+
+	page := c.QueryInt("page", 1)
+	perPage := c.QueryInt("per_page", 50)
+
+	var total int64
+	h.DB.Model(&models.Message{}).Where("conversation_id = ?", cid).Count(&total)
+
+	var messages []models.Message
+	h.DB.Where("conversation_id = ?", cid).
+		Order("sent_at DESC").
+		Offset((page - 1) * perPage).Limit(perPage).
+		Find(&messages)
+
+	totalPages := int(total) / perPage
+	if int(total)%perPage > 0 {
+		totalPages++
+	}
+
+	return response.SuccessWithMeta(c, map[string]interface{}{
+		"conversation": conv,
+		"messages":     messages,
+	}, response.PaginationMeta{
+		Page:       page,
+		PerPage:    perPage,
+		Total:      total,
+		TotalPages: totalPages,
+	})
+}
+
+// SendMessage handles POST /api/conversations/:id/messages — send a reply to customer.
+func (h *Handler) SendMessage(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.NotFound(c, "Shop not found")
+	}
+
+	cid, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.BadRequest(c, "Invalid conversation ID")
+	}
+
+	var conv models.Conversation
+	if err := h.DB.Where("id = ? AND shop_id = ?", cid, shop.ID).First(&conv).Error; err != nil {
+		return response.NotFound(c, "Conversation not found")
+	}
+
+	var req struct {
+		Text string `json:"text"`
+	}
+	if err := c.BodyParser(&req); err != nil || req.Text == "" {
+		return response.BadRequest(c, "text is required")
+	}
+
+	// In production: send via Facebook Graph API using Page Access Token
+	// POST /{page-id}/messages with recipient={id: customer_psid}
+
+	msg := models.Message{
+		ConversationID: conv.ID,
+		Direction:      models.DirectionOutbound,
+		SenderType:     models.SenderHuman,
+		ContentType:    models.ContentText,
+		ContentText:    &req.Text,
+	}
+
+	if err := h.DB.Create(&msg).Error; err != nil {
+		return response.InternalError(c)
+	}
+
+	// Update conversation preview
+	h.DB.Model(&conv).Updates(map[string]interface{}{
+		"last_message_preview": req.Text,
+		"last_message_at":      msg.SentAt,
+	})
+
+	return response.Created(c, msg)
+}
+
+// UpdateMode handles PUT /api/conversations/:id/mode — switch AI/human mode.
+func (h *Handler) UpdateMode(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.NotFound(c, "Shop not found")
+	}
+
+	cid, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.BadRequest(c, "Invalid conversation ID")
+	}
+
+	var conv models.Conversation
+	if err := h.DB.Where("id = ? AND shop_id = ?", cid, shop.ID).First(&conv).Error; err != nil {
+		return response.NotFound(c, "Conversation not found")
+	}
+
+	var req struct {
+		Mode string `json:"mode"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body")
+	}
+	if req.Mode != "ai" && req.Mode != "human" {
+		return response.BadRequest(c, "mode must be 'ai' or 'human'")
+	}
+
+	h.DB.Model(&conv).Update("handling_mode", req.Mode)
+
+	return response.Success(c, map[string]string{
+		"message": "Conversation mode updated to " + req.Mode,
+		"mode":    req.Mode,
+	})
+}
+
+// GetConversationStats handles GET /api/conversations/stats.
+func (h *Handler) GetConversationStats(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.Success(c, map[string]int64{})
+	}
+
+	var totalOpen, totalResolved, totalUnread int64
+	h.DB.Model(&models.Conversation{}).Where("shop_id = ? AND status = 'open'", shop.ID).Count(&totalOpen)
+	h.DB.Model(&models.Conversation{}).Where("shop_id = ? AND status = 'resolved'", shop.ID).Count(&totalResolved)
+
+	var unreadResult struct{ Sum int64 }
+	h.DB.Model(&models.Conversation{}).Where("shop_id = ? AND status = 'open'", shop.ID).Select("COALESCE(SUM(unread_count), 0) as sum").Scan(&unreadResult)
+	totalUnread = unreadResult.Sum
+
+	return response.Success(c, map[string]interface{}{
+		"open_conversations":     totalOpen,
+		"resolved_conversations": totalResolved,
+		"total_unread":           totalUnread,
+	})
+}

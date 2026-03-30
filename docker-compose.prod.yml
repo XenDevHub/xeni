@@ -1,0 +1,38 @@
+# XENI AI — Production Operations Compose File
+# Overrides local contexts to leverage GHCR deployment images
+# Usage (Automated in Actions): docker compose -f docker-compose.prod.yml up -d
+
+services:
+  gateway:
+    image: ghcr.io/xendevhub/xeni-gateway:latest
+    build: null
+
+  frontend:
+    image: ghcr.io/xendevhub/xeni-frontend:latest
+    build: null
+    
+  # Retaining workers to build locally on Droplet or map exactly like Gateway if isolated
+  worker-conversation:
+    build:
+      context: ./workers
+    image: ghcr.io/xendevhub/xeni-workers:latest
+
+  worker-order:
+    build:
+      context: ./workers
+    image: ghcr.io/xendevhub/xeni-workers:latest
+
+  worker-inventory:
+    build:
+      context: ./workers
+    image: ghcr.io/xendevhub/xeni-workers:latest
+
+  worker-creative:
+    build:
+      context: ./workers
+    image: ghcr.io/xendevhub/xeni-workers:latest
+
+  worker-intelligence:
+    build:
+      context: ./workers
+    image: ghcr.io/xendevhub/xeni-workers:latest
