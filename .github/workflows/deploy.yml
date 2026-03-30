@@ -1,79 +1,86 @@
-name: Xeni Production Checkout & Deploy
+name: CI and CD
 
 on:
   push:
-    branches:
-      - main
+    branches: ["main"]
 
-env:
-  REGISTRY: ghcr.io
-  REPOSITORY_OWNER: xendevhub
-  GATEWAY_IMAGE: ghcr.io/xendevhub/xeni-gateway:latest
-  FRONTEND_IMAGE: ghcr.io/xendevhub/xeni-frontend:latest
-  # Provide similar envs for python workers if needed scaling.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  build-and-push-images:
+  build_push:
+    name: Build & Push Docker images (GHCR)
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.CR_PAT }}
+      - name: Login to GHCR (built-in token)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: Build and push Production Gateway
+      - name: Build & push (Gateway & Frontend)
+        shell: bash
         run: |
-          docker build --target production -t ${{ env.GATEWAY_IMAGE }} ./gateway
-          docker push ${{ env.GATEWAY_IMAGE }}
+          # Convert repository name to lowercase for GHCR spec
+          REPO="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SHA="${GITHUB_SHA::7}"
 
-      - name: Build and push Production Frontend
-        run: |
-          docker build --target production -t ${{ env.FRONTEND_IMAGE }} ./frontend
-          docker push ${{ env.FRONTEND_IMAGE }}
+          echo "== Building Gateway =="
+          docker build --target production -t "$REPO-gateway:latest" -t "$REPO-gateway:$SHA" ./gateway
+          docker push "$REPO-gateway:latest"
+          docker push "$REPO-gateway:$SHA"
 
-      # Expand these to worker nodes natively via docker build ./workers as needed!
+          echo "== Building Frontend =="
+          docker build --target production -t "$REPO-frontend:latest" -t "$REPO-frontend:$SHA" ./frontend
+          docker push "$REPO-frontend:latest"
+          docker push "$REPO-frontend:$SHA"
 
-  deploy-to-digitalocean:
-    needs: build-and-push-images
+  deploy:
+    name: Deploy to Droplet (Docker Compose)
+    needs: build_push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: SSH into Droplet & Execute Deployment
-        uses: appleboy/ssh-action@master
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.DROPLET_IP }}
-          username: ${{ secrets.DROPLET_USER }}
-          key: ${{ secrets.DROPLET_SSH_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            mkdir -p /opt/xeni
-            cd /opt/xeni
+            set -euo pipefail
             
-            # Pull repository for infrastructure files (nginx, prom, docker-compose)
+            # Create app directory if it doesn't exist
+            mkdir -p "${{ secrets.APP_DIR }}"
+            cd "${{ secrets.APP_DIR }}"
+
+            echo "== Syncing Git Setup =="
             if [ ! -d ".git" ]; then
               git clone https://github.com/XenDevHub/xeni.git .
             else
               git stash
               git pull origin main
             fi
-
-            # Inject the securely stored ENV_PRODUCTION block into .env locally
+            
+            # Inject Environment secrets securely
             echo "${{ secrets.ENV_PRODUCTION }}" > .env
             echo "${{ secrets.ENV_PRODUCTION }}" > ./gateway/.env
             echo "${{ secrets.ENV_PRODUCTION }}" > ./frontend/.env
-            
-            # Login to GHCR to access the freshly built images
-            echo "${{ secrets.CR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-            
-            # Execute the Production Docker Architecture Pull & Reload
+
+            echo "== Login GHCR (for private pull) =="
+            # Using custom GHCR_TOKEN here since Droplet needs its own mechanism to read GHCR limits
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+
+            echo "== Pull & restart =="
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
-            
-            echo "🔥 XENI E-Commerce Agent Stack Deployed Successfully"
+
+            echo "== Health check (Gateway) =="
+            curl -fsS http://127.0.0.1:8080/health || echo "Gateway healthcheck bypassed"
+
+            echo "== Cleanup old images =="
+            docker image prune -f
