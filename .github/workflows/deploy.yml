@@ -71,6 +71,7 @@ jobs:
             echo "${{ secrets.ENV_PRODUCTION }}" > .env
             echo "${{ secrets.ENV_PRODUCTION }}" > ./gateway/.env
             echo "${{ secrets.ENV_PRODUCTION }}" > ./frontend/.env
+            echo "${{ secrets.ENV_PRODUCTION }}" > ./workers/.env
 
             echo "== Login GHCR (for private pull) =="
             # Hardcoded user fallback, droplet relies on the physical token
