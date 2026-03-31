@@ -54,9 +54,10 @@ jobs:
           script: |
             set -euo pipefail
             
-            # Create app directory if it doesn't exist
-            mkdir -p "${{ secrets.APP_DIR }}"
-            cd "${{ secrets.APP_DIR }}"
+            # Force dynamic deployment directory to absolutely guarantee write ownership
+            export DEPLOY_DIR="$HOME/xeni_prod_server"
+            mkdir -p "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
 
             echo "== Syncing Git Setup =="
             if [ ! -d ".git" ]; then
