@@ -23,8 +23,6 @@ x-worker-common: &worker-common
     mongodb:
       condition: service_healthy
   restart: unless-stopped
-  profiles:
-    - app
 
 services:
   # ──────────────────────────────────────────────────────────
@@ -169,8 +167,6 @@ services:
     networks:
       - xeni_net
     restart: unless-stopped
-    profiles:
-      - app
 
   frontend:
     build:
@@ -191,8 +187,6 @@ services:
     networks:
       - xeni_net
     restart: unless-stopped
-    profiles:
-      - app
 
   # ── AI Workers (E-Commerce Agents) ──
 
