@@ -60,9 +60,10 @@ jobs:
 
             echo "== Syncing Git Setup =="
             if [ ! -d ".git" ]; then
-              git clone https://github.com/XenDevHub/xeni.git .
+              git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/XenDevHub/xeni.git .
             else
               git stash
+              git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/XenDevHub/xeni.git
               git pull origin main
             fi
             
