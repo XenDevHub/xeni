@@ -30,7 +30,7 @@ FROM alpine:3.19 AS production
 LABEL org.opencontainers.image.source=https://github.com/XenDevHub/xeni
 RUN apk add --no-cache ca-certificates tzdata
 WORKDIR /app
-COPY --from=builder /build/gateway .
+COPY --chown=nobody:nobody --from=builder /build/gateway .
 EXPOSE 8080
 USER nobody:nobody
-CMD ["./gateway"]
+CMD ["/app/gateway"]
