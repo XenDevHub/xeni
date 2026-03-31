@@ -35,6 +35,7 @@ jobs:
           docker push "$REPO/gateway:$SHA"
 
           echo "== Building Frontend =="
+          echo "${{ secrets.ENV_PRODUCTION }}" > ./frontend/.env.production
           docker build --target production -t "$REPO/frontend:latest" -t "$REPO/frontend:$SHA" ./frontend
           docker push "$REPO/frontend:latest"
           docker push "$REPO/frontend:$SHA"
