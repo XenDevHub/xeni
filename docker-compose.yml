@@ -162,8 +162,6 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-    volumes:
-      - ./gateway:/app
     networks:
       - xeni_net
     restart: unless-stopped
@@ -181,9 +179,6 @@ services:
     depends_on:
       gateway:
         condition: service_started
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     networks:
       - xeni_net
     restart: unless-stopped
