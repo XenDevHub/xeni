@@ -141,12 +141,13 @@ class BaseWorker:
 
     def _publish_result(self, result: dict):
         """Publish result message back to Go gateway via xeni.results exchange."""
-        self.channel.basic_publish(
-            exchange="xeni.results",
-            routing_key="task_result",
-            body=json.dumps(result),
-            properties=pika.BasicProperties(delivery_mode=2, content_type="application/json"),
-        )
+        if self.channel:
+            self.channel.basic_publish(
+                exchange="xeni.results",
+                routing_key="task_result",
+                body=json.dumps(result),
+                properties=pika.BasicProperties(delivery_mode=2, content_type="application/json"),
+            )
 
     def start_consuming(self):
         """Start the RabbitMQ consumer loop."""
