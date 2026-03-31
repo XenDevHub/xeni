@@ -54,9 +54,8 @@ jobs:
           script: |
             set -euo pipefail
             
-            # Create app directory if it doesn't exist and force ownership
-            sudo mkdir -p "${{ secrets.APP_DIR }}"
-            sudo chown -R $USER:$USER "${{ secrets.APP_DIR }}"
+            # Create app directory if it doesn't exist
+            mkdir -p "${{ secrets.APP_DIR }}"
             cd "${{ secrets.APP_DIR }}"
 
             echo "== Syncing Git Setup =="
