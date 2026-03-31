@@ -35,7 +35,9 @@ jobs:
         run: go mod download
 
       - name: Lint
-        run: go vet ./...
+        run: |
+          go mod tidy
+          go vet ./...
 
       - name: Test
         run: go test -v -race -coverprofile=coverage.out ./...
