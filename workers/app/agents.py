@@ -1,7 +1,7 @@
 """XENI AI Workers — 5 E-Commerce Agent Implementations."""
 
 import random
-from datetime import datetime, timezone
+
 from typing import Any
 
 from app.base_worker import BaseWorker
@@ -266,7 +266,7 @@ class CreativeAgent(BaseWorker):
         try:
             ai_response = self.llm.invoke(prompt)
             content_data = json.loads(ai_response.content)
-        except Exception as e:
+        except Exception:
             content_data = {
                 "caption_en": f"🔥 {product_name} — Only ৳{product_price}! Order now!",
                 "caption_bn": f"🔥 {product_name} — মাত্র ৳{product_price}! এখনই অর্ডার করুন!",
