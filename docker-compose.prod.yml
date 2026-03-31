@@ -6,33 +6,40 @@ services:
   gateway:
     image: ghcr.io/xendevhub/xeni/gateway:latest
     build: null
+    profiles: []
 
   frontend:
     image: ghcr.io/xendevhub/xeni/frontend:latest
     build: null
+    profiles: []
     
   # Retaining workers to build locally on Droplet or map exactly like Gateway if isolated
   worker-conversation:
     build:
       context: ./workers
     image: ghcr.io/xendevhub/xeni/workers:latest
+    profiles: []
 
   worker-order:
     build:
       context: ./workers
     image: ghcr.io/xendevhub/xeni/workers:latest
+    profiles: []
 
   worker-inventory:
     build:
       context: ./workers
     image: ghcr.io/xendevhub/xeni/workers:latest
+    profiles: []
 
   worker-creative:
     build:
       context: ./workers
     image: ghcr.io/xendevhub/xeni/workers:latest
+    profiles: []
 
   worker-intelligence:
     build:
       context: ./workers
     image: ghcr.io/xendevhub/xeni/workers:latest
+    profiles: []
