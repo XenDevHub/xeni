@@ -30,14 +30,14 @@ jobs:
           SHA="${GITHUB_SHA::7}"
 
           echo "== Building Gateway =="
-          docker build --target production -t "$REPO-gateway:latest" -t "$REPO-gateway:$SHA" ./gateway
-          docker push "$REPO-gateway:latest"
-          docker push "$REPO-gateway:$SHA"
+          docker build --target production -t "$REPO/gateway:latest" -t "$REPO/gateway:$SHA" ./gateway
+          docker push "$REPO/gateway:latest"
+          docker push "$REPO/gateway:$SHA"
 
           echo "== Building Frontend =="
-          docker build --target production -t "$REPO-frontend:latest" -t "$REPO-frontend:$SHA" ./frontend
-          docker push "$REPO-frontend:latest"
-          docker push "$REPO-frontend:$SHA"
+          docker build --target production -t "$REPO/frontend:latest" -t "$REPO/frontend:$SHA" ./frontend
+          docker push "$REPO/frontend:latest"
+          docker push "$REPO/frontend:$SHA"
 
   deploy:
     name: Deploy to Droplet (Docker Compose)
