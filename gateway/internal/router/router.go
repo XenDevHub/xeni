@@ -3,10 +3,10 @@ package router
 import (
 	"time"
 
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/gofiber/contrib/websocket"
 
 	"github.com/xeni-ai/gateway/internal/admin"
 	"github.com/xeni-ai/gateway/internal/agents"

@@ -238,10 +238,10 @@ func (h *Handler) activateSubscription(userID uuid.UUID, planID uuid.UUID, payme
 	} else {
 		h.DB.Model(&sub).Updates(map[string]interface{}{
 			"plan_id":              planID,
-			"status":              models.SubActive,
+			"status":               models.SubActive,
 			"current_period_start": now,
-			"current_period_end":  periodEnd,
-			"cancelled_at":        nil,
+			"current_period_end":   periodEnd,
+			"cancelled_at":         nil,
 		})
 	}
 

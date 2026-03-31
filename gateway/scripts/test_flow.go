@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package main
 
 import (
@@ -9,8 +12,8 @@ import (
 	"net/http"
 	"time"
 
-	_ "gorm.io/driver/postgres"
 	_ "github.com/lib/pq"
+	_ "gorm.io/driver/postgres"
 )
 
 var baseURL = "http://localhost:8080/auth"

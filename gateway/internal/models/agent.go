@@ -11,11 +11,11 @@ import (
 type AgentType string
 
 const (
-	AgentConversation  AgentType = "conversation"
-	AgentOrder         AgentType = "order"
-	AgentInventory     AgentType = "inventory"
-	AgentCreative      AgentType = "creative"
-	AgentIntelligence  AgentType = "intelligence"
+	AgentConversation AgentType = "conversation"
+	AgentOrder        AgentType = "order"
+	AgentInventory    AgentType = "inventory"
+	AgentCreative     AgentType = "creative"
+	AgentIntelligence AgentType = "intelligence"
 )
 
 // AllAgents returns all valid agent types.
@@ -28,11 +28,11 @@ func AllAgents() []AgentType {
 
 // AgentSlugToType maps URL slugs to agent types.
 var AgentSlugToType = map[string]AgentType{
-	"conversation":  AgentConversation,
-	"order":         AgentOrder,
-	"inventory":     AgentInventory,
-	"creative":      AgentCreative,
-	"intelligence":  AgentIntelligence,
+	"conversation": AgentConversation,
+	"order":        AgentOrder,
+	"inventory":    AgentInventory,
+	"creative":     AgentCreative,
+	"intelligence": AgentIntelligence,
 }
 
 // AgentTypeToQueue maps agent types to RabbitMQ routing keys.

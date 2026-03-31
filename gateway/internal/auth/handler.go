@@ -37,10 +37,10 @@ func NewHandler(db *gorm.DB, redis *cache.Client, jwt *jwtPkg.Manager, frontendU
 // ── Request DTOs ──
 
 type RegisterRequest struct {
-	Email       string `json:"email" validate:"required,email"`
-	Password    string `json:"password" validate:"required,min=8"`
-	FullName    string `json:"full_name" validate:"required,min=2,max=255"`
-	Language    string `json:"language" validate:"omitempty,oneof=en bn"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=8"`
+	FullName string `json:"full_name" validate:"required,min=2,max=255"`
+	Language string `json:"language" validate:"omitempty,oneof=en bn"`
 }
 
 type LoginRequest struct {
@@ -382,9 +382,9 @@ func (h *Handler) Enable2FA(c *fiber.Ctx) error {
 	h.DB.Model(&user).Update("two_fa_secret", &secret)
 
 	return response.Success(c, map[string]interface{}{
-		"secret":    key.Secret(),
-		"qr_url":    key.URL(),
-		"message":   "Scan the QR code with Google Authenticator, then verify with a code.",
+		"secret":  key.Secret(),
+		"qr_url":  key.URL(),
+		"message": "Scan the QR code with Google Authenticator, then verify with a code.",
 	})
 }
 

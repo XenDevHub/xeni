@@ -42,7 +42,7 @@ type Plan struct {
 	ID              uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
 	Name            string    `gorm:"size:100;not null" json:"name"`
 	Tier            PlanTier  `gorm:"type:plan_tier;uniqueIndex;not null" json:"tier"`
-	PriceMonthlyBDT float64  `gorm:"column:price_monthly_bdt;type:decimal(12,2);default:0;not null" json:"price_monthly_bdt"`
+	PriceMonthlyBDT float64   `gorm:"column:price_monthly_bdt;type:decimal(12,2);default:0;not null" json:"price_monthly_bdt"`
 	Features        JSON      `gorm:"type:jsonb;default:'{}';not null" json:"features"`
 	IsActive        bool      `gorm:"default:true;not null" json:"is_active"`
 	CreatedAt       time.Time `gorm:"autoCreateTime" json:"created_at"`
@@ -58,16 +58,16 @@ func (p *Plan) BeforeCreate(tx *gorm.DB) error {
 
 // Subscription represents the subscriptions table.
 type Subscription struct {
-	ID                    uuid.UUID          `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	UserID                uuid.UUID          `gorm:"type:uuid;uniqueIndex;not null" json:"user_id"`
-	PlanID                uuid.UUID          `gorm:"type:uuid;not null" json:"plan_id"`
-	Status                SubscriptionStatus `gorm:"type:subscription_status;default:'active';not null" json:"status"`
-	BillingCycle          string             `gorm:"size:20;default:'monthly';not null" json:"billing_cycle"`
-	CurrentPeriodStart    time.Time          `gorm:"not null" json:"current_period_start"`
-	CurrentPeriodEnd      time.Time          `gorm:"not null;index" json:"current_period_end"`
-	CancelledAt           *time.Time         `json:"cancelled_at"`
-	CreatedAt             time.Time          `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt             time.Time          `gorm:"autoUpdateTime" json:"updated_at"`
+	ID                 uuid.UUID          `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	UserID             uuid.UUID          `gorm:"type:uuid;uniqueIndex;not null" json:"user_id"`
+	PlanID             uuid.UUID          `gorm:"type:uuid;not null" json:"plan_id"`
+	Status             SubscriptionStatus `gorm:"type:subscription_status;default:'active';not null" json:"status"`
+	BillingCycle       string             `gorm:"size:20;default:'monthly';not null" json:"billing_cycle"`
+	CurrentPeriodStart time.Time          `gorm:"not null" json:"current_period_start"`
+	CurrentPeriodEnd   time.Time          `gorm:"not null;index" json:"current_period_end"`
+	CancelledAt        *time.Time         `json:"cancelled_at"`
+	CreatedAt          time.Time          `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt          time.Time          `gorm:"autoUpdateTime" json:"updated_at"`
 
 	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
 	Plan Plan `gorm:"foreignKey:PlanID" json:"plan,omitempty"`
@@ -82,18 +82,18 @@ func (s *Subscription) BeforeCreate(tx *gorm.DB) error {
 
 // Payment represents the payments table.
 type Payment struct {
-	ID                     uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	UserID                 uuid.UUID     `gorm:"type:uuid;not null;index" json:"user_id"`
-	SubscriptionID         *uuid.UUID    `gorm:"type:uuid;index" json:"subscription_id"`
-	PlanID                 uuid.UUID     `gorm:"type:uuid;not null" json:"plan_id"`
-	Amount                 float64       `gorm:"type:decimal(12,2);not null" json:"amount"`
-	Currency               string        `gorm:"size:3;default:'BDT';not null" json:"currency"`
-	Status                 PaymentStatus `gorm:"type:payment_status;default:'pending';not null" json:"status"`
-	Gateway                string        `gorm:"size:20;default:'sslcommerz';not null;index" json:"gateway"`
-	GatewayTransactionID   *string       `gorm:"size:255;index" json:"gateway_transaction_id"`
-	GatewayResponse        JSON          `gorm:"type:jsonb" json:"gateway_response"`
-	CreatedAt              time.Time     `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt              time.Time     `gorm:"autoUpdateTime" json:"updated_at"`
+	ID                   uuid.UUID     `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	UserID               uuid.UUID     `gorm:"type:uuid;not null;index" json:"user_id"`
+	SubscriptionID       *uuid.UUID    `gorm:"type:uuid;index" json:"subscription_id"`
+	PlanID               uuid.UUID     `gorm:"type:uuid;not null" json:"plan_id"`
+	Amount               float64       `gorm:"type:decimal(12,2);not null" json:"amount"`
+	Currency             string        `gorm:"size:3;default:'BDT';not null" json:"currency"`
+	Status               PaymentStatus `gorm:"type:payment_status;default:'pending';not null" json:"status"`
+	Gateway              string        `gorm:"size:20;default:'sslcommerz';not null;index" json:"gateway"`
+	GatewayTransactionID *string       `gorm:"size:255;index" json:"gateway_transaction_id"`
+	GatewayResponse      JSON          `gorm:"type:jsonb" json:"gateway_response"`
+	CreatedAt            time.Time     `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt            time.Time     `gorm:"autoUpdateTime" json:"updated_at"`
 
 	User         User          `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
 	Subscription *Subscription `gorm:"foreignKey:SubscriptionID;constraint:OnDelete:SET NULL" json:"-"`

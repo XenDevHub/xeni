@@ -20,7 +20,7 @@ func (j JSON) Value() (driver.Value, error) {
 // Scan implements sql.Scanner for database reads.
 func (j *JSON) Scan(value interface{}) error {
 	if value == nil {
-		*j = JSON("{}") 
+		*j = JSON("{}")
 		return nil
 	}
 	bytes, ok := value.([]byte)

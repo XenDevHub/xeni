@@ -121,7 +121,7 @@ func (h *Handler) RunAgent(c *fiber.Ctx) error {
 	return response.Created(c, map[string]interface{}{
 		"task_id":    taskID,
 		"agent_type": agentType,
-		"status":    "queued",
+		"status":     "queued",
 	})
 }
 
@@ -291,12 +291,12 @@ func (h *Handler) SubscriptionAccessMiddleware() fiber.Handler {
 // ── Helper for JSON response from MongoDB result ──
 
 type AgentResult struct {
-	TaskID     string          `json:"task_id"`
-	AgentType  string          `json:"agent_type"`
-	Status     string          `json:"status"`
-	Input      json.RawMessage `json:"input"`
-	Result     json.RawMessage `json:"result"`
-	ReportURL  *string         `json:"s3_report_url"`
-	CreatedAt  string          `json:"created_at"`
+	TaskID      string          `json:"task_id"`
+	AgentType   string          `json:"agent_type"`
+	Status      string          `json:"status"`
+	Input       json.RawMessage `json:"input"`
+	Result      json.RawMessage `json:"result"`
+	ReportURL   *string         `json:"s3_report_url"`
+	CreatedAt   string          `json:"created_at"`
 	CompletedAt *string         `json:"completed_at"`
 }

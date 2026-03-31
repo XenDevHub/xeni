@@ -12,23 +12,23 @@ import (
 
 // TaskMessage is the message envelope sent from Go to Python workers via RabbitMQ.
 type TaskMessage struct {
-	TaskID     string            `json:"task_id"`
-	UserID     string            `json:"user_id"`
-	AgentType  string            `json:"agent_type"`
-	Priority   int               `json:"priority"`
-	RetryCount int               `json:"retry_count"`
-	CreatedAt  string            `json:"created_at"`
+	TaskID     string                 `json:"task_id"`
+	UserID     string                 `json:"user_id"`
+	AgentType  string                 `json:"agent_type"`
+	Priority   int                    `json:"priority"`
+	RetryCount int                    `json:"retry_count"`
+	CreatedAt  string                 `json:"created_at"`
 	Payload    map[string]interface{} `json:"payload"`
 }
 
 // ResultMessage is the message envelope received from Python workers.
 type ResultMessage struct {
-	TaskID      string  `json:"task_id"`
-	UserID      string  `json:"user_id"`
-	AgentType   string  `json:"agent_type"`
-	Status      string  `json:"status"`
-	MongoDocID  string  `json:"mongo_doc_id"`
-	Summary     string  `json:"summary"`
+	TaskID      string                 `json:"task_id"`
+	UserID      string                 `json:"user_id"`
+	AgentType   string                 `json:"agent_type"`
+	Status      string                 `json:"status"`
+	MongoDocID  string                 `json:"mongo_doc_id"`
+	Summary     string                 `json:"summary"`
 	Error       *string                `json:"error"`
 	DurationMs  int                    `json:"duration_ms"`
 	CompletedAt string                 `json:"completed_at"`
@@ -75,10 +75,10 @@ func (c *Client) PublishTask(ctx context.Context, msg *TaskMessage) error {
 
 	return c.channel.PublishWithContext(
 		publishCtx,
-		"xeni.tasks",     // exchange
-		msg.AgentType,    // routing key (matches binding)
-		false,            // mandatory
-		false,            // immediate
+		"xeni.tasks",  // exchange
+		msg.AgentType, // routing key (matches binding)
+		false,         // mandatory
+		false,         // immediate
 		amqp.Publishing{
 			ContentType:  "application/json",
 			DeliveryMode: amqp.Persistent,

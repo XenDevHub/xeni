@@ -28,10 +28,10 @@ func NewService(cfg *config.EmailConfig) *Service {
 }
 
 type resendRequest struct {
-	From    string `json:"from"`
+	From    string   `json:"from"`
 	To      []string `json:"to"`
-	Subject string `json:"subject"`
-	HTML    string `json:"html"`
+	Subject string   `json:"subject"`
+	HTML    string   `json:"html"`
 }
 
 // Send sends an email via the Resend API.

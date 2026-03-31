@@ -11,19 +11,19 @@ import (
 
 // Shop represents the shops table.
 type Shop struct {
-	ID                   uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	UserID               uuid.UUID `gorm:"type:uuid;uniqueIndex;not null" json:"user_id"`
-	ShopName             string    `gorm:"size:255;not null" json:"shop_name"`
-	ShopDescription      *string   `gorm:"type:text" json:"shop_description"`
-	ShopLogoURL          *string   `gorm:"type:text" json:"shop_logo_url"`
-	PreferredLanguage    string    `gorm:"size:5;default:'bn';not null" json:"preferred_language"`
-	CourierPreference    string    `gorm:"size:20;default:'pathao';not null" json:"courier_preference"`
-	BkashMerchantNumber  *string   `gorm:"size:20" json:"bkash_merchant_number"`
-	NagadMerchantNumber  *string   `gorm:"size:20" json:"nagad_merchant_number"`
-	AutoReplyEnabled     bool      `gorm:"default:true;not null" json:"auto_reply_enabled"`
-	AutoOrderEnabled     bool      `gorm:"default:true;not null" json:"auto_order_enabled"`
-	CreatedAt            time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt            time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	ID                  uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	UserID              uuid.UUID `gorm:"type:uuid;uniqueIndex;not null" json:"user_id"`
+	ShopName            string    `gorm:"size:255;not null" json:"shop_name"`
+	ShopDescription     *string   `gorm:"type:text" json:"shop_description"`
+	ShopLogoURL         *string   `gorm:"type:text" json:"shop_logo_url"`
+	PreferredLanguage   string    `gorm:"size:5;default:'bn';not null" json:"preferred_language"`
+	CourierPreference   string    `gorm:"size:20;default:'pathao';not null" json:"courier_preference"`
+	BkashMerchantNumber *string   `gorm:"size:20" json:"bkash_merchant_number"`
+	NagadMerchantNumber *string   `gorm:"size:20" json:"nagad_merchant_number"`
+	AutoReplyEnabled    bool      `gorm:"default:true;not null" json:"auto_reply_enabled"`
+	AutoOrderEnabled    bool      `gorm:"default:true;not null" json:"auto_order_enabled"`
+	CreatedAt           time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt           time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
 	User           User            `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
 	ConnectedPages []ConnectedPage `gorm:"foreignKey:ShopID" json:"connected_pages,omitempty"`
@@ -106,10 +106,10 @@ const (
 type OrderPaymentStatus string
 
 const (
-	OrderPayPending       OrderPaymentStatus = "pending"
-	OrderPayVerified      OrderPaymentStatus = "verified"
-	OrderPayFailed        OrderPaymentStatus = "failed"
-	OrderPayManualReq     OrderPaymentStatus = "manual_required"
+	OrderPayPending   OrderPaymentStatus = "pending"
+	OrderPayVerified  OrderPaymentStatus = "verified"
+	OrderPayFailed    OrderPaymentStatus = "failed"
+	OrderPayManualReq OrderPaymentStatus = "manual_required"
 )
 
 type OrderDeliveryStatus string
@@ -131,27 +131,27 @@ const (
 
 // Order represents the orders table.
 type Order struct {
-	ID                      uuid.UUID           `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
-	ShopID                  uuid.UUID           `gorm:"type:uuid;not null;index" json:"shop_id"`
-	CustomerPSID            *string             `gorm:"size:255" json:"customer_psid"`
-	CustomerName            *string             `gorm:"size:255" json:"customer_name"`
-	CustomerPhone           *string             `gorm:"size:20" json:"customer_phone"`
-	CustomerAddress         *string             `gorm:"type:text" json:"customer_address"`
-	OrderItems              JSON                `gorm:"type:jsonb;default:'[]';not null" json:"order_items"`
-	TotalAmount             float64             `gorm:"type:decimal(12,2);default:0;not null" json:"total_amount"`
-	PaymentMethod           *OrderPaymentMethod `gorm:"type:order_payment_method" json:"payment_method"`
-	PaymentStatus           OrderPaymentStatus  `gorm:"type:order_payment_status;default:'pending';not null" json:"payment_status"`
-	PaymentTrxID            *string             `gorm:"size:255" json:"payment_trx_id"`
-	PaymentScreenshotURL    *string             `gorm:"type:text" json:"payment_screenshot_url"`
-	DeliveryStatus          OrderDeliveryStatus `gorm:"type:order_delivery_status;default:'pending';not null" json:"delivery_status"`
-	CourierName             *string             `gorm:"size:50" json:"courier_name"`
-	TrackingNumber          *string             `gorm:"size:255" json:"tracking_number"`
-	CourierBookingResponse  JSON                `gorm:"type:jsonb" json:"courier_booking_response"`
-	MessengerThreadID       *uuid.UUID          `gorm:"type:uuid" json:"messenger_thread_id"`
-	PlacedBy                OrderPlacedBy       `gorm:"type:order_placed_by;default:'human';not null" json:"placed_by"`
-	Notes                   *string             `gorm:"type:text" json:"notes"`
-	CreatedAt               time.Time           `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt               time.Time           `gorm:"autoUpdateTime" json:"updated_at"`
+	ID                     uuid.UUID           `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	ShopID                 uuid.UUID           `gorm:"type:uuid;not null;index" json:"shop_id"`
+	CustomerPSID           *string             `gorm:"size:255" json:"customer_psid"`
+	CustomerName           *string             `gorm:"size:255" json:"customer_name"`
+	CustomerPhone          *string             `gorm:"size:20" json:"customer_phone"`
+	CustomerAddress        *string             `gorm:"type:text" json:"customer_address"`
+	OrderItems             JSON                `gorm:"type:jsonb;default:'[]';not null" json:"order_items"`
+	TotalAmount            float64             `gorm:"type:decimal(12,2);default:0;not null" json:"total_amount"`
+	PaymentMethod          *OrderPaymentMethod `gorm:"type:order_payment_method" json:"payment_method"`
+	PaymentStatus          OrderPaymentStatus  `gorm:"type:order_payment_status;default:'pending';not null" json:"payment_status"`
+	PaymentTrxID           *string             `gorm:"size:255" json:"payment_trx_id"`
+	PaymentScreenshotURL   *string             `gorm:"type:text" json:"payment_screenshot_url"`
+	DeliveryStatus         OrderDeliveryStatus `gorm:"type:order_delivery_status;default:'pending';not null" json:"delivery_status"`
+	CourierName            *string             `gorm:"size:50" json:"courier_name"`
+	TrackingNumber         *string             `gorm:"size:255" json:"tracking_number"`
+	CourierBookingResponse JSON                `gorm:"type:jsonb" json:"courier_booking_response"`
+	MessengerThreadID      *uuid.UUID          `gorm:"type:uuid" json:"messenger_thread_id"`
+	PlacedBy               OrderPlacedBy       `gorm:"type:order_placed_by;default:'human';not null" json:"placed_by"`
+	Notes                  *string             `gorm:"type:text" json:"notes"`
+	CreatedAt              time.Time           `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt              time.Time           `gorm:"autoUpdateTime" json:"updated_at"`
 
 	Shop Shop `gorm:"foreignKey:ShopID;constraint:OnDelete:CASCADE" json:"-"`
 }

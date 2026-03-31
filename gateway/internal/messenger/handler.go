@@ -193,7 +193,6 @@ func (h *Handler) verifySignature(body []byte, signature string) bool {
 	return hmac.Equal([]byte(expected), []byte(signature))
 }
 
-
 // ── Webhook Payload Types ──
 
 type WebhookPayload struct {

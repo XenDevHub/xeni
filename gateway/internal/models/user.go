@@ -87,9 +87,9 @@ func (r *RefreshToken) BeforeCreate(tx *gorm.DB) error {
 type OTPPurpose string
 
 const (
-	OTPEmailVerify  OTPPurpose = "email_verify"
+	OTPEmailVerify   OTPPurpose = "email_verify"
 	OTPPasswordReset OTPPurpose = "password_reset"
-	OTPTwoFA        OTPPurpose = "two_fa"
+	OTPTwoFA         OTPPurpose = "two_fa"
 )
 
 // OTPCode represents the otp_codes table.

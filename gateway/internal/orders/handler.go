@@ -100,12 +100,12 @@ func (h *Handler) CreateOrder(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		CustomerName    *string  `json:"customer_name"`
-		CustomerPhone   *string  `json:"customer_phone"`
-		CustomerAddress *string  `json:"customer_address"`
-		TotalAmount     float64  `json:"total_amount"`
-		PaymentMethod   *string  `json:"payment_method"`
-		Notes           *string  `json:"notes"`
+		CustomerName    *string `json:"customer_name"`
+		CustomerPhone   *string `json:"customer_phone"`
+		CustomerAddress *string `json:"customer_address"`
+		TotalAmount     float64 `json:"total_amount"`
+		PaymentMethod   *string `json:"payment_method"`
+		Notes           *string `json:"notes"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return response.BadRequest(c, "Invalid request body")

@@ -1,3 +1,6 @@
+//go:build ignore
+// +build ignore
+
 package main
 
 import (
@@ -20,7 +23,7 @@ func main() {
 	jsonData, _ := json.Marshal(payload)
 	req, _ := http.NewRequest("POST", baseURL+"/register", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
-	
+
 	client := &http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -28,7 +31,7 @@ func main() {
 		return
 	}
 	defer resp.Body.Close()
-	
+
 	body, _ := io.ReadAll(resp.Body)
 	fmt.Printf("Response Status: %d\n", resp.StatusCode)
 	fmt.Printf("Response Body: %s\n", string(body))
