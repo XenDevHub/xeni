@@ -17,7 +17,7 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
 
       - name: Login to GHCR (built-in token)
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
@@ -40,6 +40,17 @@ jobs:
           docker push "$REPO/frontend:latest"
           docker push "$REPO/frontend:$SHA"
 
+      - name: Build & push (Workers)
+        shell: bash
+        run: |
+          REPO="ghcr.io/${GITHUB_REPOSITORY,,}"
+          SHA="${GITHUB_SHA::7}"
+
+          echo "== Building Workers =="
+          docker build -t "$REPO/workers:latest" -t "$REPO/workers:$SHA" ./workers
+          docker push "$REPO/workers:latest"
+          docker push "$REPO/workers:$SHA"
+
   deploy:
     name: Deploy to Droplet (Docker Compose)
     needs: build_push
@@ -59,31 +70,37 @@ jobs:
             mkdir -p "${{ secrets.APP_DIR }}"
             cd "${{ secrets.APP_DIR }}"
 
-            echo "== Syncing Git Setup =="
+            echo "== Syncing Git =="
             if [ ! -d ".git" ]; then
               git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/XenDevHub/xeni.git .
             else
-              git stash
+              git stash || true
               git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/XenDevHub/xeni.git
               git pull origin main
             fi
             
-            # Inject Environment secrets securely
-            echo "${{ secrets.ENV_PRODUCTION }}" > .env
-            echo "${{ secrets.ENV_PRODUCTION }}" > ./gateway/.env
-            echo "${{ secrets.ENV_PRODUCTION }}" > ./frontend/.env
-            echo "${{ secrets.ENV_PRODUCTION }}" > ./workers/.env
+            echo "== Injecting Environment Variables =="
+            # Write the shared secret to all service env files
+            printf '%s' "${{ secrets.ENV_PRODUCTION }}" > .env
+            printf '%s' "${{ secrets.ENV_PRODUCTION }}" > ./gateway/.env
+            printf '%s' "${{ secrets.ENV_PRODUCTION }}" > ./frontend/.env
+            printf '%s' "${{ secrets.ENV_PRODUCTION }}" > ./workers/.env
 
-            echo "== Login GHCR (for private pull) =="
-            # Hardcoded user fallback, droplet relies on the physical token
+            echo "== Login to GHCR =="
             echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "xendevhub" --password-stdin
 
-            echo "== Pull & restart =="
+            echo "== Pulling latest images =="
             docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans
 
-            echo "== Health check (Gateway) =="
-            curl -fsS http://127.0.0.1:8080/health || echo "Gateway healthcheck bypassed"
+            echo "== Starting all services =="
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --remove-orphans --force-recreate
+
+            echo "== Waiting for gateway to be ready =="
+            sleep 10
+            curl -fsS http://127.0.0.1:8080/health || echo "WARNING: Gateway health check did not respond"
+
+            echo "== Running containers =="
+            docker compose -f docker-compose.yml -f docker-compose.prod.yml ps
 
             echo "== Cleanup old images =="
             docker image prune -f
