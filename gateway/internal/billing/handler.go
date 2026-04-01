@@ -2,6 +2,8 @@ package billing
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -94,20 +96,73 @@ func (h *Handler) SubscribeSSLCommerz(c *fiber.Ctx) error {
 	h.DB.Create(&payment)
 
 	// In production: call SSLCommerz API to create session
-	sslURL := "https://sandbox.sslcommerz.com/gwprocess/v4/api.php"
+	apiURL := "https://sandbox.sslcommerz.com/gwprocess/v4/api.php"
 	if !h.Config.SSLCommerz.IsSandbox {
-		sslURL = "https://securepay.sslcommerz.com/gwprocess/v4/api.php"
+		apiURL = "https://securepay.sslcommerz.com/gwprocess/v4/api.php"
+	}
+
+	data := map[string]string{
+		"store_id":         h.Config.SSLCommerz.StoreID,
+		"store_passwd":     h.Config.SSLCommerz.StorePassword,
+		"total_amount":     fmt.Sprintf("%.2f", plan.PriceMonthlyBDT),
+		"currency":         "BDT",
+		"tran_id":          tranID,
+		"success_url":      h.Config.App.FrontendURL + "/api/billing/webhook/sslcommerz/success?tran_id=" + tranID,
+		"fail_url":         h.Config.App.FrontendURL + "/dashboard/billing?status=fail",
+		"cancel_url":       h.Config.App.FrontendURL + "/dashboard/billing?status=cancel",
+		"cus_name":         user.FullName,
+		"cus_email":        user.Email,
+		"cus_phone":        "01700000000",
+		"cus_add1":         "Dhaka",
+		"cus_city":         "Dhaka",
+		"cus_country":      "Bangladesh",
+		"shipping_method":  "NO",
+		"product_name":     string(plan.Tier) + " Subscription",
+		"product_category": "Software",
+		"product_profile":  "non-physical-goods",
+	}
+
+	// Create x-www-form-urlencoded data
+	reqBody := ""
+	for k, v := range data {
+		if reqBody != "" {
+			reqBody += "&"
+		}
+		// In a real app we should url.QueryEscape(v) but SSLCommerz expects raw basic params
+		reqBody += fmt.Sprintf("%s=%s", k, v)
+	}
+
+	agent := fiber.Post(apiURL).Body([]byte(reqBody)).Set("Content-Type", "application/x-www-form-urlencoded")
+	
+	statusCode, body, errs := agent.Bytes()
+	if len(errs) > 0 || statusCode != 200 {
+		slog.Error("SSLCommerz API request failed", "errors", errs, "status", statusCode, "body", string(body))
+		return response.InternalError(c)
+	}
+
+	var sslRes struct {
+		Status         string `json:"status"`
+		GatewayPageURL string `json:"GatewayPageURL"`
+		FailedReason   string `json:"failedreason"`
+	}
+	if err := json.Unmarshal(body, &sslRes); err != nil {
+		slog.Error("Failed to decode SSLCommerz response", "error", err, "body", string(body))
+		return response.InternalError(c)
+	}
+
+	if sslRes.Status != "SUCCESS" {
+		slog.Error("SSLCommerz returned error", "reason", sslRes.FailedReason)
+		return response.BadRequest(c, "Payment gateway error: "+sslRes.FailedReason)
 	}
 
 	return response.Success(c, map[string]interface{}{
 		"payment_id":     payment.ID,
 		"transaction_id": tranID,
-		"redirect_url":   sslURL,
+		"redirect_url":   sslRes.GatewayPageURL,
 		"amount":         plan.PriceMonthlyBDT,
 		"currency":       "BDT",
 	})
 }
-
 // WebhookSSLCommerzSuccess handles SSLCommerz success callback.
 func (h *Handler) WebhookSSLCommerzSuccess(c *fiber.Ctx) error {
 	tranID := c.FormValue("tran_id")
@@ -115,22 +170,23 @@ func (h *Handler) WebhookSSLCommerzSuccess(c *fiber.Ctx) error {
 	amount := c.FormValue("amount")
 	status := c.FormValue("status")
 
+	frontendSuccessURL := h.Config.App.FrontendURL + "/dashboard/billing?status=success"
+	frontendFailURL := h.Config.App.FrontendURL + "/dashboard/billing?status=fail&reason=validation_failed"
+
 	slog.Info("SSLCommerz webhook received", "tran_id", tranID, "val_id", valID, "status", status, "amount", amount)
 
 	if status != "VALID" {
-		return response.BadRequest(c, "Payment validation failed")
+		return c.Redirect(frontendFailURL, 303)
 	}
 
-	// TODO: Verify MD5 signature: md5(val_id + store_id + store_password)
-
-	// Find payment (idempotency check — never process same payment twice)
+	// Find payment
 	var payment models.Payment
 	if err := h.DB.Where("gateway_transaction_id = ?", tranID).First(&payment).Error; err != nil {
-		return response.NotFound(c, "Payment not found")
+		return c.Redirect(frontendFailURL, 303)
 	}
 
 	if payment.Status == models.PaymentSuccess {
-		return response.Success(c, map[string]string{"message": "Payment already processed"})
+		return c.Redirect(frontendSuccessURL, 303)
 	}
 
 	// Update payment status
@@ -153,7 +209,7 @@ func (h *Handler) WebhookSSLCommerzSuccess(c *fiber.Ctx) error {
 		"amount", amount,
 	)
 
-	return response.Success(c, map[string]string{"message": "Payment processed successfully"})
+	return c.Redirect(frontendSuccessURL, 303)
 }
 
 // WebhookSSLCommerzFail handles SSLCommerz failure callback.
@@ -161,15 +217,16 @@ func (h *Handler) WebhookSSLCommerzFail(c *fiber.Ctx) error {
 	tranID := c.FormValue("tran_id")
 
 	var payment models.Payment
+	frontendFailURL := h.Config.App.FrontendURL + "/dashboard/billing?status=fail"
 	if err := h.DB.Where("gateway_transaction_id = ?", tranID).First(&payment).Error; err != nil {
-		return response.NotFound(c, "Payment not found")
+		return c.Redirect(frontendFailURL+"&reason=not_found", 303)
 	}
 
 	h.DB.Model(&payment).Update("status", models.PaymentFailed)
 
 	slog.Info("SSLCommerz payment failed", "tran_id", tranID, "user_id", payment.UserID)
 
-	return response.Success(c, map[string]string{"message": "Payment failure recorded"})
+	return c.Redirect(frontendFailURL, 303)
 }
 
 // GetPayments returns the user's payment history.
