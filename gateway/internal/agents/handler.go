@@ -112,6 +112,12 @@ func (h *Handler) RunAgent(c *fiber.Ctx) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
+	if h.RabbitMQ == nil {
+		slog.Error("RabbitMQ client is nil — cannot dispatch agent task", "task_id", taskID)
+		h.DB.Model(&task).Update("status", models.TaskFailed)
+		return c.Status(500).JSON(fiber.Map{"success": false, "error": "Agent processing service is temporarily unavailable. Please try again later."})
+	}
+
 	if err := h.RabbitMQ.PublishTask(ctx, msg); err != nil {
 		slog.Error("failed to publish task to RabbitMQ", "task_id", taskID, "error", err)
 		h.DB.Model(&task).Update("status", models.TaskFailed)
