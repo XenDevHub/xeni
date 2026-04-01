@@ -35,10 +35,9 @@ func Connect(cfg *config.DBConfig, env string) (*gorm.DB, error) {
 	slog.Info("connected to PostgreSQL")
 
 	// Auto-migrate in development (schema is managed via init.sql in production)
-	if env != "production" {
-		if err := autoMigrate(db); err != nil {
-			slog.Warn("auto-migration skipped (tables likely created by init.sql)", "error", err)
-		}
+	// Auto-migrate always to ensure schema synchronization
+	if err := autoMigrate(db); err != nil {
+		slog.Warn("auto-migration threw a warning, check schema state", "error", err)
 	}
 
 	return db, nil
