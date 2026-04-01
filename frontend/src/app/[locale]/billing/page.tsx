@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/auth';
 import api from '@/lib/api';
-import { Check, Sparkles, MessageCircle, ShoppingBag, Package, Wand2, BarChart3, Crown } from 'lucide-react';
+import { Check, Sparkles, MessageCircle, ShoppingBag, Package, Wand2, BarChart3, Crown, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Plan {
@@ -39,10 +40,30 @@ const tierFeatureLabels: Record<string, string[]> = {
 
 export default function BillingPage() {
   const t = useTranslations();
-  const { user, subscription } = useAuthStore();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { user, subscription, setSubscription } = useAuthStore();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
   const [loadingPlans, setLoadingPlans] = useState(true);
+
+  // Handle payment return status
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status === 'success') {
+      toast.success('Payment successful! Your plan has been upgraded. 🎉');
+      // Refresh subscription
+      api.get('/billing/subscription').then(res => {
+        if (res.data.data?.plan_tier) setSubscription(res.data.data);
+      }).catch(() => {});
+      // Redirect to dashboard after 3 seconds
+      setTimeout(() => router.push('/dashboard'), 3000);
+    } else if (status === 'fail') {
+      toast.error('Payment failed. Please try again.');
+    } else if (status === 'cancel') {
+      toast('Payment was cancelled.', { icon: '⚠️' });
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -50,12 +71,21 @@ export default function BillingPage() {
         const res = await api.get('/billing/plans');
         setPlans(res.data.data || []);
       } catch {
-        // Fallback to default plans if API fails
         setPlans([]);
       }
       setLoadingPlans(false);
     };
+    const fetchSubscription = async () => {
+      try {
+        const res = await api.get('/billing/subscription');
+        const sub = res.data.data;
+        if (sub && sub.plan_tier) {
+          setSubscription(sub);
+        }
+      } catch {}
+    };
     fetchPlans();
+    fetchSubscription();
   }, []);
 
   const handleSubscribe = async (tier: string) => {
@@ -101,8 +131,12 @@ export default function BillingPage() {
       ];
 
   return (
-    <div className="px-6 py-12" style={{ background: 'var(--bg-primary)' }}>
+    <div className="px-6 py-12" style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
       <div className="max-w-6xl mx-auto">
+        {/* Back to Dashboard */}
+        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 mb-8 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:bg-white/10" style={{ color: 'var(--text-muted)' }}>
+          <ArrowLeft className="w-4 h-4" /> Back to Dashboard
+        </button>
         <div className="text-center mb-12">
           <h1 className="text-4xl font-heading font-bold gradient-text mb-3">{t('nav.billing')}</h1>
           <p style={{ color: 'var(--text-muted)' }}>

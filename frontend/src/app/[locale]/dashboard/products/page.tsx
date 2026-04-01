@@ -170,10 +170,17 @@ export default function ProductsPage() {
                 products.map((p, i) => (
                   <motion.tr key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="border-b last:border-0 hover:bg-white/5 transition-colors" style={{ borderColor: 'var(--border-color)' }}>
                     <td className="px-4 py-3">
-                      <div>
-                        <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{p.name}</p>
-                        {p.name_bn && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{p.name_bn}</p>}
-                        {p.sku && <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>SKU: {p.sku}</p>}
+                      <div className="flex items-center gap-3">
+                        {p.images && p.images.length > 0 ? (
+                          <img src={p.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" loading="lazy" />
+                        ) : (
+                          <div className="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}><Package className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /></div>
+                        )}
+                        <div>
+                          <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{p.name}</p>
+                          {p.name_bn && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{p.name_bn}</p>}
+                          {p.sku && <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>SKU: {p.sku}</p>}
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 font-medium" style={{ color: 'var(--text-primary)' }}>৳{p.price.toLocaleString()}</td>

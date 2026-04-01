@@ -51,7 +51,22 @@ func (h *Handler) GetSubscription(c *fiber.Ctx) error {
 		return response.NotFound(c, "No active subscription found")
 	}
 
-	return response.Success(c, sub)
+	// Parse agents from plan features
+	var features struct {
+		Agents         []string `json:"agents"`
+		MaxTasksPerDay int      `json:"max_tasks_per_day"`
+		StorageMB      int      `json:"storage_mb"`
+	}
+	json.Unmarshal([]byte(sub.Plan.Features), &features)
+
+	return response.Success(c, map[string]interface{}{
+		"plan_tier":        sub.Plan.Tier,
+		"agents":           features.Agents,
+		"max_tasks_per_day": features.MaxTasksPerDay,
+		"storage_mb":       features.StorageMB,
+		"status":           sub.Status,
+		"current_period_end": sub.CurrentPeriodEnd,
+	})
 }
 
 // SubscribeSSLCommerz initiates SSLCommerz payment for subscription in BDT.
@@ -108,9 +123,9 @@ func (h *Handler) SubscribeSSLCommerz(c *fiber.Ctx) error {
 		"total_amount":     fmt.Sprintf("%.2f", plan.PriceMonthlyBDT),
 		"currency":         "BDT",
 		"tran_id":          tranID,
-		"success_url":      h.Config.App.FrontendURL + "/backend/api/billing/webhook/sslcommerz/success",
-		"fail_url":         h.Config.App.FrontendURL + "/backend/api/billing/webhook/sslcommerz/fail",
-		"cancel_url":       h.Config.App.FrontendURL + "/backend/api/billing/webhook/sslcommerz/cancel",
+		"success_url":      h.Config.App.FrontendURL + "/api/billing/webhook/sslcommerz/success",
+		"fail_url":         h.Config.App.FrontendURL + "/api/billing/webhook/sslcommerz/fail",
+		"cancel_url":       h.Config.App.FrontendURL + "/api/billing/webhook/sslcommerz/cancel",
 		"cus_name":         user.FullName,
 		"cus_email":        user.Email,
 		"cus_phone":        "01700000000",

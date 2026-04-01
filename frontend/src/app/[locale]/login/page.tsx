@@ -13,7 +13,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 export default function LoginPage() {
   const t = useTranslations();
   const router = useRouter();
-  const { setAuth } = useAuthStore();
+  const { setAuth, setSubscription } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [totpCode, setTotpCode] = useState('');
@@ -28,6 +28,8 @@ export default function LoginPage() {
       const res = await api.post('/auth/login', { email, password, totp_code: totpCode || undefined });
       const { access_token, refresh_token, user } = res.data.data;
       setAuth(user, access_token, refresh_token);
+      // Fetch subscription
+      try { const subRes = await api.get('/billing/subscription', { headers: { Authorization: `Bearer ${access_token}` } }); if (subRes.data.data?.plan_tier) setSubscription(subRes.data.data); } catch {}
       toast.success('Welcome back!');
       router.push('/dashboard');
     } catch (err: any) {
@@ -59,6 +61,8 @@ export default function LoginPage() {
 
         const { access_token, refresh_token, user } = res.data.data;
         setAuth(user, access_token, refresh_token);
+        // Fetch subscription
+        try { const subRes = await api.get('/billing/subscription', { headers: { Authorization: `Bearer ${access_token}` } }); if (subRes.data.data?.plan_tier) setSubscription(subRes.data.data); } catch {}
         toast.success('Successfully Authenticated with Google!');
         router.push('/dashboard');
       } catch (err: any) {
