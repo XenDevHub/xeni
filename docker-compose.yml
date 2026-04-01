@@ -150,6 +150,7 @@ services:
     env_file:
       - ./gateway/.env
     environment:
+      PORT: "8080"
       POSTGRES_URI: "postgres://xeni:xeni_secret@xeni-postgres:5432/xeni_db?sslmode=disable"
       REDIS_URI: "redis://:xeni_secret@xeni-redis:6379/0"
       RABBITMQ_URI: "amqp://xeni:xeni_secret@xeni-rabbitmq:5672/xeni_vhost"
