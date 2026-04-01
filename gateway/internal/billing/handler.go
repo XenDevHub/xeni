@@ -168,8 +168,8 @@ func (h *Handler) WebhookSSLCommerzSuccess(c *fiber.Ctx) error {
 	amount := c.FormValue("amount")
 	status := c.FormValue("status")
 
-	frontendSuccessURL := h.Config.App.FrontendURL + "/billing?status=success"
-	frontendFailURL := h.Config.App.FrontendURL + "/billing?status=fail&reason=validation_failed"
+	frontendSuccessURL := h.Config.App.FrontendURL + "/en/billing?status=success"
+	frontendFailURL := h.Config.App.FrontendURL + "/en/billing?status=fail&reason=validation_failed"
 
 	slog.Info("SSLCommerz webhook received", "tran_id", tranID, "val_id", valID, "status", status, "amount", amount)
 
@@ -215,7 +215,7 @@ func (h *Handler) WebhookSSLCommerzFail(c *fiber.Ctx) error {
 	tranID := c.FormValue("tran_id")
 
 	var payment models.Payment
-	frontendFailURL := h.Config.App.FrontendURL + "/billing?status=fail"
+	frontendFailURL := h.Config.App.FrontendURL + "/en/billing?status=fail"
 	if err := h.DB.Where("gateway_transaction_id = ?", tranID).First(&payment).Error; err != nil {
 		return c.Redirect(frontendFailURL+"&reason=not_found", 303)
 	}
@@ -229,7 +229,7 @@ func (h *Handler) WebhookSSLCommerzFail(c *fiber.Ctx) error {
 
 // WebhookSSLCommerzCancel handles SSLCommerz cancel callback.
 func (h *Handler) WebhookSSLCommerzCancel(c *fiber.Ctx) error {
-	frontendCancelURL := h.Config.App.FrontendURL + "/billing?status=cancel"
+	frontendCancelURL := h.Config.App.FrontendURL + "/en/billing?status=cancel"
 	slog.Info("SSLCommerz payment cancelled")
 	return c.Redirect(frontendCancelURL, 303)
 }
