@@ -36,20 +36,33 @@ export default function AnalyticsPage() {
 
         if (ordersRes.status === 'fulfilled') {
           const d = ordersRes.value.data?.data;
-          if (d) setOrderStats(d);
+          if (d && typeof d === 'object') {
+            setOrderStats({
+              total_orders: Number(d.total_orders) || 0,
+              pending_payment: Number(d.pending_payment) || 0,
+              pending_delivery: Number(d.pending_delivery) || 0,
+              total_revenue: Number(d.total_revenue) || 0,
+            });
+          }
         }
 
         if (convsRes.status === 'fulfilled') {
           const d = convsRes.value.data?.data;
-          if (d) setConvStats(d);
+          if (d && typeof d === 'object') {
+            setConvStats({
+              open_conversations: Number(d.open_conversations) || 0,
+              resolved_conversations: Number(d.resolved_conversations) || 0,
+              total_unread: Number(d.total_unread) || 0,
+            });
+          }
         }
 
         if (productsRes.status === 'fulfilled') {
-          const prods = productsRes.value.data?.data || [];
-          if (prods.length > 0) {
+          const prods = productsRes.value.data?.data;
+          if (Array.isArray(prods) && prods.length > 0) {
             const mapped = prods.slice(0, 5).map((p: any) => {
-              const sold = Math.max(0, (p.initial_stock || 0) - (p.current_stock || 0));
-              const revenue = sold * (p.price || 0);
+              const sold = Math.max(0, (Number(p.initial_stock) || 0) - (Number(p.current_stock) || 0));
+              const revenue = sold * (Number(p.price) || 0);
               return { name: p.name || 'Unknown', units: sold, revenue, pct: 0 };
             });
             const maxRevenue = Math.max(...mapped.map((p: any) => p.revenue), 1);
@@ -65,17 +78,17 @@ export default function AnalyticsPage() {
     fetchAll();
   }, []);
 
-  const avgOrderValue = orderStats.total_orders > 0
-    ? Math.round(orderStats.total_revenue / orderStats.total_orders)
+  const avgOrderValue = (orderStats.total_orders || 0) > 0
+    ? Math.round((orderStats.total_revenue || 0) / orderStats.total_orders)
     : 0;
 
-  const totalConversations = convStats.open_conversations + convStats.resolved_conversations;
+  const totalConversations = (convStats.open_conversations || 0) + (convStats.resolved_conversations || 0);
 
   const recommendations = orderStats.total_orders > 0 ? [
-    { icon: '🎯', text: `You have ${orderStats.total_orders} orders with ৳${orderStats.total_revenue.toLocaleString()} in revenue — keep the momentum going!` },
-    { icon: '📦', text: orderStats.pending_delivery > 0 ? `${orderStats.pending_delivery} orders are awaiting delivery — consider using auto-courier booking.` : 'All orders are shipped! Great job.' },
+    { icon: '🎯', text: `You have ${orderStats.total_orders || 0} orders with ৳${(orderStats.total_revenue || 0).toLocaleString()} in revenue — keep the momentum going!` },
+    { icon: '📦', text: (orderStats.pending_delivery || 0) > 0 ? `${orderStats.pending_delivery} orders are awaiting delivery — consider using auto-courier booking.` : 'All orders are shipped! Great job.' },
     { icon: '💰', text: avgOrderValue > 0 ? `Average order value is ৳${avgOrderValue} — consider bundle pricing to increase it.` : 'Start tracking order values for insights.' },
-    { icon: '💬', text: convStats.total_unread > 0 ? `${convStats.total_unread} unread messages — enable the Conversation Agent for 24/7 auto-reply.` : 'All messages are read! Conversation Agent is keeping up.' },
+    { icon: '💬', text: (convStats.total_unread || 0) > 0 ? `${convStats.total_unread} unread messages — enable the Conversation Agent for 24/7 auto-reply.` : 'All messages are read! Conversation Agent is keeping up.' },
     { icon: '📢', text: 'Use the Creative Agent to generate promotional content for your top products.' },
   ] : [
     { icon: '🚀', text: 'Connect your Facebook Page to start receiving Messenger orders.' },
@@ -123,10 +136,10 @@ export default function AnalyticsPage() {
       {/* Revenue Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Total Revenue', value: `৳${orderStats.total_revenue.toLocaleString()}`, icon: TrendingUp, color: 'from-emerald-500 to-green-600' },
-          { label: 'Total Orders', value: orderStats.total_orders.toString(), icon: ShoppingBag, color: 'from-blue-500 to-indigo-600' },
-          { label: 'Avg Order Value', value: `৳${avgOrderValue.toLocaleString()}`, icon: BarChart3, color: 'from-violet-500 to-purple-600' },
-          { label: 'Conversations', value: totalConversations.toString(), icon: MessageCircle, color: 'from-amber-500 to-orange-600' },
+          { label: 'Total Revenue', value: `৳${(orderStats.total_revenue || 0).toLocaleString()}`, icon: TrendingUp, color: 'from-emerald-500 to-green-600' },
+          { label: 'Total Orders', value: (orderStats.total_orders || 0).toString(), icon: ShoppingBag, color: 'from-blue-500 to-indigo-600' },
+          { label: 'Avg Order Value', value: `৳${(avgOrderValue || 0).toLocaleString()}`, icon: BarChart3, color: 'from-violet-500 to-purple-600' },
+          { label: 'Conversations', value: (totalConversations || 0).toString(), icon: MessageCircle, color: 'from-amber-500 to-orange-600' },
         ].map((card, i) => (
           <motion.div key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="glass-card p-5">
             <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${card.color} flex items-center justify-center mb-3`}>
@@ -151,7 +164,7 @@ export default function AnalyticsPage() {
               <div key={p.name}>
                 <div className="flex items-center justify-between text-sm mb-1">
                   <span style={{ color: 'var(--text-primary)' }}>{i + 1}. {p.name}</span>
-                  <span className="font-medium" style={{ color: 'var(--text-primary)' }}>৳{p.revenue.toLocaleString()}</span>
+                  <span className="font-medium" style={{ color: 'var(--text-primary)' }}>৳{(p.revenue || 0).toLocaleString()}</span>
                 </div>
                 <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-card)' }}>
                   <motion.div
