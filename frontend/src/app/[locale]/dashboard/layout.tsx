@@ -128,7 +128,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
           {!collapsed && (
             <div className="flex items-center gap-1">
-              <button onClick={toggleTheme} className="p-1.5 rounded-lg hover:bg-white/5 transition-all">
+              <Link href={pathname} locale={locale === 'en' ? 'bn' : 'en'} title="Switch Language" className="p-1.5 rounded-lg hover:bg-white/5 transition-all text-xs font-bold text-primary flex items-center justify-center min-w-[28px]">
+                {locale === 'en' ? 'বাং' : 'EN'}
+              </Link>
+              <button onClick={toggleTheme} title="Toggle Theme" className="p-1.5 rounded-lg hover:bg-white/5 transition-all">
                 {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-indigo-500" />}
               </button>
               <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-danger/10 transition-all text-danger/60 hover:text-danger">
