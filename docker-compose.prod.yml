@@ -3,11 +3,6 @@
 # Usage (Automated in Actions): docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 
 services:
-  # Enable nginx in production (no profile restriction)
-  nginx:
-    profiles: []
-    restart: always
-
   gateway:
     image: ghcr.io/xendevhub/xeni/gateway:latest
     build: null
