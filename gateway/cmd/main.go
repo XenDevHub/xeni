@@ -16,6 +16,7 @@ import (
 	"github.com/xeni-ai/gateway/internal/database"
 	"github.com/xeni-ai/gateway/internal/rabbitmq"
 	"github.com/xeni-ai/gateway/internal/router"
+	"github.com/xeni-ai/gateway/internal/storage"
 	"github.com/xeni-ai/gateway/internal/websocket"
 	jwtPkg "github.com/xeni-ai/gateway/pkg/jwt"
 	"github.com/xeni-ai/gateway/pkg/logger"
@@ -68,6 +69,12 @@ func main() {
 	// Initialize WebSocket hub
 	wsHub := websocket.NewHub()
 
+	// Initialize Spaces client
+	spacesClient, err := storage.ConnectSpaces(cfg.Spaces)
+	if err != nil {
+		slog.Warn("failed to connect to DO Spaces — file uploads disabled", "error", err)
+	}
+
 	// Initialize agent handler
 	agentHandler := agents.NewHandler(db, redisClient, rmqClient, wsHub)
 
@@ -87,7 +94,7 @@ func main() {
 	})
 
 	// Setup routes
-	router.Setup(app, cfg, db, redisClient, jwtManager, wsHub, agentHandler, rmqClient)
+	router.Setup(app, cfg, db, redisClient, jwtManager, wsHub, agentHandler, rmqClient, spacesClient)
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)

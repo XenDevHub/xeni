@@ -22,6 +22,7 @@ type Shop struct {
 	NagadMerchantNumber *string   `gorm:"size:20" json:"nagad_merchant_number"`
 	AutoReplyEnabled    bool      `gorm:"default:true;not null" json:"auto_reply_enabled"`
 	AutoOrderEnabled    bool      `gorm:"default:true;not null" json:"auto_order_enabled"`
+	Integrations        JSON      `gorm:"type:jsonb;default:'{}'" json:"integrations"`
 	CreatedAt           time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt           time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 

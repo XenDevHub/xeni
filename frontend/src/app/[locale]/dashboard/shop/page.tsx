@@ -17,6 +17,7 @@ interface Shop {
   nagad_merchant_number: string | null;
   auto_reply_enabled: boolean;
   auto_order_enabled: boolean;
+  integrations?: Record<string, string>;
 }
 
 export default function ShopPage() {
@@ -33,6 +34,12 @@ export default function ShopPage() {
     nagad_merchant_number: '',
     auto_reply_enabled: true,
     auto_order_enabled: true,
+    integrations: {
+      pathao_client_id: '',
+      pathao_client_secret: '',
+      steadfast_api_key: '',
+      steadfast_secret_key: ''
+    }
   });
 
   useEffect(() => {
@@ -50,6 +57,12 @@ export default function ShopPage() {
           nagad_merchant_number: s.nagad_merchant_number || '',
           auto_reply_enabled: s.auto_reply_enabled ?? true,
           auto_order_enabled: s.auto_order_enabled ?? true,
+          integrations: {
+            pathao_client_id: s.integrations?.pathao_client_id || '',
+            pathao_client_secret: s.integrations?.pathao_client_secret || '',
+            steadfast_api_key: s.integrations?.steadfast_api_key || '',
+            steadfast_secret_key: s.integrations?.steadfast_secret_key || ''
+          }
         });
       } catch {
         setIsNew(true);
@@ -177,6 +190,44 @@ export default function ShopPage() {
               <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.auto_order_enabled ? 'translate-x-5' : ''}`} />
             </div>
           </label>
+        </div>
+
+        {/* Separator for Integrations */}
+        <div className="pt-6 border-t" style={{ borderColor: 'var(--border-color)' }}>
+          <h2 className="text-lg font-heading font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Merchant Courier API Keys</h2>
+          <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>Configure your custom connection keys if you want the AI to handle courier bookings under your own corporate account.</p>
+
+          <div className="space-y-6">
+            {/* Pathao API block */}
+            <div className="p-4 rounded-xl shadow-sm border" style={{ borderColor: 'var(--border-color)', background: 'var(--bg-primary)' }}>
+              <h3 className="font-semibold mb-3 flex items-center gap-2 text-primary">Pathao Integration</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Client ID</label>
+                   <input className="input-field" placeholder="Client ID" value={form.integrations.pathao_client_id} onChange={e => setForm({ ...form, integrations: { ...form.integrations, pathao_client_id: e.target.value } })} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Client Secret</label>
+                   <input className="input-field" type="password" placeholder="Client Secret" value={form.integrations.pathao_client_secret} onChange={e => setForm({ ...form, integrations: { ...form.integrations, pathao_client_secret: e.target.value } })} />
+                </div>
+              </div>
+            </div>
+
+            {/* Steadfast API block */}
+            <div className="p-4 rounded-xl shadow-sm border" style={{ borderColor: 'var(--border-color)', background: 'var(--bg-primary)' }}>
+              <h3 className="font-semibold mb-3 flex items-center gap-2 text-primary">Steadfast Integration</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>API Key</label>
+                   <input className="input-field" placeholder="API Key" value={form.integrations.steadfast_api_key} onChange={e => setForm({ ...form, integrations: { ...form.integrations, steadfast_api_key: e.target.value } })} />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Secret Key</label>
+                   <input className="input-field" type="password" placeholder="Secret Key" value={form.integrations.steadfast_secret_key} onChange={e => setForm({ ...form, integrations: { ...form.integrations, steadfast_secret_key: e.target.value } })} />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Save */}

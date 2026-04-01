@@ -6,17 +6,17 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/xeni-ai/gateway/internal/models"
+	"github.com/xeni-ai/gateway/internal/storage"
 	"github.com/xeni-ai/gateway/pkg/response"
 )
 
-// Handler holds product dependencies.
 type Handler struct {
-	DB *gorm.DB
+	DB     *gorm.DB
+	Spaces *storage.SpacesClient
 }
 
-// NewHandler creates a new products handler.
-func NewHandler(db *gorm.DB) *Handler {
-	return &Handler{DB: db}
+func NewHandler(db *gorm.DB, spaces *storage.SpacesClient) *Handler {
+	return &Handler{DB: db, Spaces: spaces}
 }
 
 func (h *Handler) getUserShop(userID string) (*models.Shop, error) {
@@ -24,6 +24,35 @@ func (h *Handler) getUserShop(userID string) (*models.Shop, error) {
 	var shop models.Shop
 	err := h.DB.Where("user_id = ?", uid).First(&shop).Error
 	return &shop, err
+}
+
+// UploadImage handles POST /api/products/upload.
+func (h *Handler) UploadImage(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.BadRequest(c, "Create a shop first")
+	}
+
+	file, err := c.FormFile("image")
+	if err != nil {
+		return response.BadRequest(c, "No image uploaded")
+	}
+
+	if h.Spaces == nil {
+		return response.InternalError(c)
+	}
+
+	// S3 path logic: "products/{shop_id}/{uuid}_{filename}"
+	path := "products/" + shop.ID.String() + "/" + uuid.New().String() + "_" + file.Filename
+	url, err := h.Spaces.UploadFile(c.Context(), file, path)
+	if err != nil {
+		return response.InternalError(c)
+	}
+
+	return response.Success(c, map[string]string{
+		"url": url,
+	})
 }
 
 // CreateProduct handles POST /api/products.

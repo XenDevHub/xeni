@@ -16,6 +16,7 @@ interface Product {
   low_stock_threshold: number;
   is_active: boolean;
   is_out_of_stock: boolean;
+  images: string[];
   created_at: string;
 }
 
@@ -25,7 +26,8 @@ export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: '', name_bn: '', price: 0, sku: '', initial_stock: 0, low_stock_threshold: 5 });
+  const [form, setForm] = useState({ name: '', name_bn: '', price: 0, sku: '', initial_stock: 0, low_stock_threshold: 5, images: [] as string[] });
+  const [uploading, setUploading] = useState(false);
 
   const fetchProducts = async () => {
     try {
@@ -41,21 +43,41 @@ export default function ProductsPage() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: '', name_bn: '', price: 0, sku: '', initial_stock: 0, low_stock_threshold: 5 });
+    setForm({ name: '', name_bn: '', price: 0, sku: '', initial_stock: 0, low_stock_threshold: 5, images: [] });
     setShowModal(true);
   };
 
   const openEdit = (p: Product) => {
     setEditing(p);
-    setForm({ name: p.name, name_bn: p.name_bn || '', price: p.price, sku: p.sku || '', initial_stock: p.current_stock, low_stock_threshold: p.low_stock_threshold });
+    setForm({ name: p.name, name_bn: p.name_bn || '', price: p.price, sku: p.sku || '', initial_stock: p.current_stock, low_stock_threshold: p.low_stock_threshold, images: p.images || [] });
     setShowModal(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    try {
+      const res = await api.post('/products/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setForm(prev => ({ ...prev, images: [...prev.images, res.data.data.url] }));
+      toast.success('Image uploaded');
+    } catch {
+      toast.error('Failed to upload image');
+    }
+    setUploading(false);
   };
 
   const handleSave = async () => {
     if (!form.name.trim()) { toast.error('Name is required'); return; }
     try {
       if (editing) {
-        await api.put(`/products/${editing.id}`, { name: form.name, name_bn: form.name_bn || null, price: form.price, sku: form.sku || null, current_stock: form.initial_stock, low_stock_threshold: form.low_stock_threshold });
+        await api.put(`/products/${editing.id}`, { name: form.name, name_bn: form.name_bn || null, price: form.price, sku: form.sku || null, current_stock: form.initial_stock, low_stock_threshold: form.low_stock_threshold, images: form.images });
         toast.success('Product updated');
       } else {
         await api.post('/products', form);
@@ -198,6 +220,16 @@ export default function ProductsPage() {
               <div className="grid grid-cols-2 gap-3">
                 <input className="input-field" type="number" placeholder="Stock" value={form.initial_stock || ''} onChange={e => setForm({ ...form, initial_stock: Number(e.target.value) })} />
                 <input className="input-field" type="number" placeholder="Low stock at" value={form.low_stock_threshold || ''} onChange={e => setForm({ ...form, low_stock_threshold: Number(e.target.value) })} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Product Images</label>
+                <div className="flex gap-2 flex-wrap mb-2">
+                  {form.images.map((img, idx) => (
+                     <img key={idx} src={img} alt="Product preview" className="w-16 h-16 object-cover rounded-lg shadow-sm border" style={{ borderColor: 'var(--border-color)' }} />
+                  ))}
+                </div>
+                <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all cursor-pointer" style={{ color: 'var(--text-muted)' }} />
+                {uploading && <span className="text-xs text-primary animate-pulse w-full block mt-1">Uploading image to DigitalOcean Spaces...</span>}
               </div>
               <button onClick={handleSave} className="btn-primary w-full">{editing ? 'Save Changes' : 'Create Product'}</button>
             </motion.div>

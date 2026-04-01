@@ -22,6 +22,16 @@ type Config struct {
 	FCM        FCMConfig
 	RateLimit  RateLimitConfig
 	PageToken  PageTokenConfig
+	Spaces     SpacesConfig
+}
+
+type SpacesConfig struct {
+	Key      string
+	Secret   string
+	Region   string
+	Bucket   string
+	Endpoint string
+	CDNBase  string
 }
 
 type AppConfig struct {
@@ -159,6 +169,14 @@ func Load() (*Config, error) {
 		},
 		PageToken: PageTokenConfig{
 			EncryptionKey: getEnv("PAGE_TOKEN_ENCRYPTION_KEY", ""),
+		},
+		Spaces: SpacesConfig{
+			Key:      getEnv("DO_SPACES_KEY", ""),
+			Secret:   getEnv("DO_SPACES_SECRET", ""),
+			Region:   getEnv("DO_SPACES_REGION", ""),
+			Bucket:   getEnv("DO_SPACES_BUCKET", ""),
+			Endpoint: getEnv("DO_SPACES_ENDPOINT", ""),
+			CDNBase:  getEnv("DO_SPACES_CDN_BASE", ""),
 		},
 	}, nil
 }

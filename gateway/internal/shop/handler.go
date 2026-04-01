@@ -99,10 +99,11 @@ func (h *Handler) UpdateMyShop(c *fiber.Ctx) error {
 		ShopLogoURL         *string `json:"shop_logo_url"`
 		PreferredLanguage   *string `json:"preferred_language"`
 		CourierPreference   *string `json:"courier_preference"`
-		BkashMerchantNumber *string `json:"bkash_merchant_number"`
-		NagadMerchantNumber *string `json:"nagad_merchant_number"`
-		AutoReplyEnabled    *bool   `json:"auto_reply_enabled"`
-		AutoOrderEnabled    *bool   `json:"auto_order_enabled"`
+		BkashMerchantNumber *string                 `json:"bkash_merchant_number"`
+		NagadMerchantNumber *string                 `json:"nagad_merchant_number"`
+		AutoReplyEnabled    *bool                   `json:"auto_reply_enabled"`
+		AutoOrderEnabled    *bool                   `json:"auto_order_enabled"`
+		Integrations        *map[string]interface{} `json:"integrations"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return response.BadRequest(c, "Invalid request body")
@@ -135,6 +136,9 @@ func (h *Handler) UpdateMyShop(c *fiber.Ctx) error {
 	}
 	if req.AutoOrderEnabled != nil {
 		updates["auto_order_enabled"] = *req.AutoOrderEnabled
+	}
+	if req.Integrations != nil {
+		updates["integrations"] = *req.Integrations
 	}
 
 	if len(updates) > 0 {

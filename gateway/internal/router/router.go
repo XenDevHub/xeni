@@ -24,6 +24,7 @@ import (
 	"github.com/xeni-ai/gateway/internal/products"
 	"github.com/xeni-ai/gateway/internal/rabbitmq"
 	"github.com/xeni-ai/gateway/internal/shop"
+	"github.com/xeni-ai/gateway/internal/storage"
 	"github.com/xeni-ai/gateway/internal/user"
 	ws "github.com/xeni-ai/gateway/internal/websocket"
 	"github.com/xeni-ai/gateway/pkg/email"
@@ -42,6 +43,7 @@ func Setup(
 	wsHub *ws.Hub,
 	agentHandler *agents.Handler,
 	rmqClient *rabbitmq.Client,
+	spacesClient *storage.SpacesClient,
 ) {
 	// ── Global Middleware ──
 	app.Use(recover.New())
@@ -122,8 +124,9 @@ func Setup(
 	pagesGroup.Delete("/:id", pagesHandler.DisconnectPage)
 
 	// ── Product Routes ──
-	productsHandler := products.NewHandler(db)
+	productsHandler := products.NewHandler(db, spacesClient)
 	productsGroup := api.Group("/products", middleware.AuthMiddleware(jwtManager, redis), apiRateLimit)
+	productsGroup.Post("/upload", productsHandler.UploadImage)
 	productsGroup.Post("", productsHandler.CreateProduct)
 	productsGroup.Get("", productsHandler.ListProducts)
 	productsGroup.Get("/:id", productsHandler.GetProduct)
