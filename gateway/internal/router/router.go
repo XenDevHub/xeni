@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 
 	"github.com/xeni-ai/gateway/internal/admin"
 	"github.com/xeni-ai/gateway/internal/agents"
@@ -43,6 +44,7 @@ func Setup(
 	rmqClient *rabbitmq.Client,
 ) {
 	// ── Global Middleware ──
+	app.Use(recover.New())
 	app.Use(fiberlogger.New(fiberlogger.Config{
 		Format: "${time} | ${status} | ${latency} | ${ip} | ${method} ${path}\n",
 	}))
