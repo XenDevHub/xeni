@@ -17,7 +17,8 @@ FROM base AS builder
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
-RUN npm run build
+RUN echo "DEBUG BLASTER: Client ID is => ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-MASKED_OR_MISSING}" && \
+    npm run build
 
 # Production
 FROM base AS production

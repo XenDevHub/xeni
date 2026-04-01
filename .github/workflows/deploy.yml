@@ -36,6 +36,19 @@ jobs:
 
           echo "== Building Frontend =="
           echo "${{ secrets.ENV_PRODUCTION }}" | tr -d '\r' | grep '^NEXT_PUBLIC_' > ./frontend/.env.production
+          
+          # HARD INJECTION: Extract and forcefully replace process.env instances in the source code
+          # This fully bypasses Next.js's notoriously flaky build-time environment variable hydration.
+          cd frontend
+          CLIENT_ID=$(grep '^NEXT_PUBLIC_GOOGLE_CLIENT_ID=' .env.production | cut -d'=' -f2)
+          API_URL=$(grep '^NEXT_PUBLIC_API_URL=' .env.production | cut -d'=' -f2)
+          WS_URL=$(grep '^NEXT_PUBLIC_WS_URL=' .env.production | cut -d'=' -f2)
+          
+          echo "Injecting extracted client ID..."
+          sed -i "s|process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID|'$CLIENT_ID'|g" ./src/components/GoogleProvider.tsx || true
+          sed -i "s|process.env.NEXT_PUBLIC_API_URL|'$API_URL'|g" ./src/lib/api.ts || true
+          cd ..
+          
           docker build --target production -t "$REPO/frontend:latest" -t "$REPO/frontend:$SHA" ./frontend
             
           docker push "$REPO/frontend:latest"
