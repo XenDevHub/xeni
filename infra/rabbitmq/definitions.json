@@ -1,27 +1,8 @@
 {
   "rabbit_version": "3.13.0",
-  "users": [
-    {
-      "name": "xeni",
-      "password_hash": "2f24/16+2wPjTxhF0bIu7K7QoY0DkMw6LOMC1wR7qWpWzV0K",
-      "hashing_algorithm": "rabbit_password_hashing_sha256",
-      "tags": ["administrator"]
-    }
-  ],
-  "vhosts": [
-    {
-      "name": "xeni_vhost"
-    }
-  ],
-  "permissions": [
-    {
-      "user": "xeni",
-      "vhost": "xeni_vhost",
-      "configure": ".*",
-      "write": ".*",
-      "read": ".*"
-    }
-  ],
+  "users": [],
+  "vhosts": [],
+  "permissions": [],
   "exchanges": [
     {
       "name": "xeni.tasks",
