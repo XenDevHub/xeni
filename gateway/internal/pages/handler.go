@@ -1,7 +1,12 @@
 package pages
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"log/slog"
+	"net/http"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -112,3 +117,71 @@ func (h *Handler) DisconnectPage(c *fiber.Ctx) error {
 
 	return response.Success(c, map[string]string{"message": "Page disconnected successfully"})
 }
+
+// PublishPost handles POST /api/pages/publish — publish content to a Facebook Page.
+func (h *Handler) PublishPost(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	uid, _ := uuid.Parse(userID)
+
+	var shop models.Shop
+	if err := h.DB.Where("user_id = ?", uid).First(&shop).Error; err != nil {
+		return response.NotFound(c, "Shop not found")
+	}
+
+	var req struct {
+		PageID   string `json:"page_id"`
+		Message  string `json:"message"`
+		ImageURL string `json:"image_url"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body")
+	}
+	if req.PageID == "" || (req.Message == "" && req.ImageURL == "") {
+		return response.BadRequest(c, "page_id and either message or image_url are required")
+	}
+
+	// Verify the page belongs to the shop and get its access token
+	var page models.ConnectedPage
+	if err := h.DB.Where("page_id = ? AND shop_id = ?", req.PageID, shop.ID).First(&page).Error; err != nil {
+		return response.Forbidden(c, "Page not found or not connected to your shop")
+	}
+
+	// Publish to Facebook Graph API
+	graphURL := fmt.Sprintf("https://graph.facebook.com/v19.0/%s", page.PageID)
+	
+	payload := map[string]string{
+		"access_token": page.PageAccessToken,
+	}
+	
+	if req.Message != "" {
+		payload["message"] = req.Message
+	}
+	if req.ImageURL != "" {
+		payload["url"] = req.ImageURL
+		graphURL += "/photos" // POST to /photos for images
+	} else {
+		graphURL += "/feed" // POST to /feed for text only
+	}
+
+	jsonValue, _ := json.Marshal(payload)
+	
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Post(graphURL, "application/json", bytes.NewBuffer(jsonValue))
+	if err != nil {
+		slog.Error("failed to publish to facebook", "error", err)
+		return response.InternalError(c)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 400 {
+		var fbError map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&fbError)
+		slog.Error("facebook graph api error", "response", fbError, "status", resp.StatusCode)
+		return response.InternalError(c)
+	}
+
+	return response.Success(c, map[string]string{
+		"message": "Successfully published to Facebook Page",
+	})
+}
+

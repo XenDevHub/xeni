@@ -122,6 +122,7 @@ func Setup(
 	pagesGroup.Post("/connect", pagesHandler.ConnectPage)
 	pagesGroup.Get("", pagesHandler.ListPages)
 	pagesGroup.Delete("/:id", pagesHandler.DisconnectPage)
+	pagesGroup.Post("/publish", pagesHandler.PublishPost)
 
 	// ── Product Routes ──
 	productsHandler := products.NewHandler(db, spacesClient)

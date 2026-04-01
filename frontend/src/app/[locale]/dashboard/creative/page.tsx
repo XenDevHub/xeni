@@ -67,6 +67,41 @@ export default function CreativePage() {
     }
   };
 
+  const [publishing, setPublishing] = useState(false);
+
+  const handlePublish = async () => {
+    if (!result) return;
+    setPublishing(true);
+    try {
+      // 1. Fetch connected pages
+      const pagesRes = await api.get('/pages');
+      const pages = pagesRes.data.data;
+      
+      if (!pages || pages.length === 0) {
+        toast.error('No Facebook page connected. Please connect a page in Setup Guide first.');
+        setPublishing(false);
+        return;
+      }
+      
+      // 2. Publish to the first connected page
+      const pageId = pages[0].page_id;
+      const payload: any = { page_id: pageId };
+      
+      if (result.type === 'caption') {
+        payload.message = result.content;
+      } else {
+        payload.image_url = result.content;
+      }
+      
+      await api.post('/pages/publish', payload);
+      toast.success(`Successfully published to ${pages[0].page_name}! 🎉`);
+    } catch (e: any) {
+      toast.error(e.response?.data?.error || 'Failed to publish to Facebook. Please try again.');
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
       <div className="mb-8 text-center">
@@ -145,8 +180,13 @@ export default function CreativePage() {
               >
                 Copy to Clipboard
               </button>
-              <button className="btn-primary flex-1 py-2 text-sm flex items-center justify-center gap-2" onClick={() => toast.success('Sent to Auto-Poster agent')}>
-                <Send className="w-4 h-4" /> Publish Now
+              <button 
+                className="btn-primary flex-1 py-2 text-sm flex items-center justify-center gap-2" 
+                onClick={handlePublish}
+                disabled={publishing}
+              >
+                {publishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} 
+                {publishing ? 'Publishing...' : 'Publish to Facebook'}
               </button>
             </div>
           </motion.div>
