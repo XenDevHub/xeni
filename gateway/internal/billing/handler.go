@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/url"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -107,9 +108,9 @@ func (h *Handler) SubscribeSSLCommerz(c *fiber.Ctx) error {
 		"total_amount":     fmt.Sprintf("%.2f", plan.PriceMonthlyBDT),
 		"currency":         "BDT",
 		"tran_id":          tranID,
-		"success_url":      h.Config.App.FrontendURL + "/api/billing/webhook/sslcommerz/success?tran_id=" + tranID,
-		"fail_url":         h.Config.App.FrontendURL + "/dashboard/billing?status=fail",
-		"cancel_url":       h.Config.App.FrontendURL + "/dashboard/billing?status=cancel",
+		"success_url":      h.Config.App.FrontendURL + "/backend/api/billing/webhook/sslcommerz/success",
+		"fail_url":         h.Config.App.FrontendURL + "/backend/api/billing/webhook/sslcommerz/fail",
+		"cancel_url":       h.Config.App.FrontendURL + "/backend/api/billing/webhook/sslcommerz/cancel",
 		"cus_name":         user.FullName,
 		"cus_email":        user.Email,
 		"cus_phone":        "01700000000",
@@ -122,15 +123,12 @@ func (h *Handler) SubscribeSSLCommerz(c *fiber.Ctx) error {
 		"product_profile":  "non-physical-goods",
 	}
 
-	// Create x-www-form-urlencoded data
-	reqBody := ""
+	// Create x-www-form-urlencoded data (must be URL-encoded)
+	formValues := url.Values{}
 	for k, v := range data {
-		if reqBody != "" {
-			reqBody += "&"
-		}
-		// In a real app we should url.QueryEscape(v) but SSLCommerz expects raw basic params
-		reqBody += fmt.Sprintf("%s=%s", k, v)
+		formValues.Set(k, v)
 	}
+	reqBody := formValues.Encode()
 
 	agent := fiber.Post(apiURL).Body([]byte(reqBody)).Set("Content-Type", "application/x-www-form-urlencoded")
 	
@@ -227,6 +225,13 @@ func (h *Handler) WebhookSSLCommerzFail(c *fiber.Ctx) error {
 	slog.Info("SSLCommerz payment failed", "tran_id", tranID, "user_id", payment.UserID)
 
 	return c.Redirect(frontendFailURL, 303)
+}
+
+// WebhookSSLCommerzCancel handles SSLCommerz cancel callback.
+func (h *Handler) WebhookSSLCommerzCancel(c *fiber.Ctx) error {
+	frontendCancelURL := h.Config.App.FrontendURL + "/dashboard/billing?status=cancel"
+	slog.Info("SSLCommerz payment cancelled")
+	return c.Redirect(frontendCancelURL, 303)
 }
 
 // GetPayments returns the user's payment history.
