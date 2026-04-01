@@ -2,17 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShoppingBag, DollarSign, MessageCircle, AlertTriangle, TrendingUp, Package, ArrowUpRight } from 'lucide-react';
+import { ShoppingBag, DollarSign, MessageCircle, AlertTriangle, TrendingUp, Package, ArrowUpRight, Wand2, BarChart3, Settings } from 'lucide-react';
 import api from '@/lib/api';
 import { Link } from '@/i18n/routing';
+import { useAuthStore } from '@/store/auth';
 
 interface Stats {
   orders: { total_orders: number; pending_payment: number; pending_delivery: number; total_revenue: number };
   conversations: { open_conversations: number; resolved_conversations: number; total_unread: number };
-  products: { total: number; low_stock: number };
 }
 
 export default function DashboardOverview() {
+  const { subscription } = useAuthStore();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -26,13 +27,11 @@ export default function DashboardOverview() {
         setStats({
           orders: ordersRes.status === 'fulfilled' ? ordersRes.value.data.data : { total_orders: 0, pending_payment: 0, pending_delivery: 0, total_revenue: 0 },
           conversations: convsRes.status === 'fulfilled' ? convsRes.value.data.data : { open_conversations: 0, resolved_conversations: 0, total_unread: 0 },
-          products: { total: 0, low_stock: 0 },
         });
       } catch {
         setStats({
-          orders: { total_orders: 47, pending_payment: 5, pending_delivery: 12, total_revenue: 185000 },
-          conversations: { open_conversations: 23, resolved_conversations: 156, total_unread: 8 },
-          products: { total: 34, low_stock: 3 },
+          orders: { total_orders: 0, pending_payment: 0, pending_delivery: 0, total_revenue: 0 },
+          conversations: { open_conversations: 0, resolved_conversations: 0, total_unread: 0 },
         });
       }
       setLoading(false);
@@ -41,17 +40,29 @@ export default function DashboardOverview() {
   }, []);
 
   const statCards = [
-    { title: 'Total Revenue', value: `৳${(stats?.orders.total_revenue || 0).toLocaleString()}`, icon: DollarSign, color: 'from-emerald-500 to-green-600', change: '+18.5%', href: '/dashboard/analytics' },
-    { title: 'Total Orders', value: stats?.orders.total_orders || 0, icon: ShoppingBag, color: 'from-blue-500 to-indigo-600', change: '+12%', href: '/dashboard/orders' },
-    { title: 'Active Conversations', value: stats?.conversations.open_conversations || 0, icon: MessageCircle, color: 'from-violet-500 to-purple-600', badge: stats?.conversations.total_unread, href: '/dashboard/conversations' },
-    { title: 'Low Stock Alerts', value: stats?.products.low_stock || 0, icon: AlertTriangle, color: 'from-amber-500 to-orange-600', href: '/dashboard/products' },
+    { title: 'Total Revenue', value: `৳${(stats?.orders.total_revenue || 0).toLocaleString()}`, icon: DollarSign, color: 'from-emerald-500 to-green-600', href: '/dashboard/analytics' },
+    { title: 'Total Orders', value: (stats?.orders.total_orders || 0).toString(), icon: ShoppingBag, color: 'from-blue-500 to-indigo-600', href: '/dashboard/orders' },
+    { title: 'Active Conversations', value: (stats?.conversations.open_conversations || 0).toString(), icon: MessageCircle, color: 'from-violet-500 to-purple-600', badge: stats?.conversations.total_unread, href: '/dashboard/conversations' },
+    { title: 'Pending Deliveries', value: (stats?.orders.pending_delivery || 0).toString(), icon: AlertTriangle, color: 'from-amber-500 to-orange-600', href: '/dashboard/orders' },
   ];
 
   const quickActions = [
     { title: 'Add Product', description: 'Create a new product listing', icon: Package, href: '/dashboard/products', color: 'text-emerald-400' },
-    { title: 'View Orders', description: 'Manage pending orders', icon: ShoppingBag, href: '/dashboard/orders', color: 'text-blue-400' },
+    { title: 'View Orders', description: `${stats?.orders.pending_payment || 0} payments to verify`, icon: ShoppingBag, href: '/dashboard/orders', color: 'text-blue-400' },
     { title: 'Open Inbox', description: `${stats?.conversations.total_unread || 0} unread messages`, icon: MessageCircle, href: '/dashboard/conversations', color: 'text-violet-400' },
-    { title: 'Analytics', description: 'View sales intelligence', icon: TrendingUp, href: '/dashboard/analytics', color: 'text-amber-400' },
+    { title: 'Creative Studio', description: 'Generate captions & images', icon: Wand2, href: '/dashboard/creative', color: 'text-pink-400' },
+    { title: 'Analytics', description: 'View sales intelligence', icon: BarChart3, href: '/dashboard/analytics', color: 'text-amber-400' },
+    { title: 'Setup Guide', description: 'Configure your integrations', icon: Settings, href: '/dashboard/setup', color: 'text-cyan-400' },
+  ];
+
+  // Determine agent availability based on subscription
+  const planTier = subscription?.plan_tier || 'free';
+  const agentStatus = [
+    { name: '💬 Conversation Agent', available: ['starter', 'professional', 'premium', 'enterprise'].includes(planTier), tier: 'Starter+' },
+    { name: '📦 Order Processing Agent', available: ['professional', 'premium', 'enterprise'].includes(planTier), tier: 'Professional+' },
+    { name: '📊 Inventory Agent', available: ['professional', 'premium', 'enterprise'].includes(planTier), tier: 'Professional+' },
+    { name: '🎨 Creative Agent', available: ['premium', 'enterprise'].includes(planTier), tier: 'Premium' },
+    { name: '🧠 Intelligence Agent', available: ['premium', 'enterprise'].includes(planTier), tier: 'Premium' },
   ];
 
   return (
@@ -80,11 +91,6 @@ export default function DashboardOverview() {
                 <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${card.color} flex items-center justify-center group-hover:scale-110 transition-transform`}>
                   <card.icon className="w-5 h-5 text-white" />
                 </div>
-                {card.change && (
-                  <span className="badge-success text-[11px] flex items-center gap-0.5">
-                    <TrendingUp className="w-3 h-3" /> {card.change}
-                  </span>
-                )}
                 {card.badge ? (
                   <span className="w-6 h-6 rounded-full bg-primary text-white text-[11px] font-bold flex items-center justify-center animate-pulse-glow">
                     {card.badge}
@@ -102,7 +108,7 @@ export default function DashboardOverview() {
 
       {/* Quick Actions */}
       <h2 className="text-lg font-heading font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Quick Actions</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {quickActions.map((action, i) => (
           <motion.div
             key={action.title}
@@ -122,7 +128,7 @@ export default function DashboardOverview() {
         ))}
       </div>
 
-      {/* Pending Actions Summary */}
+      {/* Pending Actions & Agent Status */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }} className="glass-card p-6">
           <h3 className="font-heading font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>Pending Actions</h3>
@@ -143,18 +149,21 @@ export default function DashboardOverview() {
         </motion.div>
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="glass-card p-6">
-          <h3 className="font-heading font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>AI Agents Status</h3>
+          <h3 className="font-heading font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>AI Agents</h3>
+          <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+            Plan: <span className="text-primary font-semibold">{planTier.toUpperCase() || 'FREE'}</span>
+          </p>
           <div className="space-y-3">
-            {[
-              { name: '💬 Conversation', status: 'Active', color: 'badge-success' },
-              { name: '📦 Order Processing', status: 'Active', color: 'badge-success' },
-              { name: '📊 Inventory', status: 'Idle', color: 'badge-warning' },
-              { name: '🎨 Creative', status: 'Active', color: 'badge-success' },
-              { name: '🧠 Intelligence', status: 'Idle', color: 'badge-warning' },
-            ].map(agent => (
+            {agentStatus.map(agent => (
               <div key={agent.name} className="flex items-center justify-between py-2 border-b last:border-0" style={{ borderColor: 'var(--border-color)' }}>
                 <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{agent.name}</span>
-                <span className={agent.color}>{agent.status}</span>
+                {agent.available ? (
+                  <span className="badge-success">Available</span>
+                ) : (
+                  <span className="badge text-[10px] px-2 py-0.5 opacity-60" style={{ color: 'var(--text-muted)', background: 'var(--bg-card)' }}>
+                    {agent.tier}
+                  </span>
+                )}
               </div>
             ))}
           </div>

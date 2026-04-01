@@ -65,6 +65,32 @@ func (h *Handler) UpdateUserStatus(c *fiber.Ctx) error {
 	return response.Success(c, map[string]string{"message": "User status updated"})
 }
 
+func (h *Handler) UpdateUserRole(c *fiber.Ctx) error {
+	id := c.Params("id")
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return response.BadRequest(c, "Invalid user ID")
+	}
+
+	var req struct {
+		Role string `json:"role"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body")
+	}
+
+	role := models.UserRole(req.Role)
+	if role != models.RoleUser && role != models.RoleAdmin && role != models.RoleSuperAdmin {
+		return response.BadRequest(c, "Role must be 'user', 'admin', or 'super_admin'")
+	}
+
+	result := h.DB.Model(&models.User{}).Where("id = ?", uid).Update("role", role)
+	if result.RowsAffected == 0 {
+		return response.NotFound(c, "User not found")
+	}
+	return response.Success(c, map[string]string{"message": "User role updated"})
+}
+
 func (h *Handler) ListAllTasks(c *fiber.Ctx) error {
 	page := c.QueryInt("page", 1)
 	perPage := c.QueryInt("per_page", 20)

@@ -10,85 +10,73 @@
   },
   "landing": {
     "hero_title": "Your Online Shop's AI Employee",
-    "hero_subtitle": "Xeni AI completely automates your customer conversations, product inventory, and sales intelligence so you can focus on growth.",
-    "cta": "Start Scaling",
-    "cta_secondary": "View the Agents",
+    "hero_subtitle": "Xeni AI autonomously manages your Facebook Messenger conversations, processes orders with bKash/Nagad verification, tracks inventory, creates content, and delivers sales intelligence — all in Bangla & English.",
+    "cta": "Start Selling Smarter",
+    "cta_secondary": "Explore the Agents",
     "cta_login": "Sign In to Dashboard",
-    "features_title": "Meet Your AI Agents",
+    "features_title": "Meet Your 5 AI Agents",
     "learn_more": "Learn More"
   },
   "agents": {
-    "seo_audit": {
-      "name": "SEO Intelligence Agent",
-      "description": "Run comprehensive site audits and uncover critical performance gaps. Receive actionable, AI-driven optimization strategies to increase visibility and dominate search engine rankings.",
+    "conversation": {
+      "name": "Conversation Agent",
+      "description": "Automatically reply to customer messages on Facebook Messenger 24/7 in Bangla and English. Handles product inquiries, order status checks, and intelligently escalates to human operators when needed.",
       "features": [
-        "Automated technical SEO audits and error reporting.",
-        "Competitor keyword gap analysis.",
-        "On-page semantic content scoring.",
-        "Backlink monitoring and opportunity discovery."
+        "24/7 auto-reply in Bangla & English",
+        "Smart intent detection (product inquiry, order status, complaint)",
+        "Product recommendation from your catalog",
+        "Human handoff with full conversation context"
       ],
-      "locked_message": "Upgrade your plan to access the SEO Audit Agent",
-      "run_button": "Run SEO Audit"
+      "locked_message": "Available on Starter plan and above",
+      "run_button": "Configure Auto-Reply"
     },
-    "content_writing": {
-      "name": "Content Strategy & Creation Agent",
-      "description": "Publish high-converting, SEO-optimized content at scale. Generate compelling blog posts, technical articles, and persuasive marketing copy engineered to rank and drive conversions.",
+    "order": {
+      "name": "Order Processing Agent",
+      "description": "End-to-end order automation from payment to delivery. Verifies bKash and Nagad transactions, auto-creates orders from Messenger conversations, and books courier pickups via Pathao or Steadfast.",
       "features": [
-        "Custom brand-voice training and enforcement.",
-        "NLP-optimized outlines and headings.",
-        "Auto-publishing integrations (WordPress, Webflow).",
-        "Automated internal linking strategies."
+        "bKash & Nagad payment verification",
+        "Automatic order creation from chat",
+        "Pathao / Steadfast courier booking",
+        "Real-time delivery status tracking"
       ],
-      "locked_message": "Upgrade to Basic to access Content Writer",
-      "run_button": "Write Content"
+      "locked_message": "Available on Professional plan and above",
+      "run_button": "Process Orders"
     },
-    "lead_generation": {
-      "name": "Outbound Lead Generation Agent",
-      "description": "Accelerate your sales pipeline with intelligent prospecting. Automatically discover high-value targets, verify contact information, and enrich lead data for targeted outbound outreach.",
+    "inventory": {
+      "name": "Inventory Agent",
+      "description": "Real-time stock management that keeps your catalog in sync. Automatically detects low-stock items, prevents overselling, and suggests restocking based on sales velocity patterns.",
       "features": [
-        "Multi-source prospect discovery.",
-        "Waterfall email and phone number enrichment.",
-        "Buying intent signal tracking.",
-        "Automated CRM syncing and data cleaning."
+        "Real-time stock level monitoring",
+        "Low-stock alerts & auto-notifications",
+        "Oversell prevention across Messenger orders",
+        "Data-driven restock recommendations"
       ],
-      "locked_message": "Upgrade to Pro to access Lead Generation",
-      "run_button": "Generate Leads"
+      "locked_message": "Available on Professional plan and above",
+      "run_button": "Check Stock"
     },
-    "social_media": {
-      "name": "Social Media Automation Agent",
-      "description": "Scale your brand presence across all major platforms. Generate highly engaging, algorithm-optimized posts complete with tailored hashtags and data-backed scheduling strategies.",
+    "creative": {
+      "name": "Creative Agent",
+      "description": "Generate scroll-stopping product descriptions, social media captions, and ad images using AI. Produces bilingual content optimized for Facebook and Instagram that drives engagement and sales.",
       "features": [
-        "Algorithm-tailored formatting for LinkedIn, X, and Instagram.",
-        "Trending topic and viral hook generation.",
-        "Optimal post timing based on audience analytics.",
-        "Automated reply engagement for standard comments."
+        "AI product description generation (Bangla & English)",
+        "Facebook & Instagram caption creation",
+        "Promotional ad image generation",
+        "SEO-optimized product listing content"
       ],
-      "locked_message": "Upgrade to Pro to access Social Media Agent",
-      "run_button": "Create Posts"
+      "locked_message": "Available on Premium plan only",
+      "run_button": "Generate Content"
     },
-    "email_marketing": {
-      "name": "Email Conversion Agent",
-      "description": "Architect high-performing email sequences that drive revenue. Optimize open rates with dynamic subject lines and deploy sophisticated drip campaigns that nurture prospects.",
+    "intelligence": {
+      "name": "Sales Intelligence Agent",
+      "description": "Transform your sales data into actionable insights. Identifies revenue trends, peak selling hours, top-performing products, and delivers AI-powered recommendations to grow your business.",
       "features": [
-        "Dynamic personalization and merge-tag mapping.",
-        "AI-driven subject line A/B testing.",
-        "Smart behavioral triggers (opens, clicks, replies).",
-        "Inbox deliverability monitoring and spam-trap avoidance."
+        "Revenue trend analysis & forecasting",
+        "Peak selling hour identification",
+        "Top product & customer insights",
+        "AI-driven growth recommendations"
       ],
-      "locked_message": "Upgrade to Pro to access Email Marketing",
-      "run_button": "Create Campaign"
-    },
-    "analytics": {
-      "name": "Business Intelligence & Analytics Agent",
-      "description": "Transform complex raw datasets into clear, strategic advantages. Leverage predictive forecasting, advanced trend analysis, and dynamic visualizations to drive data-backed decisions.",
-      "features": [
-        "Custom KPI dashboard generation.",
-        "Real-time anomaly and drop-off detection.",
-        "Predictive revenue forecasting models.",
-        "Automated, board-ready weekly report generation."
-      ],
-      "locked_message": "Upgrade to Enterprise to access Analytics",
-      "run_button": "Run Analytics"
+      "locked_message": "Available on Premium plan only",
+      "run_button": "Get Insights"
     }
   },
   "auth": {
@@ -108,14 +96,17 @@
     "login_title": "Welcome Back",
     "login_subtitle": "Sign in to your XENI account",
     "register_title": "Create Account",
-    "register_subtitle": "Get started with XENI for free"
+    "register_subtitle": "Start automating your online shop for free"
   },
   "billing": {
     "title": "Billing",
+    "starter": "Starter",
+    "professional": "Professional",
+    "premium": "Premium",
+    "enterprise": "Enterprise",
     "free": "Free",
     "basic": "Basic",
     "pro": "Pro",
-    "enterprise": "Enterprise",
     "month": "/month",
     "current": "Current Plan",
     "current_plan": "Current Plan",
@@ -123,8 +114,12 @@
     "pay_sslcommerz": "Pay with bKash/Nagad",
     "storage": "storage",
     "tasks_per_day": "tasks/day",
+    "orders_per_month": "orders/month",
+    "pages": "FB Pages",
     "unlimited": "Unlimited",
-    "upgrade": "Upgrade Plan"
+    "upgrade": "Upgrade Plan",
+    "contact_sales": "Contact Sales",
+    "custom_pricing": "Custom Pricing"
   },
   "settings": {
     "title": "Settings",
@@ -163,6 +158,8 @@
     "invalid_email": "Please enter a valid email",
     "invalid_credentials": "Invalid email or password",
     "password_min": "Password must be at least 8 characters",
-    "server_error": "Something went wrong. Please try again."
+    "server_error": "Something went wrong. Please try again.",
+    "upgrade_required": "This feature requires a plan upgrade",
+    "subscription_needed": "You need an active subscription to use this feature"
   }
 }

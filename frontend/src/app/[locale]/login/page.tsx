@@ -100,11 +100,11 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="relative">
               <Mail className="absolute left-3 top-3.5 w-5 h-5 text-dark-500" />
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('auth.email')} className="input-field pl-10" required />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t('auth.email')} className="input-field pl-10" required autoComplete="email" />
             </div>
             <div className="relative">
               <Lock className="absolute left-3 top-3.5 w-5 h-5 text-dark-500" />
-              <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder={t('auth.password')} className="input-field pl-10 pr-10" required />
+              <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} placeholder={t('auth.password')} className="input-field pl-10 pr-10" required autoComplete="current-password" />
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3.5 text-dark-500 hover:text-white">
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>

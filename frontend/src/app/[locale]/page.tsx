@@ -3,52 +3,63 @@
 import { useState } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, usePathname, useRouter } from '@/i18n/routing';
+import { Link, useRouter } from '@/i18n/routing';
 import { useThemeStore } from '@/store/theme';
 import {
-  Sparkles, Search, Users, FileText, Mail, BarChart3, Share2,
-  ArrowRight, Check, ChevronDown, Star, Zap, Shield, Globe,
-  Sun, Moon, Menu, X, Rocket, Brain, Clock, TrendingUp,
-  Quote, Send
+  Sparkles, ArrowRight, Check, ChevronDown, Star, Zap, Shield, Globe,
+  Sun, Moon, Menu, X, TrendingUp, Quote, Send,
+  MessageCircle, ShoppingBag, Package, Wand2, BarChart3,
+  Rocket, Bot, CreditCard, Truck
 } from 'lucide-react';
 
 /* ──────── DATA ──────── */
 const agents = [
-  { key: 'seo_audit', icon: Search, color: 'from-violet-500 to-purple-600', tier: 'Free+' },
-  { key: 'content_writing', icon: FileText, color: 'from-emerald-500 to-green-600', tier: 'Basic+' },
-  { key: 'lead_generation', icon: Users, color: 'from-cyan-500 to-blue-600', tier: 'Pro+' },
-  { key: 'social_media', icon: Share2, color: 'from-pink-500 to-rose-600', tier: 'Pro+' },
-  { key: 'email_marketing', icon: Mail, color: 'from-amber-500 to-orange-600', tier: 'Pro+' },
-  { key: 'analytics', icon: BarChart3, color: 'from-indigo-500 to-blue-700', tier: 'Enterprise' },
+  { key: 'conversation', icon: MessageCircle, color: 'from-violet-500 to-purple-600', tier: 'Starter+' },
+  { key: 'order', icon: ShoppingBag, color: 'from-emerald-500 to-green-600', tier: 'Professional+' },
+  { key: 'inventory', icon: Package, color: 'from-cyan-500 to-blue-600', tier: 'Professional+' },
+  { key: 'creative', icon: Wand2, color: 'from-pink-500 to-rose-600', tier: 'Premium' },
+  { key: 'intelligence', icon: BarChart3, color: 'from-amber-500 to-orange-600', tier: 'Premium' },
 ];
 
 const plans = [
-  { tier: 'free', agents: 1, tasks: 2, storage: '100MB', bdt: 0, usd: 0, popular: false, features: ['1 AI Agent (SEO)', '2 tasks/day', '100MB storage', 'Community support'] },
-  { tier: 'basic', agents: 2, tasks: 10, storage: '1GB', bdt: 999, usd: 9, popular: false, features: ['2 AI Agents', '10 tasks/day', '1GB storage', 'Email support', 'Export reports'] },
-  { tier: 'pro', agents: 5, tasks: 50, storage: '10GB', bdt: 2499, usd: 24, popular: true, features: ['5 AI Agents', '50 tasks/day', '10GB storage', 'Priority support', 'API access', 'Team sharing'] },
-  { tier: 'enterprise', agents: 6, tasks: -1, storage: '100GB', bdt: 5999, usd: 59, popular: false, features: ['All 6 Agents', 'Unlimited tasks', '100GB storage', 'Dedicated support', 'Custom integrations', 'SSO & RBAC', 'SLA guarantee'] },
+  {
+    tier: 'starter', price: 2500, popular: false,
+    features: ['💬 Conversation Agent', '200 orders/month', '1 Facebook Page', '2 GB storage', 'Email support'],
+  },
+  {
+    tier: 'professional', price: 7500, popular: true,
+    features: ['💬 Conversation Agent', '📦 Order Processing Agent', '📊 Inventory Agent', '1,000 orders/month', '3 Facebook Pages', '10 GB storage', 'Priority support'],
+  },
+  {
+    tier: 'premium', price: 25000, popular: false,
+    features: ['All 5 AI Agents', 'Unlimited orders', '10 Facebook Pages', '50 GB storage', '🎨 AI Image Generation', '🧠 Sales Intelligence', 'Dedicated support'],
+  },
+  {
+    tier: 'enterprise', price: 0, popular: false,
+    features: ['All 5 AI Agents', 'Unlimited everything', 'White-label branding', 'Custom API access', 'ERP Integration', 'Dedicated account manager', 'SLA guarantee'],
+  },
 ];
 
 const steps = [
   { icon: Rocket, title: 'Sign Up Free', description: 'Create your account in 30 seconds. No credit card required.' },
-  { icon: Brain, title: 'Choose Your Agent', description: 'Pick from 6 specialized AI agents tailored for your business needs.' },
-  { icon: Zap, title: 'Get AI Results', description: 'Submit tasks and receive professional-grade output in seconds.' },
-  { icon: TrendingUp, title: 'Scale & Grow', description: 'Upgrade your plan as your business grows. Unlock more agents.' },
+  { icon: Bot, title: 'Connect Facebook Page', description: 'Link your Facebook Page so the AI can manage Messenger conversations.' },
+  { icon: CreditCard, title: 'Subscribe & Configure', description: 'Choose a plan, set up bKash/Nagad, and configure your AI agents.' },
+  { icon: Truck, title: 'Automate & Scale', description: 'AI handles conversations, orders, and deliveries while you focus on growth.' },
 ];
 
 const testimonials = [
-  { name: 'Sarah Chen', role: 'Marketing Director', company: 'TechFlow', avatar: 'SC', text: 'XENI transformed our content workflow. The SEO agent alone saved us 20 hours per week. Absolutely game-changing.' },
-  { name: 'Ahmed Rahman', role: 'CEO', company: 'DigiShop BD', avatar: 'AR', text: 'SSLCommerz integration made it seamless for our Bangladeshi team. The lead gen agent is incredibly accurate.' },
-  { name: 'Emily Rodriguez', role: 'Growth Lead', company: 'ScaleUp', avatar: 'ER', text: 'We went from manually writing social posts to having AI generate an entire month of content in minutes.' },
+  { name: 'Rahim Uddin', role: 'Owner', company: 'FashionBD', avatar: 'RU', text: 'XENI transformed my F-commerce! The Conversation Agent handles 500+ Messenger DMs daily while I focus on sourcing new products.' },
+  { name: 'Fatima Akter', role: 'Founder', company: 'BeautyCorner BD', avatar: 'FA', text: 'The Order Processing Agent with bKash verification saved me hours of manual payment checking. My order processing is now 10x faster.' },
+  { name: 'Kamal Hossain', role: 'CEO', company: 'TechMart BD', avatar: 'KH', text: 'Inventory Agent stopped our overselling problem completely. Low-stock alerts and auto-restock suggestions are game changing.' },
 ];
 
 const faqs = [
-  { q: 'What is XENI?', a: 'XENI is an AI-powered business operating system with 6 specialized agents for SEO, lead generation, social media, content writing, email marketing, and analytics.' },
-  { q: 'Is there a free plan?', a: 'Yes! Our Free plan includes the SEO Audit agent with 2 tasks per day. No credit card required to start.' },
-  { q: 'What payment methods do you accept?', a: 'We accept all major payments through SSLCommerz including bKash, Nagad, and local/international bank cards.' },
-  { q: 'Can I switch plans anytime?', a: 'Absolutely. Upgrade or downgrade your plan at any time. Changes take effect immediately with prorated billing.' },
-  { q: 'Is my data secure?', a: 'Yes. We use AES-256 encryption, JWT with Redis blocklist, 2FA support, and all data is stored in SOC 2 compliant infrastructure.' },
-  { q: 'Do you support Bangla?', a: 'Yes! XENI fully supports both English and বাংলা. Switch languages anytime from the navbar or settings.' },
+  { q: 'What is XENI?', a: 'XENI is an AI-powered e-commerce operating system built for Bangladeshi F-commerce sellers. It automates Messenger conversations, order processing with bKash/Nagad verification, inventory management, content creation, and sales intelligence.' },
+  { q: 'How does Messenger automation work?', a: 'Connect your Facebook Page to XENI, and our Conversation Agent will automatically reply to customer messages 24/7 in Bangla and English. It handles product inquiries, order status checks, and can escalate to you when needed.' },
+  { q: 'What payment methods does XENI support?', a: 'XENI supports bKash and Nagad payment verification for your customers. For your subscription, you can pay via SSLCommerz (bKash, Nagad, bank cards). All pricing is in BDT.' },
+  { q: 'Can I switch plans anytime?', a: 'Absolutely. Upgrade or downgrade your plan at any time. Changes take effect immediately with prorated billing via SSLCommerz.' },
+  { q: 'Which courier services are supported?', a: 'XENI integrates with Pathao and Steadfast courier services for automated pickup booking and delivery tracking across Bangladesh.' },
+  { q: 'Does XENI support Bangla?', a: 'Yes! XENI fully supports both English and বাংলা. The AI agents can converse with customers in Bangla, and the entire dashboard is bilingual.' },
 ];
 
 /* ──────── COMPONENTS ──────── */
@@ -70,12 +81,10 @@ function FAQItem({ q, a, isOpen, onClick }: { q: string; a: string; isOpen: bool
   );
 }
 
-/* ──────── MAIN PAGE ──────── */
 function AgentCard({ agent, index, t, isExpanded, onToggle }: { agent: any; index: number; t: any; isExpanded: boolean; onToggle: () => void }) {
   const Icon = agent.icon;
-  // Get array of features from translations
   const features: string[] = t.raw(`agents.${agent.key}.features`) || [];
-  
+
   return (
     <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} viewport={{ once: true }} className="glass-card-hover p-7 flex flex-col h-full cursor-pointer relative overflow-hidden group border border-white/10" onClick={onToggle}>
       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundImage: `linear-gradient(to right, var(--glow-primary), var(--glow-accent))` }}></div>
@@ -88,7 +97,7 @@ function AgentCard({ agent, index, t, isExpanded, onToggle }: { agent: any; inde
       </div>
       <h3 className="text-xl md:text-2xl font-heading font-bold mb-3" style={{ color: 'var(--text-primary)' }}>{t(`agents.${agent.key}.name`)}</h3>
       <p className="text-[15px] mb-6 leading-relaxed flex-grow" style={{ color: 'var(--text-muted)' }}>{t(`agents.${agent.key}.description`)}</p>
-      
+
       <div className="mt-auto">
         <div className="flex items-center justify-between border-t pt-5 transition-colors duration-300" style={{ borderColor: 'var(--border-color)' }}>
           <span className="text-sm font-semibold gradient-text tracking-wide uppercase">{t('landing.learn_more')}</span>
@@ -96,7 +105,7 @@ function AgentCard({ agent, index, t, isExpanded, onToggle }: { agent: any; inde
             <ChevronDown className="w-5 h-5" />
           </motion.div>
         </div>
-        
+
         <AnimatePresence initial={false}>
           {isExpanded && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: 'easeInOut' }} className="overflow-hidden">
@@ -117,13 +126,14 @@ function AgentCard({ agent, index, t, isExpanded, onToggle }: { agent: any; inde
     </motion.div>
   );
 }
+
+/* ──────── MAIN PAGE ──────── */
 export default function LandingPage() {
   const t = useTranslations();
   const locale = useLocale();
   const { theme, toggleTheme } = useThemeStore();
   const router = useRouter();
   const [mobileMenu, setMobileMenu] = useState(false);
-  const [pricingCurrency] = useState<'bdt'>('bdt');
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
@@ -148,28 +158,22 @@ export default function LandingPage() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            {/* Language Switcher */}
             <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: 'var(--bg-card)' }}>
               <Link href="/" locale="en" className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${locale === 'en' ? 'bg-primary text-white' : ''}`} style={locale !== 'en' ? { color: 'var(--text-muted)' } : undefined}>EN</Link>
               <Link href="/" locale="bn" className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${locale === 'bn' ? 'bg-primary text-white' : ''}`} style={locale !== 'bn' ? { color: 'var(--text-muted)' } : undefined}>বাং</Link>
             </div>
-
-            {/* Theme Toggle */}
             <button onClick={toggleTheme} className="p-2 rounded-lg transition-all" style={{ background: 'var(--bg-card)' }}>
               {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
             </button>
-
             <Link href="/login" prefetch={true} className="btn-ghost text-sm font-medium">{t('nav.login')}</Link>
             <Link href="/register" prefetch={true} className="btn-primary text-sm py-2 px-5">{t('nav.register')}</Link>
           </div>
 
-          {/* Mobile Menu Button */}
           <button onClick={() => setMobileMenu(!mobileMenu)} className="md:hidden p-2">
             {mobileMenu ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
-        {/* Mobile Menu */}
         <AnimatePresence>
           {mobileMenu && (
             <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="md:hidden overflow-hidden border-t" style={{ borderColor: 'var(--border-color)' }}>
@@ -191,7 +195,6 @@ export default function LandingPage() {
 
       {/* ═══ HERO ═══ */}
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-36 overflow-hidden">
-        {/* Glowing Background Elements */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
         <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[150px] animate-pulse-glow pointer-events-none" />
         <div className="absolute top-40 right-10 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[120px] animate-float pointer-events-none" />
@@ -200,7 +203,7 @@ export default function LandingPage() {
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="section-container relative text-center z-10">
           <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-10 shadow-glow cursor-pointer hover:bg-primary/20 transition-colors">
             <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-primary tracking-wide">Powered by Advanced Core Agents</span>
+            <span className="text-sm font-semibold text-primary tracking-wide">🇧🇩 Built for Bangladesh F-Commerce</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-extrabold mb-8 leading-[1.15] tracking-tight">
@@ -214,13 +217,13 @@ export default function LandingPage() {
               {t('landing.cta')} <ArrowRight className="w-6 h-6" />
             </Link>
             <a href="#agents" className="btn-secondary text-lg px-10 py-5 flex items-center justify-center gap-3 border-primary/20 hover:border-primary/50 bg-white/5 backdrop-blur-md">
-              {t('landing.cta_secondary')} <Search className="w-5 h-5 opacity-70" />
+              {t('landing.cta_secondary')} <Bot className="w-5 h-5 opacity-70" />
             </a>
           </div>
 
           {/* Stats Bar */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex flex-wrap justify-center gap-12 mt-20 pt-10 border-t border-white/10" style={{ borderColor: 'var(--border-color)' }}>
-            {[{ n: '6', l: 'AI Agents' }, { n: '10K+', l: 'Tasks Processed' }, { n: '99.9%', l: 'Uptime' }, { n: '<2s', l: 'Avg Response' }].map(s => (
+            {[{ n: '5', l: 'AI Agents' }, { n: '24/7', l: 'Messenger Auto-Reply' }, { n: '99.9%', l: 'Uptime' }, { n: 'বাংলা', l: '& English Support' }].map(s => (
               <div key={s.l} className="text-center group">
                 <div className="text-3xl md:text-4xl font-heading font-black gradient-text group-hover:scale-110 transition-transform duration-300">{s.n}</div>
                 <div className="text-sm md:text-base mt-2 font-medium" style={{ color: 'var(--text-muted)' }}>{s.l}</div>
@@ -234,7 +237,7 @@ export default function LandingPage() {
       <section id="how-it-works" className="section-padding" style={{ background: 'var(--bg-secondary)' }}>
         <div className="section-container">
           <h2 className="section-title">How It <span className="gradient-text">Works</span></h2>
-          <p className="section-subtitle">Get started in minutes with our simple 4-step process</p>
+          <p className="section-subtitle">Start automating your F-commerce in 4 simple steps</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {steps.map((step, i) => (
@@ -253,20 +256,31 @@ export default function LandingPage() {
       <section id="agents" className="relative section-padding">
         <div className="absolute top-1/2 left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none" />
         <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none" />
-        
+
         <div className="section-container relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <h2 className="section-title text-5xl mb-6">{t('landing.features_title')}</h2>
-            <p className="section-subtitle text-xl max-w-3xl leading-relaxed">Each agent is highly specialized to execute specific workflows completely autonomously.</p>
+            <p className="section-subtitle text-xl max-w-3xl leading-relaxed">Each agent is specialized to automate a critical part of your e-commerce operations — from customer conversations to delivery tracking.</p>
           </motion.div>
 
-          {/* 3-Column Responsive Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-16">
-            {agents.map((agent, i) => (
+            {agents.slice(0, 3).map((agent, i) => (
               <AgentCard
                 key={agent.key}
                 agent={agent}
                 index={i}
+                t={t}
+                isExpanded={expandedAgent === agent.key}
+                onToggle={() => setExpandedAgent(expandedAgent === agent.key ? null : agent.key)}
+              />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 max-w-4xl mx-auto">
+            {agents.slice(3).map((agent, i) => (
+              <AgentCard
+                key={agent.key}
+                agent={agent}
+                index={i + 3}
                 t={t}
                 isExpanded={expandedAgent === agent.key}
                 onToggle={() => setExpandedAgent(expandedAgent === agent.key ? null : agent.key)}
@@ -280,7 +294,7 @@ export default function LandingPage() {
       <section id="pricing" className="section-padding" style={{ background: 'var(--bg-secondary)' }}>
         <div className="section-container">
           <h2 className="section-title">Simple, Transparent <span className="gradient-text">Pricing</span></h2>
-          <p className="section-subtitle">Start free. Upgrade when you&apos;re ready. No hidden fees.</p>
+          <p className="section-subtitle">All prices in BDT. Pay with bKash, Nagad, or card via SSLCommerz.</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
             {plans.map((plan, i) => (
@@ -293,10 +307,16 @@ export default function LandingPage() {
                 )}
                 <h3 className="text-lg font-heading font-bold capitalize mb-1" style={{ color: 'var(--text-primary)' }}>{t(`billing.${plan.tier}`)}</h3>
                 <div className="mb-5">
-                  <span className="text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    {`৳${plan.bdt.toLocaleString()}`}
-                  </span>
-                  <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('billing.month')}</span>
+                  {plan.price > 0 ? (
+                    <>
+                      <span className="text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                        ৳{plan.price.toLocaleString()}
+                      </span>
+                      <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('billing.month')}</span>
+                    </>
+                  ) : (
+                    <span className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('billing.custom_pricing')}</span>
+                  )}
                 </div>
                 <ul className="space-y-2.5 mb-6">
                   {plan.features.map(f => (
@@ -306,7 +326,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Link href="/register" prefetch={true} className={plan.popular ? 'btn-primary w-full text-center text-sm' : 'btn-secondary w-full text-center text-sm'}>
-                  {plan.tier === 'free' ? 'Start Free' : 'Get Started'}
+                  {plan.tier === 'enterprise' ? t('billing.contact_sales') : t('billing.subscribe')}
                 </Link>
               </motion.div>
             ))}
@@ -317,8 +337,8 @@ export default function LandingPage() {
       {/* ═══ TESTIMONIALS ═══ */}
       <section className="section-padding">
         <div className="section-container">
-          <h2 className="section-title">Loved by <span className="gradient-text">Teams</span> Worldwide</h2>
-          <p className="section-subtitle">See what our customers say about XENI</p>
+          <h2 className="section-title">Loved by <span className="gradient-text">Sellers</span> Across Bangladesh</h2>
+          <p className="section-subtitle">See what F-commerce owners say about XENI</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((t, i) => (
@@ -361,10 +381,10 @@ export default function LandingPage() {
             <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-primary/10 rounded-full blur-[100px]" />
             <div className="relative">
               <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-                Ready to <span className="gradient-text">Supercharge</span> Your Business?
+                Ready to <span className="gradient-text">Automate</span> Your Shop?
               </h2>
               <p className="text-lg mb-8 max-w-lg mx-auto" style={{ color: 'var(--text-muted)' }}>
-                Join thousands of businesses using XENI to automate their marketing, content, and analytics.
+                Join hundreds of Bangladeshi sellers using XENI to automate their Messenger, orders, and deliveries.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/register" prefetch={true} className="btn-primary text-lg px-8 py-4 flex items-center justify-center gap-2 shadow-glow">
@@ -385,7 +405,7 @@ export default function LandingPage() {
             Stay in the <span className="gradient-text">Loop</span>
           </h2>
           <p className="text-sm mb-8" style={{ color: 'var(--text-muted)' }}>
-            Get AI tips, product updates, and exclusive offers delivered to your inbox.
+            Get F-commerce tips, product updates, and exclusive offers delivered to your inbox.
           </p>
           <form onSubmit={(e) => { e.preventDefault(); setNewsletterEmail(''); }} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
             <input
@@ -413,24 +433,24 @@ export default function LandingPage() {
                 <Sparkles className="w-6 h-6 text-primary" />
                 <span className="text-lg font-heading font-bold gradient-text">XENI</span>
               </div>
-              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>AI-powered business operating system for the modern enterprise.</p>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>AI-powered e-commerce operating system for Bangladeshi F-commerce sellers.</p>
             </div>
             <div>
               <h4 className="font-heading font-semibold text-sm mb-3" style={{ color: 'var(--text-primary)' }}>Product</h4>
               <ul className="space-y-2 text-sm" style={{ color: 'var(--text-muted)' }}>
                 <li><a href="#agents" className="hover:text-primary transition-colors">AI Agents</a></li>
                 <li><a href="#pricing" className="hover:text-primary transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">API Docs</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Changelog</a></li>
+                <li><a href="#how-it-works" className="hover:text-primary transition-colors">How It Works</a></li>
+                <li><a href="#faq" className="hover:text-primary transition-colors">FAQ</a></li>
               </ul>
             </div>
             <div>
-              <h4 className="font-heading font-semibold text-sm mb-3" style={{ color: 'var(--text-primary)' }}>Company</h4>
+              <h4 className="font-heading font-semibold text-sm mb-3" style={{ color: 'var(--text-primary)' }}>Integrations</h4>
               <ul className="space-y-2 text-sm" style={{ color: 'var(--text-muted)' }}>
-                <li><a href="#" className="hover:text-primary transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
+                <li><span>Facebook Messenger</span></li>
+                <li><span>bKash & Nagad</span></li>
+                <li><span>Pathao Courier</span></li>
+                <li><span>Steadfast Courier</span></li>
               </ul>
             </div>
             <div>
@@ -438,12 +458,12 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm" style={{ color: 'var(--text-muted)' }}>
                 <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Cookie Policy</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Refund Policy</a></li>
               </ul>
             </div>
           </div>
           <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t" style={{ borderColor: 'var(--border-color)' }}>
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>© 2024 XENI. All rights reserved.</p>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>© 2026 XENI. All rights reserved.</p>
             <div className="flex items-center gap-4 mt-4 md:mt-0">
               <Link href="/" locale="en" className="text-xs font-medium hover:text-primary transition-colors" style={{ color: 'var(--text-muted)' }}>English</Link>
               <span style={{ color: 'var(--text-muted)' }}>•</span>

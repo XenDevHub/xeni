@@ -176,8 +176,21 @@ func Setup(
 	)
 	adminGroup.Get("/users", adminHandler.ListUsers)
 	adminGroup.Put("/users/:id/status", adminHandler.UpdateUserStatus)
+	adminGroup.Put("/users/:id/role", adminHandler.UpdateUserRole)
 	adminGroup.Get("/tasks", adminHandler.ListAllTasks)
 	adminGroup.Get("/metrics", adminHandler.GetMetrics)
+
+	// ── Bootstrap Admin (only works if no super_admin exists) ──
+	api.Post("/admin/bootstrap", middleware.AuthMiddleware(jwtManager, redis), func(c *fiber.Ctx) error {
+		var count int64
+		db.Model(&models.User{}).Where("role = ?", "super_admin").Count(&count)
+		if count > 0 {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Super admin already exists"})
+		}
+		userID := c.Locals("user_id").(string)
+		db.Model(&models.User{}).Where("id = ?", userID).Update("role", "super_admin")
+		return c.JSON(fiber.Map{"success": true, "message": "You are now super_admin"})
+	})
 
 	// ── WebSocket ──
 	app.Use("/ws", func(c *fiber.Ctx) error {

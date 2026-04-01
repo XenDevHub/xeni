@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/auth';
+import { triggerUpgradeModal } from '@/components/UpgradeModal';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || '/backend';
 
@@ -17,13 +18,31 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor — handle token refresh
+// Response interceptor — handle token refresh + subscription gating
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const status = error.response?.status;
+    const errorMsg = error.response?.data?.error || '';
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Handle 403 — Subscription upgrade required
+    if (status === 403 && (errorMsg.includes('Upgrade') || errorMsg.includes('upgrade') || errorMsg.includes('plan'))) {
+      // Extract required plan from error message (e.g., "Upgrade to premium plan required")
+      const planMatch = errorMsg.match(/(?:upgrade to |requires? )(\w+)/i);
+      const requiredPlan = planMatch ? planMatch[1].toLowerCase() : 'professional';
+      triggerUpgradeModal(requiredPlan, errorMsg || 'This feature requires a plan upgrade. Please subscribe to continue.');
+      return Promise.reject(error);
+    }
+
+    // Handle 403 — Daily task limit
+    if (status === 403 && errorMsg.includes('Daily task limit')) {
+      triggerUpgradeModal('professional', 'You\'ve reached your daily task limit. Upgrade your plan for more tasks per day.');
+      return Promise.reject(error);
+    }
+
+    // Handle 401 — Token refresh
+    if (status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       const { refreshToken, setAuth, logout } = useAuthStore.getState();
 

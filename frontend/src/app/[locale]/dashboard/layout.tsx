@@ -7,7 +7,7 @@ import { useThemeStore } from '@/store/theme';
 import {
   Sparkles, LayoutDashboard, ShoppingBag, Package, MessageCircle,
   BarChart3, Globe2, Settings, LogOut, CreditCard, Shield,
-  Sun, Moon, Store, ChevronLeft, ChevronRight, Wand2
+  Sun, Moon, Store, ChevronLeft, ChevronRight, Wand2, HelpCircle
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -22,6 +22,7 @@ const sidebarLinks = [
   { href: '/dashboard/conversations', label: 'Inbox', icon: MessageCircle },
   { href: '/dashboard/pages', label: 'FB Pages', icon: Globe2 },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/setup', label: 'Setup Guide', icon: HelpCircle },
 ];
 
 const bottomLinks = [
@@ -80,9 +81,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               >
                 <link.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-primary' : 'group-hover:text-primary/70'} transition-colors`} />
                 {!collapsed && <span>{link.label}</span>}
-                {!collapsed && link.href === '/dashboard/conversations' && (
-                  <span className="ml-auto w-5 h-5 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center">3</span>
-                )}
               </Link>
             );
           })}

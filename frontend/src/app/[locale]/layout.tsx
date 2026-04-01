@@ -5,6 +5,7 @@ import { routing } from '@/i18n/routing';
 import { Toaster } from 'react-hot-toast';
 import ThemeWrapper from '@/components/ThemeWrapper';
 import GoogleProvider from '@/components/GoogleProvider';
+import { UpgradeModalProvider } from '@/components/UpgradeModal';
 
 export default async function LocaleLayout({
   children,
@@ -29,7 +30,9 @@ export default async function LocaleLayout({
               <Toaster position="top-right" toastOptions={{
                 style: { background: 'var(--glass-bg)', color: 'var(--text-primary)', border: '1px solid var(--glass-border)', backdropFilter: 'blur(16px)' },
               }} />
-              {children}
+              <UpgradeModalProvider>
+                {children}
+              </UpgradeModalProvider>
             </GoogleProvider>
           </ThemeWrapper>
         </NextIntlClientProvider>

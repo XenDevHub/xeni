@@ -5,94 +5,181 @@ import { useTranslations } from 'next-intl';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/auth';
 import api from '@/lib/api';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, MessageCircle, ShoppingBag, Package, Wand2, BarChart3, Crown } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-const plans = [
-  { tier: 'free', agents: 1, tasks: 2, storage: '100MB', popular: false },
-  { tier: 'basic', agents: 2, tasks: 10, storage: '1GB', popular: false },
-  { tier: 'pro', agents: 5, tasks: 50, storage: '10GB', popular: true },
-  { tier: 'enterprise', agents: 6, tasks: -1, storage: '100GB', popular: false },
-];
+interface Plan {
+  id: string;
+  name: string;
+  tier: string;
+  price_monthly_bdt: number;
+  features: {
+    agents: string[];
+    max_orders_per_month: number;
+    max_pages: number;
+    storage_gb: number;
+    description?: string;
+    custom_pricing?: boolean;
+  };
+}
 
-const bdtPrices: Record<string, number> = { free: 0, basic: 999, pro: 2499, enterprise: 5999 };
-const usdPrices: Record<string, number> = { free: 0, basic: 9, pro: 24, enterprise: 59 };
+const tierIcons: Record<string, typeof MessageCircle> = {
+  starter: MessageCircle,
+  professional: ShoppingBag,
+  premium: Crown,
+  enterprise: Sparkles,
+};
+
+const tierFeatureLabels: Record<string, string[]> = {
+  starter: ['💬 Conversation Agent', '200 orders/month', '1 Facebook Page', '2 GB storage', 'Email support'],
+  professional: ['💬 Conversation Agent', '📦 Order Processing Agent', '📊 Inventory Agent', '1,000 orders/month', '3 Facebook Pages', '10 GB storage', 'Priority support'],
+  premium: ['All 5 AI Agents', 'Unlimited orders', '10 Facebook Pages', '50 GB storage', '🎨 AI Image Generation', '🧠 Sales Intelligence', 'Dedicated support'],
+  enterprise: ['All 5 AI Agents', 'Unlimited everything', 'White-label branding', 'Custom API access', 'ERP Integration', 'Dedicated account manager', 'SLA guarantee'],
+};
 
 export default function BillingPage() {
   const t = useTranslations();
   const { user, subscription } = useAuthStore();
-  const isBD = user?.country_code === 'BD';
-  const prices = isBD ? bdtPrices : usdPrices;
-  const currency = isBD ? '৳' : '$';
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState<string | null>(null);
+  const [loadingPlans, setLoadingPlans] = useState(true);
+
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const res = await api.get('/billing/plans');
+        setPlans(res.data.data || []);
+      } catch {
+        // Fallback to default plans if API fails
+        setPlans([]);
+      }
+      setLoadingPlans(false);
+    };
+    fetchPlans();
+  }, []);
 
   const handleSubscribe = async (tier: string) => {
-    if (tier === 'free') return;
+    if (tier === 'enterprise') {
+      // Open email for enterprise
+      window.location.href = 'mailto:sales@xeni.xentroinfotech.com?subject=Enterprise Plan Inquiry';
+      return;
+    }
     setLoading(tier);
     try {
-      const endpoint = '/billing/subscribe/sslcommerz';
-      const res = await api.post(endpoint, { plan_tier: tier });
+      const res = await api.post('/billing/subscribe/sslcommerz', { plan_tier: tier });
       const data = res.data.data;
       if (data.redirect_url || data.session_url) {
         window.location.href = data.redirect_url || data.session_url;
+      } else {
+        toast.success('Payment initiated! Redirecting...');
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.error || t('errors.server_error'));
+      const msg = err.response?.data?.error;
+      if (err.response?.status === 403) {
+        toast.error(msg || t('errors.upgrade_required'));
+      } else {
+        toast.error(msg || t('errors.server_error'));
+      }
     } finally {
       setLoading(null);
     }
   };
 
+  // Use API plans or fallback
+  const displayPlans = plans.length > 0
+    ? plans.map(p => ({
+        tier: p.tier,
+        price: p.price_monthly_bdt,
+        features: tierFeatureLabels[p.tier] || [],
+        popular: p.tier === 'professional',
+      }))
+    : [
+        { tier: 'starter', price: 2500, features: tierFeatureLabels.starter, popular: false },
+        { tier: 'professional', price: 7500, features: tierFeatureLabels.professional, popular: true },
+        { tier: 'premium', price: 25000, features: tierFeatureLabels.premium, popular: false },
+        { tier: 'enterprise', price: 0, features: tierFeatureLabels.enterprise, popular: false },
+      ];
+
   return (
-    <div className="min-h-screen bg-dark px-6 py-12">
+    <div className="px-6 py-12" style={{ background: 'var(--bg-primary)' }}>
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-heading font-bold gradient-text mb-3">{t('nav.billing')}</h1>
-          <p className="text-dark-500">{t('billing.current_plan')}: <span className="text-primary font-semibold">{subscription?.plan_tier?.toUpperCase() || 'FREE'}</span></p>
+          <p style={{ color: 'var(--text-muted)' }}>
+            {t('billing.current_plan')}: <span className="text-primary font-semibold">{subscription?.plan_tier?.toUpperCase() || 'FREE'}</span>
+          </p>
+          <p className="text-sm mt-2" style={{ color: 'var(--text-muted)' }}>
+            All prices in BDT (৳). Pay via bKash, Nagad, or card through SSLCommerz.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {plans.map((plan, i) => {
-            const isActive = subscription?.plan_tier === plan.tier;
-            return (
-              <motion.div
-                key={plan.tier}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className={`relative glass-card p-6 ${plan.popular ? 'border-primary/50 shadow-glow' : ''} ${isActive ? 'ring-2 ring-primary' : ''}`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold px-4 py-1 rounded-full">
-                    POPULAR
+        {loadingPlans ? (
+          <div className="flex justify-center py-20">
+            <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {displayPlans.map((plan, i) => {
+              const isActive = subscription?.plan_tier === plan.tier;
+              const TierIcon = tierIcons[plan.tier] || Sparkles;
+              return (
+                <motion.div
+                  key={plan.tier}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className={`relative glass-card p-6 ${plan.popular ? 'border-primary/50 shadow-glow' : ''} ${isActive ? 'ring-2 ring-primary' : ''}`}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold px-4 py-1 rounded-full">
+                      POPULAR
+                    </div>
+                  )}
+                  {isActive && (
+                    <div className="absolute -top-3 right-4 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                      CURRENT
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 mb-2">
+                    <TierIcon className="w-5 h-5 text-primary" />
+                    <h3 className="text-lg font-heading font-bold capitalize" style={{ color: 'var(--text-primary)' }}>
+                      {t(`billing.${plan.tier}`)}
+                    </h3>
                   </div>
-                )}
+                  <div className="mb-4">
+                    {plan.price > 0 ? (
+                      <>
+                        <span className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>৳{plan.price.toLocaleString()}</span>
+                        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('billing.month')}</span>
+                      </>
+                    ) : (
+                      <span className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('billing.custom_pricing')}</span>
+                    )}
+                  </div>
 
-                <h3 className="text-lg font-heading font-bold text-white capitalize mb-1">{t(`billing.${plan.tier}`)}</h3>
-                <div className="mb-4">
-                  <span className="text-3xl font-bold text-white">{currency}{prices[plan.tier]}</span>
-                  <span className="text-dark-500 text-sm">{t('billing.month')}</span>
-                </div>
+                  <ul className="space-y-2 mb-6 text-sm">
+                    {plan.features.map(f => (
+                      <li key={f} className="flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                        <Check className="w-4 h-4 text-success shrink-0" />{f}
+                      </li>
+                    ))}
+                  </ul>
 
-                <ul className="space-y-2 mb-6 text-sm">
-                  <li className="flex items-center gap-2 text-dark-600"><Check className="w-4 h-4 text-success" />{plan.agents} agent{plan.agents > 1 ? 's' : ''}</li>
-                  <li className="flex items-center gap-2 text-dark-600"><Check className="w-4 h-4 text-success" />{plan.tasks === -1 ? t('billing.unlimited') : plan.tasks} {t('billing.tasks_per_day')}</li>
-                  <li className="flex items-center gap-2 text-dark-600"><Check className="w-4 h-4 text-success" />{plan.storage} {t('billing.storage')}</li>
-                </ul>
-
-                {isActive ? (
-                  <button disabled className="btn-secondary w-full opacity-50">Current Plan</button>
-                ) : plan.tier === 'free' ? (
-                  <button disabled className="btn-secondary w-full opacity-50">{t('billing.free')}</button>
-                ) : (
-                  <button onClick={() => handleSubscribe(plan.tier)} disabled={loading === plan.tier} className="btn-primary w-full">
-                    {loading === plan.tier ? t('common.loading') : t('billing.pay_sslcommerz')}
-                  </button>
-                )}
-              </motion.div>
-            );
-          })}
-        </div>
+                  {isActive ? (
+                    <button disabled className="btn-secondary w-full opacity-50">{t('billing.current')}</button>
+                  ) : plan.tier === 'enterprise' ? (
+                    <button onClick={() => handleSubscribe('enterprise')} className="btn-secondary w-full">{t('billing.contact_sales')}</button>
+                  ) : (
+                    <button onClick={() => handleSubscribe(plan.tier)} disabled={loading === plan.tier} className="btn-primary w-full">
+                      {loading === plan.tier ? t('common.loading') : t('billing.pay_sslcommerz')}
+                    </button>
+                  )}
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -2,80 +2,107 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, TrendingUp, Clock, MapPin, ShoppingBag, Lightbulb } from 'lucide-react';
+import { BarChart3, TrendingUp, Clock, MapPin, ShoppingBag, Lightbulb, MessageCircle, Users } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
+interface OrderStats {
+  total_orders: number;
+  pending_payment: number;
+  pending_delivery: number;
+  total_revenue: number;
+}
+
+interface ConvStats {
+  open_conversations: number;
+  resolved_conversations: number;
+  total_unread: number;
+}
+
 export default function AnalyticsPage() {
-  // Mock data — in production: fetched from Intelligence Agent
-  const [revenueData, setRevenueData] = useState({
-    total: 0,
-    growth: '+0%',
-    orders: 0,
-    avgOrder: 0,
-  });
+  const [orderStats, setOrderStats] = useState<OrderStats>({ total_orders: 0, pending_payment: 0, pending_delivery: 0, total_revenue: 0 });
+  const [convStats, setConvStats] = useState<ConvStats>({ open_conversations: 0, resolved_conversations: 0, total_unread: 0 });
+  const [topProducts, setTopProducts] = useState<{name: string; units: number; revenue: number; pct: number}[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchAnalytics = async () => {
+    const fetchAll = async () => {
       try {
-        const res = await api.get('/orders/stats');
-        const d = res.data?.data;
-        if (d) {
-          setRevenueData({
-            total: d.total_revenue || 0,
-            growth: '+14.2%',
-            orders: d.total_orders || 0,
-            avgOrder: d.total_orders > 0 ? Math.round(d.total_revenue / d.total_orders) : 0,
-          });
+        const [ordersRes, convsRes, productsRes] = await Promise.allSettled([
+          api.get('/orders/stats'),
+          api.get('/conversations/stats'),
+          api.get('/products'),
+        ]);
+
+        if (ordersRes.status === 'fulfilled') {
+          const d = ordersRes.value.data?.data;
+          if (d) setOrderStats(d);
+        }
+
+        if (convsRes.status === 'fulfilled') {
+          const d = convsRes.value.data?.data;
+          if (d) setConvStats(d);
+        }
+
+        if (productsRes.status === 'fulfilled') {
+          const prods = productsRes.value.data?.data || [];
+          if (prods.length > 0) {
+            const mapped = prods.slice(0, 5).map((p: any) => {
+              const sold = Math.max(0, (p.initial_stock || 0) - (p.current_stock || 0));
+              const revenue = sold * (p.price || 0);
+              return { name: p.name || 'Unknown', units: sold, revenue, pct: 0 };
+            });
+            const maxRevenue = Math.max(...mapped.map((p: any) => p.revenue), 1);
+            mapped.forEach((p: any) => { p.pct = Math.round((p.revenue / maxRevenue) * 100); });
+            setTopProducts(mapped);
+          }
         }
       } catch (e) {
-        console.error('AI Analytics Engine failed to aggregate backend sales pipeline.', e);
+        console.error('Failed to fetch analytics data', e);
       }
+      setLoading(false);
     };
-    fetchAnalytics();
+    fetchAll();
   }, []);
 
-  const topProducts = [
-    { name: 'Premium T-Shirt', units: 89, revenue: 40050, pct: 100 },
-    { name: 'Cotton Polo', units: 54, revenue: 35100, pct: 88 },
-    { name: 'Denim Jeans', units: 31, revenue: 37200, pct: 93 },
-    { name: 'Leather Belt', units: 67, revenue: 23450, pct: 59 },
-    { name: 'Sports Cap', units: 102, revenue: 25500, pct: 64 },
-  ];
+  const avgOrderValue = orderStats.total_orders > 0
+    ? Math.round(orderStats.total_revenue / orderStats.total_orders)
+    : 0;
 
-  const peakHours = [
-    { hour: '8PM-10PM', orders: 67, pct: 100 },
-    { hour: '12PM-2PM', orders: 45, pct: 67 },
-    { hour: '6PM-8PM', orders: 38, pct: 57 },
-    { hour: '10AM-12PM', orders: 28, pct: 42 },
-    { hour: '2PM-4PM', orders: 22, pct: 33 },
-  ];
+  const totalConversations = convStats.open_conversations + convStats.resolved_conversations;
 
-  const recommendations = [
-    { icon: '🎯', text: 'Stock up on Premium T-Shirts — trending upward with 23% growth' },
-    { icon: '📱', text: 'Post product updates between 8-10 PM for maximum reach' },
-    { icon: '💰', text: 'Consider bundle pricing for Belt + T-Shirt combo (89% add-to-cart rate)' },
-    { icon: '🚚', text: 'Switch to Steadfast for Chittagong orders — 15% faster delivery' },
-    { icon: '📢', text: 'Run a flash sale this Friday — historically 40% higher conversion' },
+  const recommendations = orderStats.total_orders > 0 ? [
+    { icon: '🎯', text: `You have ${orderStats.total_orders} orders with ৳${orderStats.total_revenue.toLocaleString()} in revenue — keep the momentum going!` },
+    { icon: '📦', text: orderStats.pending_delivery > 0 ? `${orderStats.pending_delivery} orders are awaiting delivery — consider using auto-courier booking.` : 'All orders are shipped! Great job.' },
+    { icon: '💰', text: avgOrderValue > 0 ? `Average order value is ৳${avgOrderValue} — consider bundle pricing to increase it.` : 'Start tracking order values for insights.' },
+    { icon: '💬', text: convStats.total_unread > 0 ? `${convStats.total_unread} unread messages — enable the Conversation Agent for 24/7 auto-reply.` : 'All messages are read! Conversation Agent is keeping up.' },
+    { icon: '📢', text: 'Use the Creative Agent to generate promotional content for your top products.' },
+  ] : [
+    { icon: '🚀', text: 'Connect your Facebook Page to start receiving Messenger orders.' },
+    { icon: '📦', text: 'Add products to your shop catalog to get started.' },
+    { icon: '💬', text: 'Enable the Conversation Agent for 24/7 auto-reply.' },
+    { icon: '📊', text: 'Once you have orders, AI will analyze your sales patterns.' },
   ];
 
   const generateLiveIntelligence = async () => {
     toast.loading('AI is analyzing sales data...', { id: 'ai-analytics' });
     try {
-      await api.post('/agents/run', {
-        agent_type: 'intelligence',
+      await api.post('/agents/intelligence/run', {
         input: {
           period: 'last_30_days',
           sales_data: {
-            total_revenue: revenueData.total,
-            total_orders: revenueData.orders,
-            top_products: topProducts.map(p => p.name)
+            total_revenue: orderStats.total_revenue,
+            total_orders: orderStats.total_orders,
+            pending_payments: orderStats.pending_payment,
+            conversations: totalConversations,
+            top_products: topProducts.map(p => p.name),
           }
         }
       });
-      toast.success('Analysis scheduled! Dashboard will update shortly.', { id: 'ai-analytics' });
+      toast.success('Intelligence analysis queued! Results will appear when ready.', { id: 'ai-analytics' });
     } catch {
-      toast.error('Failed to run AI', { id: 'ai-analytics' });
+      toast.dismiss('ai-analytics');
+      // The UpgradeModal will handle 403 errors automatically
     }
   };
 
@@ -86,26 +113,28 @@ export default function AnalyticsPage() {
           <h1 className="text-2xl font-heading font-bold flex items-center gap-3" style={{ color: 'var(--text-primary)' }}>
             <BarChart3 className="w-7 h-7 text-primary" /> Sales Analytics
           </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>AI-powered insights from your sales data (Last 30 days)</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Real-time insights from your shop data</p>
         </div>
         <button onClick={generateLiveIntelligence} className="btn-primary flex items-center gap-2 text-sm shadow-lg shadow-primary/20">
-          <span className="text-lg">🤖</span> Generate Insights
+          <span className="text-lg">🤖</span> Generate AI Insights
         </button>
       </div>
 
       {/* Revenue Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: 'Total Revenue', value: `৳${revenueData.total.toLocaleString()}`, icon: TrendingUp, color: 'from-emerald-500 to-green-600' },
-          { label: 'Total Orders', value: revenueData.orders.toString(), icon: ShoppingBag, color: 'from-blue-500 to-indigo-600' },
-          { label: 'Avg Order Value', value: `৳${revenueData.avgOrder}`, icon: BarChart3, color: 'from-violet-500 to-purple-600' },
-          { label: 'Growth', value: revenueData.growth, icon: TrendingUp, color: 'from-amber-500 to-orange-600' },
+          { label: 'Total Revenue', value: `৳${orderStats.total_revenue.toLocaleString()}`, icon: TrendingUp, color: 'from-emerald-500 to-green-600' },
+          { label: 'Total Orders', value: orderStats.total_orders.toString(), icon: ShoppingBag, color: 'from-blue-500 to-indigo-600' },
+          { label: 'Avg Order Value', value: `৳${avgOrderValue.toLocaleString()}`, icon: BarChart3, color: 'from-violet-500 to-purple-600' },
+          { label: 'Conversations', value: totalConversations.toString(), icon: MessageCircle, color: 'from-amber-500 to-orange-600' },
         ].map((card, i) => (
           <motion.div key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="glass-card p-5">
             <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${card.color} flex items-center justify-center mb-3`}>
               <card.icon className="w-5 h-5 text-white" />
             </div>
-            <p className="text-2xl font-heading font-bold" style={{ color: 'var(--text-primary)' }}>{card.value}</p>
+            <p className="text-2xl font-heading font-bold" style={{ color: 'var(--text-primary)' }}>
+              {loading ? <span className="skeleton w-20 h-7 block" /> : card.value}
+            </p>
             <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{card.label}</p>
           </motion.div>
         ))}
@@ -118,7 +147,7 @@ export default function AnalyticsPage() {
             <ShoppingBag className="w-5 h-5 text-primary" /> Top Products
           </h3>
           <div className="space-y-4">
-            {topProducts.map((p, i) => (
+            {topProducts.length > 0 ? topProducts.map((p, i) => (
               <div key={p.name}>
                 <div className="flex items-center justify-between text-sm mb-1">
                   <span style={{ color: 'var(--text-primary)' }}>{i + 1}. {p.name}</span>
@@ -134,39 +163,49 @@ export default function AnalyticsPage() {
                 </div>
                 <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{p.units} units sold</p>
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8">
+                <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-20" style={{ color: 'var(--text-muted)' }} />
+                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No products added yet. Add products to see analytics.</p>
+              </div>
+            )}
           </div>
         </motion.div>
 
-        {/* Peak Hours */}
+        {/* Conversation & Order Breakdown */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }} className="glass-card p-6">
           <h3 className="font-heading font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-            <Clock className="w-5 h-5 text-primary" /> Peak Sales Hours
+            <Users className="w-5 h-5 text-primary" /> Order & Conversation Breakdown
           </h3>
           <div className="space-y-4">
-            {peakHours.map((ph, i) => (
-              <div key={ph.hour}>
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span style={{ color: 'var(--text-primary)' }}>{ph.hour}</span>
-                  <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{ph.orders} orders</span>
+            {[
+              { label: 'Pending Payments', value: orderStats.pending_payment, icon: '💳', color: 'from-amber-500 to-orange-500' },
+              { label: 'Pending Delivery', value: orderStats.pending_delivery, icon: '🚚', color: 'from-blue-500 to-cyan-500' },
+              { label: 'Open Conversations', value: convStats.open_conversations, icon: '💬', color: 'from-violet-500 to-purple-500' },
+              { label: 'Resolved Conversations', value: convStats.resolved_conversations, icon: '✅', color: 'from-emerald-500 to-green-500' },
+              { label: 'Unread Messages', value: convStats.total_unread, icon: '📩', color: 'from-pink-500 to-rose-500' },
+            ].map((item, i) => {
+              const maxVal = Math.max(orderStats.total_orders, totalConversations, 1);
+              const pct = Math.min(Math.round((item.value / maxVal) * 100), 100);
+              return (
+                <div key={item.label}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                      <span>{item.icon}</span> {item.label}
+                    </span>
+                    <span className="font-medium" style={{ color: 'var(--text-primary)' }}>{item.value}</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-card)' }}>
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      transition={{ delay: 0.5 + i * 0.1, duration: 0.6 }}
+                      className={`h-full rounded-full bg-gradient-to-r ${item.color}`}
+                    />
+                  </div>
                 </div>
-                <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-card)' }}>
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${ph.pct}%` }}
-                    transition={{ delay: 0.5 + i * 0.1, duration: 0.6 }}
-                    className="h-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-6 p-3 rounded-xl" style={{ background: 'var(--bg-card)' }}>
-            <div className="flex items-center gap-2 text-sm">
-              <MapPin className="w-4 h-4 text-primary" />
-              <span style={{ color: 'var(--text-secondary)' }}>Top City: <strong style={{ color: 'var(--text-primary)' }}>Dhaka</strong></span>
-            </div>
+              );
+            })}
           </div>
         </motion.div>
       </div>
