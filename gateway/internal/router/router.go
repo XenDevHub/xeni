@@ -182,6 +182,7 @@ func Setup(
 	adminGroup.Get("/users", adminHandler.ListUsers)
 	adminGroup.Put("/users/:id/status", adminHandler.UpdateUserStatus)
 	adminGroup.Put("/users/:id/role", adminHandler.UpdateUserRole)
+	adminGroup.Post("/users/:id/grant-plan", adminHandler.GrantSubscription)
 	adminGroup.Get("/tasks", adminHandler.ListAllTasks)
 	adminGroup.Get("/metrics", adminHandler.GetMetrics)
 

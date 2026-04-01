@@ -1,6 +1,8 @@
 package admin
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -127,5 +129,65 @@ func (h *Handler) GetMetrics(c *fiber.Ctx) error {
 		"total_tasks":          taskCount,
 		"active_subscriptions": activeSubCount,
 		"tasks_by_agent":       tasksByAgent,
+	})
+}
+
+// GrantSubscription allows super_admin to manually assign a plan to any user.
+// POST /api/admin/users/:id/grant-plan  body: { "plan_tier": "professional" }
+func (h *Handler) GrantSubscription(c *fiber.Ctx) error {
+	id := c.Params("id")
+	uid, err := uuid.Parse(id)
+	if err != nil {
+		return response.BadRequest(c, "Invalid user ID")
+	}
+
+	var req struct {
+		PlanTier string `json:"plan_tier"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body")
+	}
+
+	// Find the plan by tier
+	var plan models.Plan
+	if err := h.DB.Where("tier = ?", req.PlanTier).First(&plan).Error; err != nil {
+		return response.NotFound(c, "Plan not found. Valid tiers: starter, professional, premium, enterprise")
+	}
+
+	// Upsert subscription — update if exists, create if not
+	now := time.Now().UTC()
+	end := now.AddDate(1, 0, 0) // Grant 1 year
+
+	var sub models.Subscription
+	result := h.DB.Where("user_id = ?", uid).First(&sub)
+	if result.Error != nil {
+		// Create new
+		sub = models.Subscription{
+			UserID:             uid,
+			PlanID:             plan.ID,
+			Status:             models.SubActive,
+			BillingCycle:       "manual",
+			CurrentPeriodStart: now,
+			CurrentPeriodEnd:   end,
+		}
+		h.DB.Create(&sub)
+	} else {
+		// Update existing
+		h.DB.Model(&sub).Updates(map[string]interface{}{
+			"plan_id":              plan.ID,
+			"status":               models.SubActive,
+			"billing_cycle":        "manual",
+			"current_period_start": now,
+			"current_period_end":   end,
+			"cancelled_at":         nil,
+		})
+	}
+
+	return response.Success(c, map[string]interface{}{
+		"message":  "Subscription granted",
+		"user_id":  uid,
+		"plan":     plan.Name,
+		"tier":     plan.Tier,
+		"valid_until": end.Format("2006-01-02"),
 	})
 }
