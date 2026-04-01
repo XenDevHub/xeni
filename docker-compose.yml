@@ -133,9 +133,7 @@ services:
         condition: service_started
     networks:
       - xeni_net
-    restart: unless-stopped
-    profiles:
-      - app
+    restart: always
 
   # ──────────────────────────────────────────────────────────
   # APPLICATION SERVICES (profiles: app)
