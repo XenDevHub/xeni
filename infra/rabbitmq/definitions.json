@@ -1,12 +1,10 @@
 {
   "rabbit_version": "3.13.0",
-  "users": [],
   "vhosts": [
     {
       "name": "xeni_vhost"
     }
   ],
-  "permissions": [],
   "exchanges": [
     {
       "name": "xeni.tasks",
