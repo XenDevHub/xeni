@@ -177,7 +177,14 @@ func (h *Handler) PublishPost(c *fiber.Ctx) error {
 		var fbError map[string]interface{}
 		json.NewDecoder(resp.Body).Decode(&fbError)
 		slog.Error("facebook graph api error", "response", fbError, "status", resp.StatusCode)
-		return response.InternalError(c)
+		
+		errMsg := "Failed to publish to Facebook"
+		if errData, ok := fbError["error"].(map[string]interface{}); ok {
+			if msg, ok := errData["message"].(string); ok {
+				errMsg = msg
+			}
+		}
+		return response.BadRequest(c, "Facebook Error: "+errMsg)
 	}
 
 	return response.Success(c, map[string]string{
