@@ -93,6 +93,7 @@ services:
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
     container_name: xeni-rabbitmq
+    hostname: xeni-rmq
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-xeni}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-xeni_secret}
