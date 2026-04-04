@@ -117,12 +117,16 @@ func Setup(
 	shopGroup.Put("/me", shopHandler.UpdateMyShop)
 
 	// ── Facebook Pages Routes ──
-	pagesHandler := pages.NewHandler(db)
+	pagesHandler := pages.NewHandler(db, cfg, jwtManager)
 	pagesGroup := api.Group("/pages", middleware.AuthMiddleware(jwtManager, redis), apiRateLimit)
 	pagesGroup.Post("/connect", pagesHandler.ConnectPage)
 	pagesGroup.Get("", pagesHandler.ListPages)
 	pagesGroup.Delete("/:id", pagesHandler.DisconnectPage)
 	pagesGroup.Post("/publish", pagesHandler.PublishPost)
+
+	// Auth routes for Pages (don't use the standard AuthMiddleware as they might use query tokens or redirect)
+	api.Get("/pages/oauth/facebook", pagesHandler.OAuthLogin)
+	api.Get("/pages/oauth/facebook/callback", pagesHandler.OAuthCallback)
 
 	// ── Product Routes ──
 	productsHandler := products.NewHandler(db, spacesClient)

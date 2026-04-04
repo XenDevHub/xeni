@@ -12,18 +12,22 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	"github.com/xeni-ai/gateway/internal/config"
 	"github.com/xeni-ai/gateway/internal/models"
+	"github.com/xeni-ai/gateway/pkg/jwt"
 	"github.com/xeni-ai/gateway/pkg/response"
 )
 
 // Handler holds Facebook pages dependencies.
 type Handler struct {
-	DB *gorm.DB
+	DB  *gorm.DB
+	Cfg *config.Config
+	JWT *jwt.Manager
 }
 
 // NewHandler creates a new pages handler.
-func NewHandler(db *gorm.DB) *Handler {
-	return &Handler{DB: db}
+func NewHandler(db *gorm.DB, cfg *config.Config, jwtManager *jwt.Manager) *Handler {
+	return &Handler{DB: db, Cfg: cfg, JWT: jwtManager}
 }
 
 // ConnectPage handles POST /api/pages/connect — connect a Facebook Page.
@@ -148,11 +152,11 @@ func (h *Handler) PublishPost(c *fiber.Ctx) error {
 
 	// Publish to Facebook Graph API
 	graphURL := fmt.Sprintf("https://graph.facebook.com/v19.0/%s", page.PageID)
-	
+
 	payload := map[string]string{
 		"access_token": page.PageAccessToken,
 	}
-	
+
 	if req.Message != "" {
 		payload["message"] = req.Message
 	}
@@ -164,7 +168,7 @@ func (h *Handler) PublishPost(c *fiber.Ctx) error {
 	}
 
 	jsonValue, _ := json.Marshal(payload)
-	
+
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Post(graphURL, "application/json", bytes.NewBuffer(jsonValue))
 	if err != nil {
@@ -177,7 +181,7 @@ func (h *Handler) PublishPost(c *fiber.Ctx) error {
 		var fbError map[string]interface{}
 		json.NewDecoder(resp.Body).Decode(&fbError)
 		slog.Error("facebook graph api error", "response", fbError, "status", resp.StatusCode)
-		
+
 		errMsg := "Failed to publish to Facebook"
 		if errData, ok := fbError["error"].(map[string]interface{}); ok {
 			if msg, ok := errData["message"].(string); ok {
@@ -192,3 +196,114 @@ func (h *Handler) PublishPost(c *fiber.Ctx) error {
 	})
 }
 
+// OAuthLogin redirects the user to the Facebook OAuth URL.
+func (h *Handler) OAuthLogin(c *fiber.Ctx) error {
+	tokenStr := c.Query("token")
+	if tokenStr == "" {
+		return c.Status(fiber.StatusUnauthorized).SendString("Token is required")
+	}
+
+	claims, err := h.JWT.ValidateAccessToken(tokenStr)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).SendString("Invalid token")
+	}
+
+	redirectURI := c.BaseURL() + "/api/pages/oauth/facebook/callback"
+
+	url := fmt.Sprintf("https://www.facebook.com/v19.0/dialog/oauth?client_id=%s&redirect_uri=%s&state=%s&scope=pages_show_list,pages_messaging,pages_manage_posts&response_type=code",
+		h.Cfg.Facebook.AppID, redirectURI, tokenStr)
+
+	return c.Redirect(url)
+}
+
+// OAuthCallback handles the redirect from Facebook, exchanges the code for a token, and syncs pages.
+func (h *Handler) OAuthCallback(c *fiber.Ctx) error {
+	code := c.Query("code")
+	stateToken := c.Query("state")
+
+	if code == "" || stateToken == "" {
+		return c.Redirect(h.Cfg.App.FrontendURL + "/en/dashboard/pages?error=missing_code_or_state")
+	}
+
+	claims, err := h.JWT.ValidateAccessToken(stateToken)
+	if err != nil {
+		return c.Redirect(h.Cfg.App.FrontendURL + "/en/dashboard/pages?error=invalid_state_token")
+	}
+
+	uid, _ := uuid.Parse(claims.UserID)
+	var shop models.Shop
+	if err := h.DB.Where("user_id = ?", uid).First(&shop).Error; err != nil {
+		return c.Redirect(h.Cfg.App.FrontendURL + "/en/dashboard/pages?error=shop_not_found")
+	}
+
+	redirectURI := c.BaseURL() + "/api/pages/oauth/facebook/callback"
+
+	// 1. Exchange code for access token
+	tokenURL := fmt.Sprintf("https://graph.facebook.com/v19.0/oauth/access_token?client_id=%s&redirect_uri=%s&client_secret=%s&code=%s",
+		h.Cfg.Facebook.AppID, redirectURI, h.Cfg.Facebook.AppSecret, code)
+
+	resp, err := http.Get(tokenURL)
+	if err != nil || resp.StatusCode != 200 {
+		return c.Redirect(h.Cfg.App.FrontendURL + "/en/dashboard/pages?error=token_exchange_failed")
+	}
+	defer resp.Body.Close()
+
+	var tokenRes struct {
+		AccessToken string `json:"access_token"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&tokenRes); err != nil {
+		return c.Redirect(h.Cfg.App.FrontendURL + "/en/dashboard/pages?error=invalid_token_response")
+	}
+
+	// 2. Fetch pages using the long-lived access token
+	pagesURL := fmt.Sprintf("https://graph.facebook.com/v19.0/me/accounts?access_token=%s", tokenRes.AccessToken)
+	pagesResp, err := http.Get(pagesURL)
+	if err != nil || pagesResp.StatusCode != 200 {
+		return c.Redirect(h.Cfg.App.FrontendURL + "/en/dashboard/pages?error=failed_fetching_pages")
+	}
+	defer pagesResp.Body.Close()
+
+	var accountsRes struct {
+		Data []struct {
+			ID          string `json:"id"`
+			Name        string `json:"name"`
+			AccessToken string `json:"access_token"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(pagesResp.Body).Decode(&accountsRes); err != nil {
+		return c.Redirect(h.Cfg.App.FrontendURL + "/en/dashboard/pages?error=failed_parsing_pages")
+	}
+
+	// 3. Save all granted pages to the database
+	for _, p := range accountsRes.Data {
+		// Attempt to subscribe page to webhook automatically
+		subURL := fmt.Sprintf("https://graph.facebook.com/v19.0/%s/subscribed_apps?subscribed_fields=messages,messaging_postbacks&access_token=%s", p.ID, p.AccessToken)
+		if req, err := http.NewRequest("POST", subURL, nil); err == nil {
+			client := &http.Client{}
+			client.Do(req)
+		}
+
+		// Save/Update in DB
+		var existing models.ConnectedPage
+		if err := h.DB.Where("page_id = ?", p.ID).First(&existing).Error; err == nil {
+			h.DB.Model(&existing).Updates(map[string]interface{}{
+				"page_name":         p.Name,
+				"page_access_token": p.AccessToken,
+				"shop_id":           shop.ID,
+			})
+		} else {
+			page := models.ConnectedPage{
+				ShopID:            shop.ID,
+				PageID:            p.ID,
+				PageName:          p.Name,
+				PageAccessToken:   p.AccessToken,
+				WebhookSubscribed: true,
+				IsActive:          true,
+			}
+			h.DB.Create(&page)
+		}
+	}
+
+	return c.Redirect(h.Cfg.App.FrontendURL + "/en/dashboard/pages?oauth=success")
+}

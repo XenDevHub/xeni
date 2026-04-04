@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Globe2, Plus, Trash2, CheckCircle } from 'lucide-react';
+import { Globe2, Trash2, CheckCircle, ExternalLink } from 'lucide-react';
 import api from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
 import toast from 'react-hot-toast';
 
 interface ConnectedPage {
@@ -19,8 +20,6 @@ interface ConnectedPage {
 export default function PagesPage() {
   const [pages, setPages] = useState<ConnectedPage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showConnect, setShowConnect] = useState(false);
-  const [form, setForm] = useState({ page_id: '', page_name: '', page_access_token: '' });
 
   const fetchPages = async () => {
     try {
@@ -32,22 +31,29 @@ export default function PagesPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchPages(); }, []);
+  useEffect(() => { 
+    // Handle OAuth callback status
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('oauth') === 'success') {
+      toast.success('Facebook Pages connected successfully! 🎉');
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (urlParams.get('error')) {
+      toast.error('Failed to connect Facebook Pages: ' + urlParams.get('error'));
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
+    fetchPages(); 
+  }, []);
 
-  const connectPage = async () => {
-    if (!form.page_id || !form.page_name || !form.page_access_token) {
-      toast.error('All fields are required');
+  const connectPageOAuth = () => {
+    const { accessToken } = useAuthStore.getState();
+    if (!accessToken) {
+      toast.error('Authentication Error');
       return;
     }
-    try {
-      await api.post('/pages/connect', form);
-      toast.success('Page connected! 🎉');
-      setShowConnect(false);
-      setForm({ page_id: '', page_name: '', page_access_token: '' });
-      fetchPages();
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed');
-    }
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/backend';
+    window.location.href = `${apiUrl}/api/pages/oauth/facebook?token=${accessToken}`;
   };
 
   const disconnectPage = async (id: string) => {
@@ -68,29 +74,12 @@ export default function PagesPage() {
           <h1 className="text-2xl font-heading font-bold flex items-center gap-3" style={{ color: 'var(--text-primary)' }}>
             <Globe2 className="w-7 h-7 text-primary" /> Facebook Pages
           </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Connect your Facebook Pages to receive Messenger messages.</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Connect your Facebook Pages to auto-reply to messages and generate posts.</p>
         </div>
-        <button onClick={() => setShowConnect(!showConnect)} className="btn-primary flex items-center gap-2 text-sm">
-          <Plus className="w-4 h-4" /> Connect Page
+        <button onClick={connectPageOAuth} className="btn-primary flex items-center gap-2 text-sm shadow-lg shadow-blue-500/20 bg-[#1877F2] hover:bg-[#1864D9] text-white border-0">
+          <ExternalLink className="w-4 h-4" /> Connect with Facebook
         </button>
       </div>
-
-      {/* Connect Form */}
-      {showConnect && (
-        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="glass-card p-6 mb-6 space-y-4">
-          <h3 className="font-heading font-semibold" style={{ color: 'var(--text-primary)' }}>Connect a Facebook Page</h3>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            Get your Page ID and Page Access Token from the Facebook Developer Console.
-          </p>
-          <input className="input-field" placeholder="Page ID (e.g., 123456789)" value={form.page_id} onChange={e => setForm({ ...form, page_id: e.target.value })} />
-          <input className="input-field" placeholder="Page Name" value={form.page_name} onChange={e => setForm({ ...form, page_name: e.target.value })} />
-          <input className="input-field" placeholder="Page Access Token" value={form.page_access_token} onChange={e => setForm({ ...form, page_access_token: e.target.value })} type="password" />
-          <div className="flex gap-2">
-            <button onClick={connectPage} className="btn-primary text-sm">Connect</button>
-            <button onClick={() => setShowConnect(false)} className="btn-ghost text-sm">Cancel</button>
-          </div>
-        </motion.div>
-      )}
 
       {/* Pages List */}
       <div className="space-y-3">
