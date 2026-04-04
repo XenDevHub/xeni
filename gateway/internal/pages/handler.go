@@ -203,7 +203,7 @@ func (h *Handler) OAuthLogin(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).SendString("Token is required")
 	}
 
-	claims, err := h.JWT.ValidateAccessToken(tokenStr)
+	_, err := h.JWT.ValidateAccessToken(tokenStr)
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).SendString("Invalid token")
 	}
