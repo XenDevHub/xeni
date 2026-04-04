@@ -52,7 +52,7 @@ export default function PagesPage() {
       toast.error('Authentication Error');
       return;
     }
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '/backend';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
     window.location.href = `${apiUrl}/api/pages/oauth/facebook?token=${accessToken}`;
   };
 
