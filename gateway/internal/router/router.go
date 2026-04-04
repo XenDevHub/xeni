@@ -125,8 +125,8 @@ func Setup(
 	pagesGroup.Post("/publish", pagesHandler.PublishPost)
 
 	// Auth routes for Pages (don't use the standard AuthMiddleware as they might use query tokens or redirect)
-	api.Get("/pages/oauth/facebook", pagesHandler.OAuthLogin)
-	api.Get("/pages/oauth/facebook/callback", pagesHandler.OAuthCallback)
+	api.Get("/oauth/pages/facebook", pagesHandler.OAuthLogin)
+	api.Get("/oauth/pages/facebook/callback", pagesHandler.OAuthCallback)
 
 	// ── Product Routes ──
 	productsHandler := products.NewHandler(db, spacesClient)

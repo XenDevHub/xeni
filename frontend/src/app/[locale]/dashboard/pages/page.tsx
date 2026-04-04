@@ -53,7 +53,7 @@ export default function PagesPage() {
       return;
     }
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
-    window.location.href = `${apiUrl}/api/pages/oauth/facebook?token=${accessToken}`;
+    window.location.href = `${apiUrl}/api/oauth/pages/facebook?token=${accessToken}`;
   };
 
   const disconnectPage = async (id: string) => {

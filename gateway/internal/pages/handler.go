@@ -208,7 +208,7 @@ func (h *Handler) OAuthLogin(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).SendString("Invalid token")
 	}
 
-	redirectURI := c.BaseURL() + "/api/pages/oauth/facebook/callback"
+	redirectURI := c.BaseURL() + "/api/oauth/pages/facebook/callback"
 
 	url := fmt.Sprintf("https://www.facebook.com/v19.0/dialog/oauth?client_id=%s&redirect_uri=%s&state=%s&scope=pages_show_list,pages_messaging,pages_manage_posts&response_type=code",
 		h.Cfg.Facebook.AppID, redirectURI, tokenStr)
@@ -236,7 +236,7 @@ func (h *Handler) OAuthCallback(c *fiber.Ctx) error {
 		return c.Redirect(h.Cfg.App.FrontendURL + "/en/dashboard/pages?error=shop_not_found")
 	}
 
-	redirectURI := c.BaseURL() + "/api/pages/oauth/facebook/callback"
+	redirectURI := c.BaseURL() + "/api/oauth/pages/facebook/callback"
 
 	// 1. Exchange code for access token
 	tokenURL := fmt.Sprintf("https://graph.facebook.com/v19.0/oauth/access_token?client_id=%s&redirect_uri=%s&client_secret=%s&code=%s",
