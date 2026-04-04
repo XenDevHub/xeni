@@ -16,6 +16,8 @@ interface Order {
   payment_trx_id?: string | null;
   payment_status: string;
   delivery_status: string;
+  tracking_number?: string | null;
+  courier_name?: string | null;
   placed_by: string;
   created_at: string;
 }
@@ -69,25 +71,23 @@ export default function OrdersPage() {
     } catch { toast.error('Failed to update'); }
   };
 
-  const processOrderViaAI = async (order: Order) => {
-    toast.loading('AI Agent verifying payment & courier...', { id: 'ai-order' });
+  const dispatchToCourier = async (order: Order) => {
+    toast.loading('🚚 Dispatching to courier via AI...', { id: 'courier-dispatch' });
     try {
-      await api.post('/agents/run', {
-        agent_type: 'order',
-        input: {
-          order_id: order.id,
-          payment_method: order.payment_method || 'bkash',
-          trx_id: order.payment_trx_id || `TRX${Math.floor(Math.random() * 1000000)}`,
-          amount: order.total_amount,
-          customer_phone: order.customer_phone || '',
-          customer_address: order.customer_address || 'Dhaka, Bangladesh'
-        }
+      await api.post('/agents/order/run', {
+        order_id: order.id,
+        payment_method: order.payment_method || 'bkash',
+        trx_id: order.payment_trx_id || `TRX${Math.floor(Math.random() * 1000000)}`,
+        amount: order.total_amount,
+        customer_phone: order.customer_phone || '',
+        customer_address: order.customer_address || 'Dhaka, Bangladesh',
       });
-      toast.success('Dispatched to Order Agent!', { id: 'ai-order' });
+      toast.success('Order dispatched! Tracking ID will appear shortly.', { id: 'courier-dispatch' });
       setSelectedOrder(null);
-      setTimeout(fetchOrders, 3600); // refresh after python worker completes
-    } catch {
-      toast.error('Failed to trigger AI', { id: 'ai-order' });
+      setTimeout(fetchOrders, 5000);
+    } catch (err: any) {
+      const msg = err.response?.data?.error || 'Failed to dispatch';
+      toast.error(msg, { id: 'courier-dispatch' });
     }
   };
 
@@ -185,25 +185,29 @@ export default function OrdersPage() {
             <h2 className="text-lg font-heading font-bold" style={{ color: 'var(--text-primary)' }}>Order Details</h2>
             <div className="space-y-2 text-sm">
               <p><span style={{ color: 'var(--text-muted)' }}>Customer:</span> <span style={{ color: 'var(--text-primary)' }}>{selectedOrder.customer_name || 'Unknown'}</span></p>
+              <p><span style={{ color: 'var(--text-muted)' }}>Phone:</span> <span style={{ color: 'var(--text-primary)' }}>{selectedOrder.customer_phone || '—'}</span></p>
               <p><span style={{ color: 'var(--text-muted)' }}>Amount:</span> <span className="font-bold" style={{ color: 'var(--text-primary)' }}>৳{selectedOrder.total_amount.toLocaleString()}</span></p>
               <p><span style={{ color: 'var(--text-muted)' }}>Payment:</span> <span className={paymentBadge(selectedOrder.payment_status)}>{selectedOrder.payment_status}</span></p>
-              <p><span style={{ color: 'var(--text-muted)' }}>Delivery:</span> <span className={deliveryBadge(selectedOrder.delivery_status)}>{selectedOrder.delivery_status}</span></p>
+              <p><span style={{ color: 'var(--text-muted)' }}>Delivery:</span> <span className={deliveryBadge(selectedOrder.delivery_status)}>{selectedOrder.delivery_status.replace('_', ' ')}</span></p>
+              {selectedOrder.tracking_number && (
+                <p><span style={{ color: 'var(--text-muted)' }}>Tracking:</span> <span className="font-mono text-xs font-bold" style={{ color: 'var(--text-primary)' }}>{selectedOrder.courier_name} — {selectedOrder.tracking_number}</span></p>
+              )}
             </div>
             <div className="flex flex-col gap-3 pt-2">
-              {(selectedOrder.payment_status === 'pending' || selectedOrder.delivery_status === 'pending') && (
-                <button 
-                  onClick={() => processOrderViaAI(selectedOrder)} 
+              {selectedOrder.delivery_status === 'pending' && (
+                <button
+                  onClick={() => dispatchToCourier(selectedOrder)}
                   className="btn-primary flex items-center justify-center gap-2 text-sm w-full shadow-lg shadow-primary/20"
                 >
-                  <span className="text-xl">🤖</span> AI Auto-Process
+                  <span className="text-xl">🚚</span> Send to Courier (AI)
                 </button>
               )}
               <div className="flex gap-2">
                 {selectedOrder.payment_status === 'pending' && (
-                  <button onClick={() => updateOrder(selectedOrder.id, { payment_status: 'verified' })} className="btn-secondary text-sm flex-1 bg-white/5 hover:bg-white/10" style={{ color: 'var(--text-primary)' }}>Manual Verify</button>
+                  <button onClick={() => updateOrder(selectedOrder.id, { payment_status: 'verified' })} className="btn-secondary text-sm flex-1 bg-white/5 hover:bg-white/10" style={{ color: 'var(--text-primary)' }}>✅ Verify Payment</button>
                 )}
-                {selectedOrder.delivery_status === 'pending' && selectedOrder.payment_status === 'verified' && (
-                  <button onClick={() => updateOrder(selectedOrder.id, { delivery_status: 'booked' })} className="btn-secondary text-sm flex-1 bg-white/5 hover:bg-white/10" style={{ color: 'var(--text-primary)' }}>Manual Book</button>
+                {selectedOrder.delivery_status === 'booked' && (
+                  <button onClick={() => updateOrder(selectedOrder.id, { delivery_status: 'delivered' })} className="btn-secondary text-sm flex-1 bg-white/5 hover:bg-white/10" style={{ color: 'var(--text-primary)' }}>📦 Mark Delivered</button>
                 )}
               </div>
             </div>
