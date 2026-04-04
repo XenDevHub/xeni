@@ -2,7 +2,8 @@ import axios from 'axios';
 import { useAuthStore } from '@/store/auth';
 import { triggerUpgradeModal } from '@/components/UpgradeModal';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '/backend';
+// Use an empty string fallback so browser requests become relative (e.g., /api/...)
+const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
 const api = axios.create({
   baseURL: `${API_URL}/api`,
