@@ -256,7 +256,7 @@ func (h *Handler) OAuthCallback(c *fiber.Ctx) error {
 	}
 
 	// 2. Fetch pages using the long-lived access token
-	pagesURL := fmt.Sprintf("https://graph.facebook.com/v19.0/me/accounts?access_token=%s", tokenRes.AccessToken)
+	pagesURL := fmt.Sprintf("https://graph.facebook.com/v19.0/me/accounts?fields=id,name,access_token,picture&access_token=%s", tokenRes.AccessToken)
 	pagesResp, err := http.Get(pagesURL)
 	if err != nil || pagesResp.StatusCode != 200 {
 		return c.Redirect(h.Cfg.App.FrontendURL + "/en/dashboard/pages?error=failed_fetching_pages")
@@ -269,6 +269,11 @@ func (h *Handler) OAuthCallback(c *fiber.Ctx) error {
 			Name        string `json:"name"`
 			AccessToken string `json:"access_token"`
 		} `json:"data"`
+	}
+
+	slog.Info("pages from facebook", "count", len(accountsRes.Data))
+	for _, p := range accountsRes.Data {
+		slog.Info("page found", "id", p.ID, "name", p.Name)
 	}
 
 	if err := json.NewDecoder(pagesResp.Body).Decode(&accountsRes); err != nil {
