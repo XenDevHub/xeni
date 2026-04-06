@@ -28,6 +28,7 @@ class ConversationAgent(BaseWorker):
         )
 
     def process_task(self, payload: dict[str, Any]) -> dict[str, Any]:
+        payload = payload.get("payload", payload)
         message_text = payload.get("message_text", "")
         customer_psid = payload.get("customer_psid", "unknown")
         page_access_token = payload.get("page_access_token", "")
@@ -102,6 +103,7 @@ class OrderAgent(BaseWorker):
     """Processes orders — payment verification (bKash/Nagad), courier booking."""
 
     def process_task(self, payload: dict[str, Any]) -> dict[str, Any]:
+        payload = payload.get("payload", payload)
         order_id = payload.get("order_id", "")
         payment_method = payload.get("payment_method", "bkash")
         trx_id = payload.get("trx_id", "")
@@ -174,6 +176,7 @@ class InventoryAgent(BaseWorker):
         )
 
     def process_task(self, payload: dict[str, Any]) -> dict[str, Any]:
+        payload = payload.get("payload", payload)
         shop_id = payload.get("shop_id", "")
         products = payload.get("products", [])
 
@@ -244,6 +247,7 @@ class CreativeAgent(BaseWorker):
         )
 
     def process_task(self, payload: dict[str, Any]) -> dict[str, Any]:
+        payload = payload.get("payload", payload)
         product_name = payload.get("product_name", "Premium Product")
         product_price = payload.get("price", 999)
         content_type = payload.get("content_type", "facebook_post")
@@ -343,6 +347,7 @@ class IntelligenceAgent(BaseWorker):
         )
 
     def process_task(self, payload: dict[str, Any]) -> dict[str, Any]:
+        payload = payload.get("payload", payload)
         shop_id = payload.get("shop_id", "")
         period = payload.get("period", "last_30_days")
         sales_data = payload.get("sales_data", {
