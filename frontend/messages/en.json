@@ -6,7 +6,11 @@
     "dashboard": "Dashboard",
     "billing": "Billing",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "your_team": "Your Team",
+    "pricing": "Pricing",
+    "how_i_work": "How I Work",
+    "faq": "FAQ"
   },
   "landing": {
     "hero_title": "Your Online Shop's Smart Assistant",

@@ -23,15 +23,15 @@ const agents = [
 
 const plans = [
   {
-    tier: 'starter', price: 2500, popular: false,
+    tier: 'starter', price: 1000, popular: false,
     features: ['💬 Conversation Agent', '200 orders/month', '1 Facebook Page', '2 GB storage', 'Email support'],
   },
   {
-    tier: 'professional', price: 7500, popular: true,
+    tier: 'professional', price: 2500, popular: true,
     features: ['💬 Conversation Agent', '📦 Order Processing Agent', '📊 Inventory Agent', '1,000 orders/month', '3 Facebook Pages', '10 GB storage', 'Priority support'],
   },
   {
-    tier: 'premium', price: 25000, popular: false,
+    tier: 'premium', price: 5000, popular: false,
     features: ['All 5 AI Agents', 'Unlimited orders', '10 Facebook Pages', '50 GB storage', '🎨 AI Image Generation', '🧠 Sales Intelligence', 'Dedicated support'],
   },
   {
@@ -151,10 +151,10 @@ export default function LandingPage() {
 
           {/* Desktop Nav */}
           <div className="hidden md:flex items-center gap-1">
-            <a href="#agents" className="btn-ghost text-sm">Agents</a>
-            <a href="#pricing" className="btn-ghost text-sm">Pricing</a>
-            <a href="#how-it-works" className="btn-ghost text-sm">How It Works</a>
-            <a href="#faq" className="btn-ghost text-sm">FAQ</a>
+            <a href="#agents" className="btn-ghost text-sm">{t('nav.your_team')}</a>
+            <a href="#pricing" className="btn-ghost text-sm">{t('nav.pricing')}</a>
+            <a href="#how-it-works" className="btn-ghost text-sm">{t('nav.how_i_work')}</a>
+            <a href="#faq" className="btn-ghost text-sm">{t('nav.faq')}</a>
           </div>
 
           <div className="hidden md:flex items-center gap-3">
@@ -178,10 +178,10 @@ export default function LandingPage() {
           {mobileMenu && (
             <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="md:hidden overflow-hidden border-t" style={{ borderColor: 'var(--border-color)' }}>
               <div className="section-container py-4 flex flex-col gap-2">
-                <a href="#agents" className="btn-ghost text-sm" onClick={() => setMobileMenu(false)}>Agents</a>
-                <a href="#pricing" className="btn-ghost text-sm" onClick={() => setMobileMenu(false)}>Pricing</a>
-                <a href="#how-it-works" className="btn-ghost text-sm" onClick={() => setMobileMenu(false)}>How It Works</a>
-                <a href="#faq" className="btn-ghost text-sm" onClick={() => setMobileMenu(false)}>FAQ</a>
+                <a href="#agents" className="btn-ghost text-sm" onClick={() => setMobileMenu(false)}>{t('nav.your_team')}</a>
+                <a href="#pricing" className="btn-ghost text-sm" onClick={() => setMobileMenu(false)}>{t('nav.pricing')}</a>
+                <a href="#how-it-works" className="btn-ghost text-sm" onClick={() => setMobileMenu(false)}>{t('nav.how_i_work')}</a>
+                <a href="#faq" className="btn-ghost text-sm" onClick={() => setMobileMenu(false)}>{t('nav.faq')}</a>
                 <div className="flex gap-2 pt-2">
                   <button onClick={toggleTheme} className="btn-ghost p-2 rounded-lg">{theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}</button>
                   <Link href="/login" prefetch={true} className="btn-secondary text-sm py-2 flex-1 text-center">{t('nav.login')}</Link>
