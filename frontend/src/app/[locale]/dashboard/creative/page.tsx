@@ -38,10 +38,26 @@ export default function CreativePage() {
         if (data.event === 'task.completed') {
           setTaskStatus('completed');
           setLoading(false);
-          const summary = data.payload?.summary || '';
-          if (summary) {
-            setResult({ type: activeTab, content: summary });
+          
+          const agentData = data.payload?.data || {};
+          const generated = agentData.generated_content;
+          
+          if (generated) {
+            if (activeTab === 'caption') {
+              const caption = `${generated.caption_bn}\n\n${generated.caption_en}\n\n${generated.hashtags?.join(' ')}`;
+              setResult({ type: 'caption', content: caption });
+            } else {
+              // The python worker currently returns image_prompt, not an actual image URL.
+              // For now, we display the prompt (or a placeholder) since image gen backend isn't linked yet.
+              setResult({ type: 'caption', content: `[Image Prompt Generated]\n\n${generated.image_prompt}\n\n*(Note: Midjourney integration is pending)*` });
+            }
             toast.success('AI content generated! ✨');
+          } else {
+            // fallback if structure was unexpected
+            const summary = data.payload?.summary || '';
+            if (summary) {
+              setResult({ type: 'caption', content: summary });
+            }
           }
         } else if (data.event === 'task.failed') {
           setTaskStatus('failed');

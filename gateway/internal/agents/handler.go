@@ -266,6 +266,7 @@ func (h *Handler) HandleResult(result rabbitmq.ResultMessage) error {
 			"agent_type":  result.AgentType,
 			"summary":     result.Summary,
 			"duration_ms": result.DurationMs,
+			"data":        result.Data,
 		},
 	})
 
