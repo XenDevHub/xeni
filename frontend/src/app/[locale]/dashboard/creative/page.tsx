@@ -1,69 +1,96 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Image as ImageIcon, Send, Sparkles, Wand2, Type, Hash, Loader2 } from 'lucide-react';
+import { Image as ImageIcon, Send, Sparkles, Wand2, Type, Hash, Loader2, CheckCircle2, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
+import { useAuthStore } from '@/store/auth';
 
 export default function CreativePage() {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<{ type: 'caption' | 'image', content: string } | null>(null);
   const [activeTab, setActiveTab] = useState<'caption' | 'image'>('caption');
+  const [taskStatus, setTaskStatus] = useState<'idle' | 'queued' | 'processing' | 'completed' | 'failed'>('idle');
+  const wsRef = useRef<WebSocket | null>(null);
+  const pendingTaskIdRef = useRef<string | null>(null);
+  const { accessToken } = useAuthStore.getState();
+
+  // Connect WebSocket and listen for task results
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'wss://xeni.xentroinfotech.com'}/api/ws?token=${accessToken}`;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        // Only handle events for our pending task
+        if (data.task_id && data.task_id !== pendingTaskIdRef.current) return;
+
+        if (data.event === 'task.completed') {
+          setTaskStatus('completed');
+          setLoading(false);
+          const summary = data.payload?.summary || '';
+          if (summary) {
+            setResult({ type: activeTab, content: summary });
+            toast.success('AI content generated! ✨');
+          }
+        } else if (data.event === 'task.failed') {
+          setTaskStatus('failed');
+          setLoading(false);
+          toast.error('Creative Agent failed. Please try again.');
+        } else if (data.event === 'task.processing') {
+          setTaskStatus('processing');
+        }
+      } catch {
+        // ignore parse errors
+      }
+    };
+
+    ws.onerror = () => {
+      // WebSocket error, silent fallback
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [accessToken, activeTab]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       toast.error('Please enter a description');
       return;
     }
-    
+
     setLoading(true);
     setResult(null);
-    
+    setTaskStatus('queued');
+
     try {
       const response = await api.post('/agents/creative/run', {
         payload: {
           product_name: prompt,
           price: 999,
-          content_type: activeTab
+          content_type: activeTab,
         }
       });
-      
-      const payload = response.data.data; // Task submitted
-      
-      // Long-polling or socket wait - for MVP, we just show a pending state and maybe poll
-      toast.success('Task submitted. Result will be generated shortly!');
-      
-      // In a fully realtime system, we'd wait for WS. Since our Go worker returns 
-      // the Task ID synchronously, let's just mock the await result for instant UX
-      // Wait, we need the actual result if it exists. 
-      // If the gateway just pushes to RabbitMQ, it's async. We don't have the result immediately.
 
-      // Mock display to handle async UX for now:
-      if (activeTab === 'caption') {
-        setResult({
-          type: 'caption',
-          content: 'Task queued! Your AI caption will be generated soon.'
-        });
-      }
-      
-      if (activeTab === 'caption') {
-        setResult({
-          type: 'caption',
-          content: `🚀 New Arrival Alert! 🚀\n\nUpgrade your style with our latest collection: ${prompt}. Perfect for any occasion. Limited stock available!\n\n🛒 Shop now through the link in our bio.\n\n#Fashion #Style #NewArrival #${prompt.split(' ')[0]} #OOTD`
-        });
-      } else {
-        setResult({
-          type: 'image',
-          content: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=800'
-        });
-      }
-      toast.success('Generated successfully!');
-    } catch (e) {
-      toast.error('Failed to generate content. Please try again.');
-    } finally {
+      const data = response.data.data;
+      pendingTaskIdRef.current = data.task_id;
+      toast.success('Task queued! AI is generating your content...');
+    } catch (e: any) {
       setLoading(false);
+      setTaskStatus('failed');
+      const errMsg = e.response?.data?.error || 'Failed to submit task.';
+      if (errMsg.includes('Upgrade')) {
+        toast.error('Creative Agent requires Premium plan.');
+      } else {
+        toast.error(errMsg);
+      }
     }
   };
 
@@ -150,6 +177,16 @@ export default function CreativePage() {
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
           {loading ? 'Generating Magic...' : `Generate ${activeTab === 'caption' ? 'Caption' : 'Image'}`}
         </button>
+
+        {/* Real-time Task Status Indicator */}
+        {taskStatus !== 'idle' && taskStatus !== 'completed' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3 p-4 rounded-xl border" style={{ borderColor: 'var(--border-color)', background: 'var(--bg-card)' }}>
+            {taskStatus === 'queued' && <><Clock className="w-5 h-5 text-amber-400 animate-pulse" /><span className="text-sm font-medium text-amber-400">Task queued — AI worker is starting...</span></>}
+            {taskStatus === 'processing' && <><Loader2 className="w-5 h-5 text-primary animate-spin" /><span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>AI is crafting your content...</span></>}
+            {taskStatus === 'failed' && <><span className="text-sm font-medium text-red-400">Generation failed. Please try again.</span></>}
+          </motion.div>
+        )}
+
 
         {/* Results Area */}
         {result && (
