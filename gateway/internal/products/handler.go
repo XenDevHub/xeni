@@ -1,6 +1,8 @@
 package products
 
 import (
+	"encoding/json"
+	
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -99,7 +101,8 @@ func (h *Handler) CreateProduct(c *fiber.Ctx) error {
 	}
 
 	if req.Images != nil {
-		product.Images = req.Images
+		b, _ := json.Marshal(req.Images)
+		product.Images = b
 	}
 
 	if err := h.DB.Create(&product).Error; err != nil {
@@ -238,7 +241,8 @@ func (h *Handler) UpdateProduct(c *fiber.Ctx) error {
 		updates["is_active"] = *req.IsActive
 	}
 	if req.Images != nil {
-		updates["images"] = req.Images
+		b, _ := json.Marshal(req.Images)
+		updates["images"] = b
 	}
 
 	if len(updates) > 0 {

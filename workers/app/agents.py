@@ -261,8 +261,10 @@ class CreativeAgent(BaseWorker):
                     quality="standard",
                     n=1,
                 )
-                image_url = response.data[0].url
-                content_data = {
+                image_url = ""
+                if response.data:
+                    image_url = response.data[0].url or ""
+                content_data: dict[str, Any] = {
                     "caption_en": "Image Generated Successfully",
                     "caption_bn": "ইমেজ তৈরি হয়েছে",
                     "hashtags": [],
