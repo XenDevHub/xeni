@@ -248,31 +248,65 @@ class CreativeAgent(BaseWorker):
         product_price = payload.get("price", 999)
         content_type = payload.get("content_type", "facebook_post")
 
-        prompt = f"""
-        You are an elite e-commerce marketing expert for the Bangladeshi market.
-        Create an engaging marketing post for a product.
-        
-        Product Name: {product_name}
-        Price: ৳{product_price}
-        Platform/Type: {content_type}
-        
-        Provide the response STRICTLY as a valid JSON object with the following keys:
-        - caption_en: A highly engaging English caption with emojis.
-        - caption_bn: A highly engaging Bengali translation of the caption (use native characters).
-        - hashtags: A list of 5 to 7 relevant tags (mix of English and Bengali).
-        - image_prompt: A highly detailed text prompt for Midjourney to generate a stunning commercial product photo.
-        """
+        if content_type == "image":
+            # Image Generation via DALL-E 3
+            try:
+                from openai import OpenAI
+                client = OpenAI(api_key=settings.OPENAI_API_KEY)
+                dalle_prompt = f"Professional commercial product photography of: {product_name}. High quality, well lit."
+                response = client.images.generate(
+                    model="dall-e-3",
+                    prompt=dalle_prompt,
+                    size="1024x1024",
+                    quality="standard",
+                    n=1,
+                )
+                image_url = response.data[0].url
+                content_data = {
+                    "caption_en": "Image Generated Successfully",
+                    "caption_bn": "ইমেজ তৈরি হয়েছে",
+                    "hashtags": [],
+                    "image_prompt": dalle_prompt,
+                    "image_url": image_url
+                }
+            except Exception as e:
+                logger.error(f"Error calling DALL-E: {e}")
+                # Fallback to placeholder if token error
+                content_data = {
+                    "caption_en": f"Failed to generate image.",
+                    "caption_bn": f"ইমেজ তৈরি করতে ব্যর্থ।",
+                    "hashtags": [],
+                    "image_prompt": f"Product photography of {product_name}",
+                    "image_url": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=800"
+                }
+        else:
+            # Text Generation (Caption) via GPT
+            prompt = f"""
+            You are an elite e-commerce marketing expert for the Bangladeshi market.
+            Create an engaging marketing post for a product.
+            
+            Product Name: {product_name}
+            Price: ৳{product_price}
+            Platform/Type: {content_type}
+            
+            Provide the response STRICTLY as a valid JSON object with the following keys:
+            - caption_en: A highly engaging English caption with emojis.
+            - caption_bn: A highly engaging Bengali translation of the caption (use native characters).
+            - hashtags: A list of 5 to 7 relevant tags (mix of English and Bengali).
+            - image_prompt: A highly detailed text prompt for Midjourney to generate a stunning commercial product photo.
+            """
 
-        try:
-            ai_response = self.llm.invoke(prompt)
-            content_data = json.loads(ai_response.content)
-        except Exception:
-            content_data = {
-                "caption_en": f"🔥 {product_name} — Only ৳{product_price}! Order now!",
-                "caption_bn": f"🔥 {product_name} — মাত্র ৳{product_price}! এখনই অর্ডার করুন!",
-                "hashtags": ["#Shopping", "#BD"],
-                "image_prompt": f"Product photography of {product_name}"
-            }
+            try:
+                ai_response = self.llm.invoke(prompt)
+                content_data = json.loads(ai_response.content)
+            except Exception as e:
+                logger.error(f"Error calling GPT for caption: {e}")
+                content_data = {
+                    "caption_en": f"🔥 {product_name} — Only ৳{product_price}! Order now!",
+                    "caption_bn": f"🔥 {product_name} — মাত্র ৳{product_price}! এখনই অর্ডার করুন!",
+                    "hashtags": ["#Shopping", "#BD"],
+                    "image_prompt": f"Product photography of {product_name}"
+                }
 
         return {
             "summary": f"Generated {content_type} content for '{product_name}'.",
