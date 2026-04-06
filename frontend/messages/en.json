@@ -10,17 +10,18 @@
   },
   "landing": {
     "hero_title": "Your Online Shop's Smart Assistant",
-    "hero_subtitle": "Xeni AI autonomously manages your Facebook Messenger conversations, processes orders with bKash/Nagad verification, tracks inventory, creates content, and delivers sales intelligence — all in Bangla & English.",
+    "hero_subtitle": "\"Hi there! I’m Xeni, and I’ve been designed to take the 'busy work' off your plate. I handle your customer conversations with a human touch, processing orders from start to finish. I verify all the payments, track every item in your stock, and even create your marketing content. You build the brand; I’ll run the shop.\"",
     "cta": "Start Selling Smarter",
     "cta_secondary": "Explore the Agents",
     "cta_login": "Sign In to Dashboard",
-    "features_title": "Meet Your 5 AI Agents",
+    "features_title": "Meet Your New Dream Team",
+    "features_subtitle": "I’ve assembled five specialized smart assistant to live inside your business. They don’t just \"process data” they take ownership of your daily hustle so you can focus on the big picture.",
     "learn_more": "Learn More"
   },
   "agents": {
     "conversation": {
-      "name": "Conversation Agent",
-      "description": "Automatically reply to customer messages on Facebook Messenger 24/7 in Bangla and English. Handles product inquiries, order status checks, and intelligently escalates to human operators when needed.",
+      "name": "The Front Desk",
+      "description": "\"I’m your Front Desk. I handle the 'Hello' so you don't have to. I stay awake 24/7 on Messenger to chat with your customers in Bangla and English. If a question gets too personal or tricky, I’ll gently tap you on the shoulder to take over.\"",
       "features": [
         "24/7 auto-reply in Bangla & English",
         "Smart intent detection (product inquiry, order status, complaint)",
@@ -31,8 +32,8 @@
       "run_button": "Configure Auto-Reply"
     },
     "order": {
-      "name": "Order Processing Agent",
-      "description": "End-to-end order automation from payment to delivery. Verifies bKash and Nagad transactions, auto-creates orders from Messenger conversations, and books courier pickups via Pathao or Steadfast.",
+      "name": "The Operations Lead",
+      "description": "\"I’m your Operations Lead. My job is to get orders out the door. I verify every payment and instantly book the pickup with Pathao or Steadfast. I make sure the journey from 'ordered' to 'delivered' is a straight line.\"",
       "features": [
         "bKash & Nagad payment verification",
         "Automatic order creation from chat",
@@ -43,8 +44,8 @@
       "run_button": "Process Orders"
     },
     "inventory": {
-      "name": "Inventory Agent",
-      "description": "Real-time stock management that keeps your catalog in sync. Automatically detects low-stock items, prevents overselling, and suggests restocking based on sales velocity patterns.",
+      "name": "The Inventory Manager",
+      "description": "\"I’m your Inventory Manager. I keep a hawk-eye on your stock levels. I’ll make sure you never oversell a popular item, and I’ll send you a 'heads-up' when it’s time to restock based on how fast things are moving.\"",
       "features": [
         "Real-time stock level monitoring",
         "Low-stock alerts & auto-notifications",
@@ -55,8 +56,8 @@
       "run_button": "Check Stock"
     },
     "creative": {
-      "name": "Creative Agent",
-      "description": "Generate scroll-stopping product descriptions, social media captions, and ad images using AI. Produces bilingual content optimized for Facebook and Instagram that drives engagement and sales.",
+      "name": "The Creative Director",
+      "description": "\"I’m your Creative Director. I take your products and give them a voice. I’ll write your Facebook captions and design your ad images in both languages, making sure your brand looks professional and stops the scroll every single time.\"",
       "features": [
         "AI product description generation (Bangla & English)",
         "Facebook & Instagram caption creation",
@@ -67,8 +68,8 @@
       "run_button": "Generate Content"
     },
     "intelligence": {
-      "name": "Sales Intelligence Agent",
-      "description": "Transform your sales data into actionable insights. Identifies revenue trends, peak selling hours, top-performing products, and delivers AI-powered recommendations to grow your business.",
+      "name": "The Growth Consultant",
+      "description": "\"I look past the numbers to tell you the story of your growth. I’ll point out your best-selling hours, identify which products are your real winners, and suggest exactly where you should invest next. I don't just give you reports; I give you a roadmap to scale.\"",
       "features": [
         "Revenue trend analysis & forecasting",
         "Peak selling hour identification",

@@ -209,7 +209,7 @@ export default function LandingPage() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-extrabold mb-8 leading-[1.15] tracking-tight">
             <span className="gradient-text drop-shadow-xl">{t('landing.hero_title')}</span>
           </h1>
-          <p className="text-lg md:text-2xl max-w-4xl mx-auto mb-12 leading-relaxed font-medium drop-shadow-sm" style={{ color: 'var(--text-secondary)' }}>
+          <p className="text-lg md:text-xl max-w-4xl mx-auto mb-12 leading-relaxed font-medium drop-shadow-sm italic" style={{ color: 'var(--text-secondary)' }}>
             {t('landing.hero_subtitle')}
           </p>
           <div className="flex flex-col sm:flex-row gap-5 justify-center">
@@ -223,7 +223,7 @@ export default function LandingPage() {
 
           {/* Stats Bar */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex flex-wrap justify-center gap-12 mt-20 pt-10 border-t border-white/10" style={{ borderColor: 'var(--border-color)' }}>
-            {[{ n: '5', l: 'AI Agents' }, { n: '24/7', l: 'Messenger Auto-Reply' }, { n: '99.9%', l: 'Uptime' }, { n: 'বাংলা', l: '& English Support' }].map(s => (
+            {[{ n: '5', l: 'Smart Agents' }, { n: '24/7', l: 'Messenger Auto-Reply' }, { n: '99.9%', l: 'Uptime' }, { n: 'বাংলা', l: '& English Support' }].map(s => (
               <div key={s.l} className="text-center group">
                 <div className="text-3xl md:text-4xl font-heading font-black gradient-text group-hover:scale-110 transition-transform duration-300">{s.n}</div>
                 <div className="text-sm md:text-base mt-2 font-medium" style={{ color: 'var(--text-muted)' }}>{s.l}</div>
@@ -260,7 +260,7 @@ export default function LandingPage() {
         <div className="section-container relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <h2 className="section-title text-5xl mb-6">{t('landing.features_title')}</h2>
-            <p className="section-subtitle text-xl max-w-3xl leading-relaxed">Each agent is specialized to automate a critical part of your e-commerce operations — from customer conversations to delivery tracking.</p>
+            <p className="section-subtitle text-xl max-w-3xl leading-relaxed italic">{t('landing.features_subtitle')}</p>
           </motion.div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-16">
