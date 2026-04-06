@@ -659,8 +659,24 @@ func GetUserSubscription(db *gorm.DB, redisClient *cache.Client, userID string) 
 		}
 	}
 
-	// Cache miss — query DB
+	// Fetch user to check role
 	uid, _ := uuid.Parse(userID)
+	var user models.User
+	if err := db.Select("role").First(&user, uid).Error; err == nil {
+		if user.Role == models.RoleSuperAdmin {
+			info := &SubscriptionInfo{
+				PlanTier:       "super_admin",
+				Agents:         []string{"conversation", "order", "inventory", "creative", "intelligence"},
+				MaxTasksPerDay: 0, // unlimited
+				StorageMB:      102400, // 100GB
+			}
+			data, _ := json.Marshal(info)
+			redisClient.SetSubscription(ctx, userID, data)
+			return info, nil
+		}
+	}
+
+	// Cache miss — query DB
 	var sub models.Subscription
 	if err := db.Preload("Plan").Where("user_id = ? AND status = ?", uid, models.SubActive).First(&sub).Error; err != nil {
 		// No active subscription — default to starter
