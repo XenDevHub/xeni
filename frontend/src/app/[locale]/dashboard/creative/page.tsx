@@ -15,7 +15,7 @@ export default function CreativePage() {
   const [taskStatus, setTaskStatus] = useState<'idle' | 'queued' | 'processing' | 'completed' | 'failed'>('idle');
   const wsRef = useRef<WebSocket | null>(null);
   const pendingTaskIdRef = useRef<string | null>(null);
-  const { accessToken } = useAuthStore.getState();
+  const accessToken = useAuthStore((s) => s.accessToken); // reactive — re-renders on token refresh
 
   // Connect WebSocket and listen for task results
   useEffect(() => {
