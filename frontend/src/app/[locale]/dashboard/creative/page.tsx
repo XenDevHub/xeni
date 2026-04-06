@@ -24,7 +24,7 @@ export default function CreativePage() {
     // Derive WS URL from API URL (avoid double-pathing from NEXT_PUBLIC_WS_URL)
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://xeni.xentroinfotech.com';
     const wsBase = apiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
-    const wsUrl = `${wsBase}/api/ws?token=${accessToken}`;
+    const wsUrl = `${wsBase}/ws?token=${accessToken}`;
 
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
