@@ -10,7 +10,7 @@ import { useAuthStore } from '@/store/auth';
 export default function CreativePage() {
   const [prompt, setPrompt] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{ type: 'caption' | 'image', content: string } | null>(null);
+  const [result, setResult] = useState<{ caption: string | null; imageUrl: string | null }>({ caption: null, imageUrl: null });
   const [activeTab, setActiveTab] = useState<'caption' | 'image'>('caption');
   const [taskStatus, setTaskStatus] = useState<'idle' | 'queued' | 'processing' | 'completed' | 'failed'>('idle');
   const wsRef = useRef<WebSocket | null>(null);
@@ -45,18 +45,16 @@ export default function CreativePage() {
           if (generated) {
             if (activeTab === 'caption') {
               const caption = `${generated.caption_bn}\n\n${generated.caption_en}\n\n${generated.hashtags?.join(' ')}`;
-              setResult({ type: 'caption', content: caption });
+              setResult(prev => ({ ...prev, caption }));
             } else {
-              // The python worker currently returns image_prompt, not an actual image URL.
-              // For now, we display the prompt (or a placeholder) since image gen backend isn't linked yet.
-              setResult({ type: 'caption', content: `[Image Prompt Generated]\n\n${generated.image_prompt}\n\n*(Note: Midjourney integration is pending)*` });
+              setResult(prev => ({ ...prev, imageUrl: generated.image_url }));
             }
             toast.success('AI content generated! ✨');
           } else {
             // fallback if structure was unexpected
             const summary = data.payload?.summary || '';
             if (summary) {
-              setResult({ type: 'caption', content: summary });
+              setResult(prev => ({ ...prev, caption: summary }));
             }
           }
         } else if (data.event === 'task.failed') {
@@ -87,7 +85,6 @@ export default function CreativePage() {
     }
 
     setLoading(true);
-    setResult(null);
     setTaskStatus('queued');
 
     try {
@@ -134,10 +131,17 @@ export default function CreativePage() {
       const pageId = pages[0].page_id;
       const payload: any = { page_id: pageId };
       
-      if (result.type === 'caption') {
-        payload.message = result.content;
-      } else {
-        payload.image_url = result.content;
+      if (result.caption) {
+        payload.message = result.caption;
+      }
+      if (result.imageUrl) {
+        payload.image_url = result.imageUrl;
+      }
+      
+      if (!payload.message && !payload.image_url) {
+        toast.error("Nothing to publish!");
+        setPublishing(false);
+        return;
       }
       
       await api.post('/pages/publish', payload);
@@ -209,21 +213,22 @@ export default function CreativePage() {
 
 
         {/* Results Area */}
-        {result && (
+        {(result.caption || result.imageUrl) && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mt-8 pt-6 border-t" style={{ borderColor: 'var(--border-color)' }}>
             <h3 className="font-heading font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-              {activeTab === 'caption' ? <Hash className="w-5 h-5 text-primary" /> : <ImageIcon className="w-5 h-5 text-primary" />} 
-              Generated Result
+              <Hash className="w-5 h-5 text-primary" /> Generated Result
             </h3>
             
-            <div className="bg-black/20 p-5 rounded-xl border" style={{ borderColor: 'var(--border-color)' }}>
-              {result.type === 'caption' ? (
-                <p className="whitespace-pre-wrap leading-relaxed text-sm" style={{ color: 'var(--text-primary)' }}>{result.content}</p>
-              ) : (
+            <div className="bg-black/20 p-5 rounded-xl border flex flex-col gap-4" style={{ borderColor: 'var(--border-color)' }}>
+              
+              {result.imageUrl && (
                 <div className="relative aspect-auto rounded-lg overflow-hidden flex items-center justify-center">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={result.content} alt="Generated AI Image" className="max-w-full h-auto max-h-[400px] object-contain rounded-lg shadow-xl" />
+                  <img src={result.imageUrl} alt="Generated AI Image" className="max-w-full h-auto max-h-[400px] object-contain rounded-lg shadow-xl" />
                 </div>
+              )}
+
+              {result.caption && (
+                <p className="whitespace-pre-wrap leading-relaxed text-sm" style={{ color: 'var(--text-primary)' }}>{result.caption}</p>
               )}
             </div>
             
@@ -231,11 +236,11 @@ export default function CreativePage() {
               <button 
                 className="btn-secondary flex-1 py-2 text-sm"
                 onClick={() => {
-                  navigator.clipboard.writeText(result.content);
+                  navigator.clipboard.writeText(result.caption || '');
                   toast.success('Copied to clipboard!');
                 }}
               >
-                Copy to Clipboard
+                Copy Caption
               </button>
               <button 
                 className="btn-primary flex-1 py-2 text-sm flex items-center justify-center gap-2" 
