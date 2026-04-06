@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { BarChart3, TrendingUp, Clock, MapPin, ShoppingBag, Lightbulb, MessageCircle, Users } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '@/store/auth';
 
 interface OrderStats {
   total_orders: number;
@@ -78,13 +79,64 @@ export default function AnalyticsPage() {
     fetchAll();
   }, []);
 
+  const [taskStatus, setTaskStatus] = useState<'idle' | 'queued' | 'processing' | 'completed' | 'failed'>('idle');
+  const wsRef = useRef<WebSocket | null>(null);
+  const pendingTaskIdRef = useRef<string | null>(null);
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  const [aiInsights, setAiInsights] = useState<{icon: string, text: string}[]>([]);
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://xeni.xentroinfotech.com';
+    const wsBase = apiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+    const wsUrl = `${wsBase}/ws?token=${accessToken}`;
+
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.task_id && data.task_id !== pendingTaskIdRef.current) return;
+
+        if (data.event === 'task.completed') {
+          setTaskStatus('completed');
+          toast.success('AI Insights generated! ✨', { id: 'ai-analytics' });
+          
+          const agentData = data.payload?.data || {};
+          const recs = agentData.ai_recommendations || [];
+          
+          if (recs.length > 0) {
+            setAiInsights(recs.map((r: string) => {
+              const iconMatch = r.match(/^([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/);
+              const icon = iconMatch ? iconMatch[0] : '💡';
+              const text = iconMatch ? r.replace(icon, '').trim() : r;
+              return { icon, text };
+            }));
+          }
+        } else if (data.event === 'task.failed') {
+          setTaskStatus('failed');
+          toast.error('AI Insights failed.', { id: 'ai-analytics' });
+        } else if (data.event === 'task.processing') {
+          setTaskStatus('processing');
+        }
+      } catch {}
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [accessToken]);
+
   const avgOrderValue = (orderStats.total_orders || 0) > 0
     ? Math.round((orderStats.total_revenue || 0) / orderStats.total_orders)
     : 0;
 
   const totalConversations = (convStats.open_conversations || 0) + (convStats.resolved_conversations || 0);
 
-  const recommendations = orderStats.total_orders > 0 ? [
+  const defaultRecommendations = orderStats.total_orders > 0 ? [
     { icon: '🎯', text: `You have ${orderStats.total_orders || 0} orders with ৳${(orderStats.total_revenue || 0).toLocaleString()} in revenue — keep the momentum going!` },
     { icon: '📦', text: (orderStats.pending_delivery || 0) > 0 ? `${orderStats.pending_delivery} orders are awaiting delivery — consider using auto-courier booking.` : 'All orders are shipped! Great job.' },
     { icon: '💰', text: avgOrderValue > 0 ? `Average order value is ৳${avgOrderValue} — consider bundle pricing to increase it.` : 'Start tracking order values for insights.' },
@@ -97,11 +149,13 @@ export default function AnalyticsPage() {
     { icon: '📊', text: 'Once you have orders, AI will analyze your sales patterns.' },
   ];
 
+  const recommendations = aiInsights.length > 0 ? aiInsights : defaultRecommendations;
+
   const generateLiveIntelligence = async () => {
     toast.loading('AI is analyzing sales data...', { id: 'ai-analytics' });
     try {
-      await api.post('/agents/intelligence/run', {
-        input: {
+      const response = await api.post('/agents/intelligence/run', {
+        payload: {
           period: 'last_30_days',
           sales_data: {
             total_revenue: orderStats.total_revenue,
@@ -112,6 +166,8 @@ export default function AnalyticsPage() {
           }
         }
       });
+      pendingTaskIdRef.current = response.data.data.task_id;
+      setTaskStatus('queued');
       toast.success('Intelligence analysis queued! Results will appear when ready.', { id: 'ai-analytics' });
     } catch {
       toast.dismiss('ai-analytics');

@@ -93,9 +93,8 @@ export default function ProductsPage() {
   const runAIAudit = async () => {
     toast.loading('AI is analyzing your inventory...', { id: 'ai-inventory' });
     try {
-      await api.post('/agents/run', {
-        agent_type: 'inventory',
-        input: {
+      await api.post('/agents/inventory/run', {
+        payload: {
           shop_id: 'auto-resolved-by-backend',
           products: products.map(p => ({
             name: p.name,

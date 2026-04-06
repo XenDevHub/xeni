@@ -61,10 +61,9 @@ export default function Navbar() {
 
           <div className="w-px h-6 mx-2" style={{ background: 'var(--border-color)' }} />
 
-          {/* Language Switcher */}
           <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: 'var(--bg-card)' }}>
-            <Link href={pathname || '/'} locale="en" className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${locale === 'en' ? 'bg-primary text-white' : ''}`} style={locale !== 'en' ? { color: 'var(--text-muted)' } : undefined}>EN</Link>
-            <Link href={pathname || '/'} locale="bn" className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${locale === 'bn' ? 'bg-primary text-white' : ''}`} style={locale !== 'bn' ? { color: 'var(--text-muted)' } : undefined}>বাং</Link>
+            <button onClick={() => router.replace(pathname || '/', { locale: 'en' })} className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${locale === 'en' ? 'bg-primary text-white' : ''}`} style={locale !== 'en' ? { color: 'var(--text-muted)' } : undefined}>EN</button>
+            <button onClick={() => router.replace(pathname || '/', { locale: 'bn' })} className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${locale === 'bn' ? 'bg-primary text-white' : ''}`} style={locale !== 'bn' ? { color: 'var(--text-muted)' } : undefined}>বাং</button>
           </div>
 
           {/* Theme Toggle */}

@@ -98,6 +98,10 @@ func (h *Handler) CreateProduct(c *fiber.Ctx) error {
 		IsOutOfStock:      req.InitialStock == 0,
 	}
 
+	if req.Images != nil {
+		product.Images = req.Images
+	}
+
 	if err := h.DB.Create(&product).Error; err != nil {
 		return response.InternalError(c)
 	}
@@ -198,6 +202,7 @@ func (h *Handler) UpdateProduct(c *fiber.Ctx) error {
 		CurrentStock      *int     `json:"current_stock"`
 		LowStockThreshold *int     `json:"low_stock_threshold"`
 		IsActive          *bool    `json:"is_active"`
+		Images            []string `json:"images"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return response.BadRequest(c, "Invalid request body")
@@ -231,6 +236,9 @@ func (h *Handler) UpdateProduct(c *fiber.Ctx) error {
 	}
 	if req.IsActive != nil {
 		updates["is_active"] = *req.IsActive
+	}
+	if req.Images != nil {
+		updates["images"] = req.Images
 	}
 
 	if len(updates) > 0 {

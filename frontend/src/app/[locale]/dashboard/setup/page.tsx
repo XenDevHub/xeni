@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import {
   Settings, ChevronRight, ExternalLink,
   MessageCircle, CreditCard, Truck, Wand2, BarChart3,
@@ -36,6 +36,7 @@ const linkMap: Record<string, string> = {
 
 export default function SetupGuidePage() {
   const t = useTranslations('setup');
+  const locale = useLocale();
   const [openSection, setOpenSection] = useState<string | null>('facebook');
 
   const statusColors = {
@@ -143,7 +144,7 @@ export default function SetupGuidePage() {
                             </p>
                             {step.action && linkMap[step.action] && (
                               <a
-                                href={linkMap[step.action]}
+                                href={`/${locale}${linkMap[step.action]}`}
                                 className="inline-flex items-center gap-1.5 mt-2 text-sm text-primary font-medium hover:underline"
                               >
                                 {step.action} <ExternalLink className="w-3.5 h-3.5" />

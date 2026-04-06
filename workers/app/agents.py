@@ -273,8 +273,8 @@ class CreativeAgent(BaseWorker):
                 logger.error(f"Error calling DALL-E: {e}")
                 # Fallback to placeholder if token error
                 content_data = {
-                    "caption_en": f"Failed to generate image.",
-                    "caption_bn": f"ইমেজ তৈরি করতে ব্যর্থ।",
+                    "caption_en": "Failed to generate image.",
+                    "caption_bn": "ইমেজ তৈরি করতে ব্যর্থ।",
                     "hashtags": [],
                     "image_prompt": f"Product photography of {product_name}",
                     "image_url": "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&q=80&w=800"
