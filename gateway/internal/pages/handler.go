@@ -255,8 +255,8 @@ func (h *Handler) OAuthCallback(c *fiber.Ctx) error {
 	}
 
 	// 2. Fetch pages using the long-lived access token
-	// Debug: token টা log করুন
-	slog.Info("access token preview", "token", tokenRes.AccessToken[:30])
+	// Debug: token
+	slog.Info("full token", "token", tokenRes.AccessToken)
 
 	pagesURL := fmt.Sprintf("https://graph.facebook.com/v19.0/me/accounts?access_token=%s", tokenRes.AccessToken)
 	slog.Info("fetching pages", "url", pagesURL[:80])
