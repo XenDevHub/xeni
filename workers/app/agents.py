@@ -324,6 +324,7 @@ class CreativeAgent(BaseWorker):
                 "hashtags": content_data.get("hashtags", []),
                 "best_posting_time": "8:00 PM BST (peak engagement)",
                 "image_prompt": content_data.get("image_prompt", ""),
+                "image_url": content_data.get("image_url", ""),
             },
             "seo_keywords": [product_name.lower(), "buy online bangladesh", "best price bd"],
             "estimated_engagement": {
