@@ -21,7 +21,11 @@ export default function CreativePage() {
   useEffect(() => {
     if (!accessToken) return;
 
-    const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'wss://xeni.xentroinfotech.com'}/api/ws?token=${accessToken}`;
+    // Derive WS URL from API URL (avoid double-pathing from NEXT_PUBLIC_WS_URL)
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://xeni.xentroinfotech.com';
+    const wsBase = apiUrl.replace('https://', 'wss://').replace('http://', 'ws://');
+    const wsUrl = `${wsBase}/api/ws?token=${accessToken}`;
+
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
@@ -52,7 +56,7 @@ export default function CreativePage() {
     };
 
     ws.onerror = () => {
-      // WebSocket error, silent fallback
+      // WebSocket unavailable — silent
     };
 
     return () => {
