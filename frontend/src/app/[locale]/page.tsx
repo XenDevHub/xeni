@@ -212,9 +212,10 @@ export default function LandingPage() {
   const isBannerActive = bannerData?.en?.is_active;
 
   // Fallbacks and Dynamic Data
-  const displayPlans = plansData && plansData.length > 0 ? plansData : plans;
-  const displayFaqs = (locale === 'bn' ? faqData?.bn?.items : faqData?.en?.items) || faqs;
-  const displayTestimonials = reviewsData && reviewsData.length > 0 ? reviewsData : testimonials;
+  const displayPlans = Array.isArray(plansData) && plansData.length > 0 ? plansData : plans;
+  const displayFaqs = (locale === 'bn' ? faqData?.bn?.items : faqData?.en?.items);
+  const finalFaqs = Array.isArray(displayFaqs) ? displayFaqs : faqs;
+  const displayTestimonials = (reviewsData?.reviews && Array.isArray(reviewsData.reviews) && reviewsData.reviews.length > 0) ? reviewsData.reviews : testimonials;
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
@@ -599,7 +600,7 @@ export default function LandingPage() {
                       )}
                     </div>
                     <ul className="space-y-2.5 mb-6">
-                      {(plan.features || []).map((f: string) => (
+                      {(Array.isArray(plan.features) ? plan.features : []).map((f: string) => (
                         <li key={f} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
                           <Check className="w-4 h-4 text-success mt-0.5 shrink-0" />{f}
                         </li>
@@ -701,7 +702,7 @@ export default function LandingPage() {
                 </div>
               ))
             ) : (
-              displayFaqs.map((faq: any, i: number) => (
+              finalFaqs.map((faq: any, i: number) => (
                 <motion.div 
                     key={i} 
                     initial={{ opacity: 0, x: -20 }} 
