@@ -26,7 +26,7 @@ export default function TransactionsPage() {
     },
     {
       header: 'User',
-      accessorKey: 'User',
+      accessorKey: 'user',
       cell: (info: any) => {
         const user = info.getValue();
         return (

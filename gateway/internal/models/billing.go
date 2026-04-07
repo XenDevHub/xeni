@@ -101,7 +101,7 @@ type Payment struct {
 	CreatedAt            time.Time     `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt            time.Time     `gorm:"autoUpdateTime" json:"updated_at"`
 
-	User         User          `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
+	User         User          `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"user,omitempty"`
 	Subscription *Subscription `gorm:"foreignKey:SubscriptionID;constraint:OnDelete:SET NULL" json:"-"`
 	Plan         Plan          `gorm:"foreignKey:PlanID" json:"plan,omitempty"`
 }

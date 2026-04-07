@@ -81,9 +81,9 @@ func (r *Repository) GetOverviewStats() (*OverviewStats, error) {
 
 type RevenueChartPoint struct {
 	Month        string  `json:"month"`
-	Starter      float64 `json:"starter"`
-	Professional float64 `json:"professional"`
-	Premium      float64 `json:"premium"`
+	Starter      float64 `json:"Starter"`
+	Professional float64 `json:"Professional"`
+	Premium      float64 `json:"Premium"`
 }
 
 func (r *Repository) GetRevenueChart(months int) ([]RevenueChartPoint, error) {
@@ -107,8 +107,8 @@ func (r *Repository) GetRevenueChart(months int) ([]RevenueChartPoint, error) {
 }
 
 type UserGrowthPoint struct {
-	Month      string `json:"month"`
-	TotalUsers int64  `json:"total_users"`
+	Month string `json:"month"`
+	Users int64  `json:"users"`
 }
 
 func (r *Repository) GetUserGrowthChart(months int) ([]UserGrowthPoint, error) {

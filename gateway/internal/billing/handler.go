@@ -44,11 +44,14 @@ func (h *Handler) GetPlans(c *fiber.Ctx) error {
 			if json.Unmarshal(data, &plans) == nil {
 				return response.Success(c, plans)
 			}
+		} else if err != nil {
+			slog.Warn("Redis plans cache error", "error", err)
 		}
 	}
 
 	var plans []models.Plan
 	if err := h.DB.Where("is_active = true").Order("display_order ASC, price_monthly_bdt ASC").Find(&plans).Error; err != nil {
+		slog.Error("Database plans fetch error", "error", err)
 		return response.InternalError(c)
 	}
 
