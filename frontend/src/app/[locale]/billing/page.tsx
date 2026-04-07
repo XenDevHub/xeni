@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from '@/i18n/routing';
 import { useSearchParams } from 'next/navigation';
@@ -64,30 +64,32 @@ export default function BillingPage() {
     } else if (status === 'cancel') {
       toast('Payment was cancelled.', { icon: '⚠️' });
     }
-  }, [searchParams]);
+  }, [searchParams, router, setSubscription]);
+
+  const fetchPlans = useCallback(async () => {
+    try {
+      const res = await api.get('/billing/plans');
+      setPlans(res.data.data || []);
+    } catch {
+      setPlans([]);
+    }
+    setLoadingPlans(false);
+  }, []);
+
+  const fetchSubscription = useCallback(async () => {
+    try {
+      const res = await api.get('/billing/subscription');
+      const sub = res.data.data;
+      if (sub && sub.plan_tier) {
+        setSubscription(sub);
+      }
+    } catch {}
+  }, [setSubscription]);
 
   useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const res = await api.get('/billing/plans');
-        setPlans(res.data.data || []);
-      } catch {
-        setPlans([]);
-      }
-      setLoadingPlans(false);
-    };
-    const fetchSubscription = async () => {
-      try {
-        const res = await api.get('/billing/subscription');
-        const sub = res.data.data;
-        if (sub && sub.plan_tier) {
-          setSubscription(sub);
-        }
-      } catch {}
-    };
     fetchPlans();
     fetchSubscription();
-  }, []);
+  }, [fetchPlans, fetchSubscription]);
 
   const handleSubscribe = async (tier: string) => {
     if (tier === 'enterprise') {

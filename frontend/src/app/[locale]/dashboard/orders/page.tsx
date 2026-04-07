@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Filter, Eye, ChevronDown } from 'lucide-react';
 import api from '@/lib/api';
@@ -47,7 +47,7 @@ export default function OrdersPage() {
   const [deliveryFilter, setDeliveryFilter] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
       const params: any = { per_page: 50 };
       if (paymentFilter) params.payment_status = paymentFilter;
@@ -58,9 +58,9 @@ export default function OrdersPage() {
       setOrders([]);
     }
     setLoading(false);
-  };
+  }, [paymentFilter, deliveryFilter]);
 
-  useEffect(() => { fetchOrders(); }, [paymentFilter, deliveryFilter]);
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   const updateOrder = async (id: string, updates: any) => {
     try {

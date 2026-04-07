@@ -98,8 +98,8 @@ function HeroEditor() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-50" />
         <div className="text-center z-10 relative">
           <p className="badge bg-primary/20 text-primary mb-6">🚀 New: Steadfast Integration Live!</p>
-          <h1 className="text-4xl font-heading font-bold text-white mb-4">Your Online Shop's<br/><span className="text-primary-400">Smart Assistant</span></h1>
-          <p className="text-dark-400 text-sm max-w-md mx-auto mb-8">Hi there! I'm Xeni, and I've been designed to take the 'busy work' off your plate.</p>
+          <h1 className="text-4xl font-heading font-bold text-white mb-4">Your Online Shop&apos;s<br/><span className="text-primary-400">Smart Assistant</span></h1>
+          <p className="text-dark-400 text-sm max-w-md mx-auto mb-8">Hi there! I&apos;m Xeni, and I&apos;ve been designed to take the &apos;busy work&apos; off your plate.</p>
           <button className="btn-primary">Start Selling Smarter</button>
         </div>
       </div>
@@ -170,7 +170,7 @@ function ReviewsEditor() {
                   <Star className="w-3 h-3 fill-amber-400" /><Star className="w-3 h-3 fill-amber-400" /><Star className="w-3 h-3 fill-amber-400" /><Star className="w-3 h-3 fill-amber-400" /><Star className="w-3 h-3 fill-amber-400" />
                 </div>
               </div>
-              <p className="text-sm text-dark-400 italic mb-4">"{r.text}"</p>
+              <p className="text-sm text-dark-400 italic mb-4">&quot;{r.text}&quot;</p>
               <div className="flex gap-2">
                 <button className="flex-1 bg-success/20 hover:bg-success/30 text-success text-xs font-semibold py-2 rounded-xl transition-all">Approve</button>
                 <button className="flex-1 bg-danger/20 hover:bg-danger/30 text-danger text-xs font-semibold py-2 rounded-xl transition-all">Reject</button>
@@ -187,7 +187,7 @@ function ReviewsEditor() {
                <GripVertical className="w-4 h-4 text-dark-600" />
                <div className="flex-1">
                  <div className="text-sm text-white font-medium">Boutique Owner {i}</div>
-                 <div className="text-xs text-dark-500 truncate">"Amazing experience with Xeni..."</div>
+                 <div className="text-xs text-dark-500 truncate">&quot;Amazing experience with Xeni...&quot;</div>
                </div>
                <button className="text-danger/60 hover:text-danger"><Ban className="w-4 h-4"/></button>
              </div>

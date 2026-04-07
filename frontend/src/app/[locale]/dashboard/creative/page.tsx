@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Image as ImageIcon, Send, Sparkles, Wand2, Type, Hash, Loader2, CheckCircle2, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -221,11 +222,9 @@ export default function CreativePage() {
             
             <div className="bg-black/20 p-5 rounded-xl border flex flex-col gap-4" style={{ borderColor: 'var(--border-color)' }}>
               
-              {result.imageUrl && (
-                <div className="relative aspect-auto rounded-lg overflow-hidden flex items-center justify-center">
-                  <img src={result.imageUrl} alt="Generated AI Image" className="max-w-full h-auto max-h-[400px] object-contain rounded-lg shadow-xl" />
+                <div className="relative w-full min-h-[300px] rounded-lg overflow-hidden flex items-center justify-center">
+                  <Image src={result.imageUrl} alt="Generated AI Image" fill className="object-contain rounded-lg shadow-xl" />
                 </div>
-              )}
 
               {result.caption && (
                 <p className="whitespace-pre-wrap leading-relaxed text-sm" style={{ color: 'var(--text-primary)' }}>{result.caption}</p>

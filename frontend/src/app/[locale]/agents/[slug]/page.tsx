@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams } from 'next/navigation';
@@ -31,14 +31,14 @@ export default function AgentPage() {
     }
   });
 
-  const loadTasks = async () => {
+  const loadTasks = useCallback(async () => {
     try {
       const res = await api.get(`/agents/${slug}/tasks`);
       setTasks(res.data.data || []);
     } catch {}
-  };
+  }, [slug]);
 
-  useEffect(() => { loadTasks(); }, [slug]);
+  useEffect(() => { loadTasks(); }, [loadTasks]);
 
   const runAgent = async () => {
     setRunning(true);

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Package, Plus, Search, Edit, Trash2, X, AlertTriangle } from 'lucide-react';
 import api from '@/lib/api';
@@ -29,7 +30,7 @@ export default function ProductsPage() {
   const [form, setForm] = useState({ name: '', name_bn: '', price: 0, sku: '', initial_stock: 0, low_stock_threshold: 5, images: [] as string[] });
   const [uploading, setUploading] = useState(false);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       const res = await api.get('/products', { params: { search, per_page: 50 } });
       setProducts(res.data.data || []);
@@ -37,9 +38,9 @@ export default function ProductsPage() {
       setProducts([]);
     }
     setLoading(false);
-  };
+  }, [search]);
 
-  useEffect(() => { fetchProducts(); }, [search]);
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   const openNew = () => {
     setEditing(null);
@@ -171,7 +172,9 @@ export default function ProductsPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {p.images && p.images.length > 0 ? (
-                          <img src={p.images[0]} alt="" className="w-9 h-9 rounded-lg object-cover shrink-0" loading="lazy" />
+                          <div className="w-9 h-9 relative rounded-lg overflow-hidden shrink-0">
+                            <Image src={p.images[0]} alt={p.name} fill className="object-cover" />
+                          </div>
                         ) : (
                           <div className="w-9 h-9 rounded-lg shrink-0 flex items-center justify-center" style={{ background: 'var(--bg-primary)' }}><Package className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /></div>
                         )}
@@ -231,7 +234,9 @@ export default function ProductsPage() {
                 <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Product Images</label>
                 <div className="flex gap-2 flex-wrap mb-2">
                   {form.images.map((img, idx) => (
-                     <img key={idx} src={img} alt="Product preview" className="w-16 h-16 object-cover rounded-lg shadow-sm border" style={{ borderColor: 'var(--border-color)' }} />
+                     <div key={idx} className="w-16 h-16 relative rounded-lg overflow-hidden border shadow-sm" style={{ borderColor: 'var(--border-color)' }}>
+                       <Image src={img} alt="Product preview" fill className="object-cover" />
+                     </div>
                   ))}
                 </div>
                 <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploading} className="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all cursor-pointer" style={{ color: 'var(--text-muted)' }} />
