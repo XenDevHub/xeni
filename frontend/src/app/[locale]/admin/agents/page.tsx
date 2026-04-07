@@ -4,13 +4,26 @@ import { StatCard } from '@/components/admin/StatCard';
 import { Bot, MessageSquare, ShoppingBag, Box, Palette, LineChart } from 'lucide-react';
 import { DataTable } from '@/components/admin/DataTable';
 
-const FAILURES = [
-  { id: 'tsk_102', agent: 'Creative', error: 'OpenAI API Timeout. Retries exhausted.', time: '10 mins ago', status: 'DLQ' },
-  { id: 'tsk_104', agent: 'Inventory', error: 'Database constraint violation on stock update.', time: '1 hour ago', status: 'DLQ' },
-  { id: 'tsk_109', agent: 'Order', error: 'Pathao API unreachable (502 Gateway).', time: '2 hours ago', status: 'DLQ' },
-];
+  const { data: agentStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['admin-agent-stats'],
+    queryFn: async () => {
+      const res = await api.get('/admin/tasks/stats');
+      return res.data.data.agents;
+    }
+  });
 
-export default function AgentUsagePage() {
+  const { data: failedTasks, isLoading: tasksLoading } = useQuery({
+    queryKey: ['admin-failed-tasks'],
+    queryFn: async () => {
+      const res = await api.get('/admin/tasks', { params: { status: 'failed', limit: 10 } });
+      return res.data.data;
+    }
+  });
+
+  const getAgentStat = (type: string) => {
+     return agentStats?.find((s: any) => s.agent_type === type);
+  };
+
   return (
     <div className="p-8 space-y-8 max-w-[1600px] mx-auto pb-24 overflow-y-auto">
       <div>
@@ -19,11 +32,26 @@ export default function AgentUsagePage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <StatCard label="Front Desk" value={45200} icon={MessageSquare} color="text-cyan-400" change={{value: '99.9%', isPositive: true}} />
-        <StatCard label="Ops Lead" value={12400} icon={ShoppingBag} color="text-emerald-400" change={{value: '99.5%', isPositive: true}} />
-        <StatCard label="Inventory" value={89200} icon={Box} color="text-violet-400" change={{value: '100%', isPositive: true}} />
-        <StatCard label="Creative" value={3200} icon={Palette} color="text-pink-400" change={{value: '94.2%', isPositive: false}} />
-        <StatCard label="Intelligence" value={1500} icon={LineChart} color="text-amber-400" change={{value: '98.1%', isPositive: true}} />
+        {[
+          { label: 'Front Desk', type: 'conversation', icon: MessageSquare, color: 'text-cyan-400' },
+          { label: 'Ops Lead', type: 'order', icon: ShoppingBag, color: 'text-emerald-400' },
+          { label: 'Inventory', type: 'inventory', icon: Box, color: 'text-violet-400' },
+          { label: 'Creative', type: 'creative', icon: Palette, color: 'text-pink-400' },
+          { label: 'Intelligence', type: 'intelligence', icon: LineChart, color: 'text-amber-400' }
+        ].map((agent, i) => {
+          const stat = getAgentStat(agent.type);
+          return (
+            <StatCard 
+              key={agent.type}
+              label={agent.label} 
+              value={stat?.total_tasks ?? 0} 
+              icon={agent.icon} 
+              color={agent.color} 
+              change={{value: `${stat?.success_rate?.toFixed(1) ?? 100}%`, isPositive: (stat?.success_rate ?? 100) > 90}} 
+              delay={0.1 * i}
+            />
+          );
+        })}
       </div>
 
       <div className="glass-card p-6 border border-danger/30">
@@ -36,13 +64,14 @@ export default function AgentUsagePage() {
         
         <DataTable 
           columns={[
-            { header: 'Task ID', accessorKey: 'id', cell: (info: any) => <span className="font-mono text-xs">{info.getValue()}</span> },
-            { header: 'Agent', accessorKey: 'agent', cell: (info: any) => <span className="badge bg-white/10">{info.getValue()}</span> },
-            { header: 'Error Log', accessorKey: 'error', cell: (info: any) => <span className="text-danger/80 text-sm font-mono">{info.getValue()}</span> },
-            { header: 'Time', accessorKey: 'time', cell: (info: any) => <span className="text-dark-500">{info.getValue()}</span> },
+            { header: 'Task ID', accessorKey: 'id', cell: (info: any) => <span className="font-mono text-[10px] uppercase">{info.getValue().substring(0, 8)}...</span> },
+            { header: 'Agent', accessorKey: 'agent_type', cell: (info: any) => <span className="badge bg-white/10 uppercase text-[10px]">{info.getValue()}</span> },
+            { header: 'Error Log', accessorKey: 'error_message', cell: (info: any) => <span className="text-danger/80 text-xs font-mono">{info.getValue() || 'Unknown Error'}</span> },
+            { header: 'Time', accessorKey: 'created_at', cell: (info: any) => <span className="text-dark-500 text-xs">{new Date(info.getValue()).toLocaleString()}</span> },
             { header: '', id: 'actions', cell: () => <button className="text-primary-400 hover:text-white text-xs">Retry Task</button> }
           ]} 
-          data={FAILURES} 
+          data={failedTasks || []} 
+          isLoading={tasksLoading}
         />
       </div>
     </div>

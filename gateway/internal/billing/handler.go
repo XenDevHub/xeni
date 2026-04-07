@@ -32,12 +32,32 @@ func NewHandler(db *gorm.DB, redis *cache.Client, cfg *config.Config, wsHub *web
 	return &Handler{DB: db, Redis: redis, Config: cfg, WSHub: wsHub}
 }
 
-// GetPlans returns all active subscription plans.
+// GetPlans returns all active subscription plans with caching.
 func (h *Handler) GetPlans(c *fiber.Ctx) error {
+	ctx := context.Background()
+
+	// Try cache
+	if h.Redis != nil {
+		data, err := h.Redis.GetJSON(ctx, cache.KeyBillingPlans)
+		if err == nil && data != nil {
+			var plans []models.Plan
+			if json.Unmarshal(data, &plans) == nil {
+				return response.Success(c, plans)
+			}
+		}
+	}
+
 	var plans []models.Plan
 	if err := h.DB.Where("is_active = true").Order("price_monthly_bdt ASC").Find(&plans).Error; err != nil {
 		return response.InternalError(c)
 	}
+
+	// Cache for 1 hour
+	if h.Redis != nil {
+		data, _ := json.Marshal(plans)
+		h.Redis.SetJSON(ctx, cache.KeyBillingPlans, data, 1*time.Hour)
+	}
+
 	return response.Success(c, plans)
 }
 

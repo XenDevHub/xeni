@@ -55,28 +55,28 @@ export default function AdminOverview() {
           label="Total Users" 
           value={(metrics?.totalUsers ?? 0).toLocaleString()} 
           icon={Users} color="text-cyan-400"
-          change={{ value: `${metrics?.userChange ?? 0}%`, isPositive: true }}
+          change={{ value: `${metrics?.userChange ?? 0}%`, isPositive: (metrics?.userChange ?? 0) >= 0 }}
           delay={0.1}
         />
         <StatCard 
           label="Monthly Revenue" 
           value={`৳${(metrics?.monthlyRevenue ?? 0).toLocaleString()}`} 
           icon={DollarSign} color="text-emerald-400"
-          change={{ value: `${metrics?.revenueChange ?? 0}%`, isPositive: true }}
+          change={{ value: `${metrics?.revenueChange ?? 0}%`, isPositive: (metrics?.revenueChange ?? 0) >= 0 }}
           delay={0.2}
         />
         <StatCard 
           label="Active Subscriptions" 
           value={(metrics?.activeSubscriptions ?? 0).toLocaleString()} 
           icon={CreditCard} color="text-primary-400"
-          change={{ value: `${Math.abs(metrics?.subChange ?? 0)}%`, isPositive: false }}
+          change={{ value: `${Math.abs(metrics?.subChange ?? 0)}%`, isPositive: (metrics?.subChange ?? 0) >= 0 }}
           delay={0.3}
         />
         <StatCard 
           label="AI Tasks Today" 
           value={(metrics?.tasksToday ?? 0).toLocaleString()} 
           icon={Zap} color="text-amber-400"
-          change={{ value: `${metrics?.taskChange ?? 0}%`, isPositive: true }}
+          change={{ value: `${metrics?.taskChange ?? 0}%`, isPositive: (metrics?.taskChange ?? 0) >= 0 }}
           delay={0.4}
         />
       </div>

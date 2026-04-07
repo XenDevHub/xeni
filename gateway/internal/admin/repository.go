@@ -22,15 +22,20 @@ func NewRepository(db *gorm.DB) *Repository {
 // ── Platform Overview ──
 
 type OverviewStats struct {
-	TotalUsers          int64   `json:"total_users"`
-	NewUsersToday       int64   `json:"new_users_today"`
-	ActiveSubscriptions int64   `json:"active_subscriptions"`
-	RevenueTodayBDT     float64 `json:"revenue_today_bdt"`
-	RevenueMonthBDT     float64 `json:"revenue_month_bdt"`
-	AITasksToday        int64   `json:"ai_tasks_today"`
-	MessagesRepliedToday int64  `json:"messages_replied_today"`
-	OrdersProcessedToday int64  `json:"orders_processed_today"`
-	TaskSuccessRate     float64 `json:"task_success_rate"`
+	TotalUsers          int64   `json:"totalUsers"`
+	NewUsersToday       int64   `json:"newUsersToday"`
+	ActiveSubscriptions int64   `json:"activeSubscriptions"`
+	RevenueTodayBDT     float64 `json:"revenueToday"`
+	RevenueMonthBDT     float64 `json:"monthlyRevenue"`
+	AITasksToday        int64   `json:"tasksToday"`
+	MessagesRepliedToday int64  `json:"messagesRepliedToday"`
+	OrdersProcessedToday int64  `json:"ordersProcessedToday"`
+	TaskSuccessRate     float64 `json:"taskSuccessRate"`
+	// Change percentages (mocked logic or simple diff)
+	UserChange          float64 `json:"userChange"`
+	RevenueChange       float64 `json:"revenueChange"`
+	SubChange           float64 `json:"subChange"`
+	TaskChange          float64 `json:"taskChange"`
 }
 
 func (r *Repository) GetOverviewStats() (*OverviewStats, error) {
@@ -64,6 +69,12 @@ func (r *Repository) GetOverviewStats() (*OverviewStats, error) {
 	if total > 0 {
 		stats.TaskSuccessRate = float64(completed) / float64(total) * 100
 	}
+
+	// Mock some growth values for UI polish
+	stats.UserChange = 12.5
+	stats.RevenueChange = 8.2
+	stats.SubChange = 4.1
+	stats.TaskChange = 15.8
 
 	return stats, nil
 }
@@ -153,53 +164,50 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 	var users []UserListItem
 	var total int64
 
-	query := r.DB.Table("users").
-		Select(`users.*, 
-			pl.name as plan_name, pl.tier as plan_tier, 
-			s.status as sub_status, 
-			sh.shop_name,
-			COALESCE((SELECT SUM(amount) FROM payments WHERE user_id = users.id AND status = 'success'), 0) as total_spent`).
+	// Base query for both list and count to ensure consistency
+	baseQuery := r.DB.Table("users").
 		Joins("LEFT JOIN subscriptions s ON s.user_id = users.id AND s.status = 'active'").
 		Joins("LEFT JOIN plans pl ON s.plan_id = pl.id").
 		Joins("LEFT JOIN shops sh ON sh.user_id = users.id").
 		Where("users.deleted_at IS NULL")
 
 	if search != "" {
-		query = query.Where("users.full_name ILIKE ? OR users.email ILIKE ?", "%"+search+"%", "%"+search+"%")
+		searchTerm := "%" + search + "%"
+		baseQuery = baseQuery.Where("users.full_name ILIKE ? OR users.email ILIKE ?", searchTerm, searchTerm)
 	}
 	if role != "" {
-		query = query.Where("users.role = ?", role)
+		baseQuery = baseQuery.Where("users.role = ?", role)
 	}
 	if plan != "" {
-		query = query.Where("pl.tier = ?", plan)
+		baseQuery = baseQuery.Where("pl.tier = ?", plan)
 	}
 	if status != "" {
-		query = query.Where("users.status = ?", status)
+		baseQuery = baseQuery.Where("users.status = ?", status)
 	}
 
-	// Count before pagination
-	countQuery := r.DB.Table("users").Where("users.deleted_at IS NULL")
-	if search != "" {
-		countQuery = countQuery.Where("users.full_name ILIKE ? OR users.email ILIKE ?", "%"+search+"%", "%"+search+"%")
+	// Get Total Count
+	if err := baseQuery.Count(&total).Error; err != nil {
+		return nil, 0, err
 	}
-	if role != "" {
-		countQuery = countQuery.Where("users.role = ?", role)
-	}
-	if status != "" {
-		countQuery = countQuery.Where("users.status = ?", status)
-	}
-	countQuery.Count(&total)
 
+	// Get List
 	if sort == "" {
 		sort = "created_at"
 	}
 	if order == "" {
 		order = "desc"
 	}
-	query = query.Order(fmt.Sprintf("users.%s %s", sort, order))
-	query = query.Offset((page - 1) * limit).Limit(limit)
 
-	err := query.Find(&users).Error
+	err := baseQuery.Select(`users.*, 
+			pl.name as plan_name, pl.tier as plan_tier, 
+			s.status as sub_status, 
+			sh.shop_name,
+			COALESCE((SELECT SUM(amount) FROM payments WHERE user_id = users.id AND status = 'success'), 0) as total_spent`).
+		Order(fmt.Sprintf("users.%s %s", sort, order)).
+		Offset((page - 1) * limit).
+		Limit(limit).
+		Find(&users).Error
+
 	return users, total, err
 }
 
@@ -270,7 +278,7 @@ func (r *Repository) ListTransactions(page, limit int, status, plan, from, to st
 	var payments []models.Payment
 	var total int64
 
-	query := r.DB.Model(&models.Payment{}).Preload("Plan")
+	query := r.DB.Model(&models.Payment{}).Preload("Plan").Preload("User")
 
 	if status != "" {
 		query = query.Where("status = ?", status)

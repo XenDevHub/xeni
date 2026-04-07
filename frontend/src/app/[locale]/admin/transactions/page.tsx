@@ -5,51 +5,47 @@ import { Search, Download, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
-// Mock trans
-const TRANSACTIONS = Array.from({length: 40}).map((_, i) => ({
-  id: `TRX-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
-  user: `Shop Owner ${i}`,
-  email: `shop${i}@brand.com`,
-  plan: i % 3 === 0 ? 'premium' : 'professional',
-  amount: i % 3 === 0 ? 25000 : 7500,
-  gateway: 'SSLCommerz',
-  status: i % 7 === 0 ? 'failed' : 'success',
-  date: new Date(Date.now() - Math.random() * 1000000000).toISOString()
-}));
-
-export default function TransactionsPage() {
-  const [search, setSearch] = useState('');
+  const { data: trxData, isLoading } = useQuery({
+    queryKey: ['admin-transactions', search],
+    queryFn: async () => {
+      const res = await api.get('/admin/transactions', { params: { search } });
+      return res.data.data;
+    }
+  });
 
   const columns = [
     {
       header: 'Transaction ID',
       accessorKey: 'id',
-      cell: (info: any) => <span className="font-mono text-xs text-primary-300">{info.getValue()}</span>
+      cell: (info: any) => <span className="font-mono text-[10px] text-primary-300 uppercase">{info.getValue().substring(0, 8)}...</span>
     },
     {
       header: 'User',
-      accessorKey: 'user',
-      cell: (info: any) => (
-        <div>
-          <div className="text-white font-medium">{info.getValue()}</div>
-          <div className="text-xs text-dark-500">{info.row.original.email}</div>
-        </div>
-      )
+      accessorKey: 'User',
+      cell: (info: any) => {
+        const user = info.getValue();
+        return (
+          <div>
+            <div className="text-white font-medium">{user?.full_name || 'Anonymous'}</div>
+            <div className="text-xs text-dark-500">{user?.email}</div>
+          </div>
+        );
+      }
     },
     {
       header: 'Plan',
       accessorKey: 'plan',
-      cell: (info: any) => <span className="badge bg-white/10 text-dark-400 capitalize">{info.getValue()}</span>
+      cell: (info: any) => <span className="badge bg-white/10 text-dark-400 capitalize">{info.getValue()?.name || 'N/A'}</span>
     },
     {
       header: 'Amount',
       accessorKey: 'amount',
-      cell: (info: any) => <span className="font-bold text-white">৳{info.getValue().toLocaleString()}</span>
+      cell: (info: any) => <span className="font-bold text-white">৳{info.getValue()?.toLocaleString()}</span>
     },
     {
       header: 'Gateway',
       accessorKey: 'gateway',
-      cell: (info: any) => <span className="text-emerald-400 font-medium text-xs border border-emerald-400/30 px-2 py-1 rounded bg-emerald-400/10">{info.getValue()}</span>
+      cell: (info: any) => <span className="text-emerald-400 font-medium text-[10px] border border-emerald-400/30 px-2 py-0.5 rounded bg-emerald-400/10 uppercase">{info.getValue()}</span>
     },
     {
       header: 'Status',
@@ -58,14 +54,14 @@ export default function TransactionsPage() {
     },
     {
       header: 'Date',
-      accessorKey: 'date',
-      cell: (info: any) => <span className="text-dark-500">{new Date(info.getValue()).toLocaleString()}</span>
+      accessorKey: 'created_at',
+      cell: (info: any) => <span className="text-dark-500 text-xs">{new Date(info.getValue()).toLocaleString()}</span>
     },
     {
       header: '',
       id: 'actions',
       cell: () => (
-        <button className="p-2 hover:bg-white/10 rounded-lg text-dark-500 hover:text-white transition-colors" title="View Payload JSON">
+        <button className="p-2 hover:bg-white/10 rounded-lg text-dark-500 hover:text-white transition-colors" title="View Details">
           <ExternalLink className="w-4 h-4" />
         </button>
       )
@@ -98,9 +94,8 @@ export default function TransactionsPage() {
       <div className="flex-1 min-h-0">
         <DataTable 
           columns={columns} 
-          data={TRANSACTIONS.filter(t => t.id.includes(search.toUpperCase()) || t.user.toLowerCase().includes(search.toLowerCase()))} 
-          pageCount={3}
-          pageSize={10}
+          data={trxData || []} 
+          isLoading={isLoading}
         />
       </div>
     </div>
