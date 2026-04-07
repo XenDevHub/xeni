@@ -33,6 +33,8 @@ const (
 	// Admin review actions
 	AuditReviewApprove AuditAction = "admin.review.approve"
 	AuditReviewReject  AuditAction = "admin.review.reject"
+	AuditReviewUpdate  AuditAction = "admin.review.update"
+	AuditReviewDelete  AuditAction = "admin.review.delete"
 )
 
 // LogAudit creates an audit log entry for admin actions.

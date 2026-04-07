@@ -238,6 +238,31 @@ func (h *Handler) GetUserTasks(c *fiber.Ctx) error {
 	})
 }
 
+// GetUserConversations gets conversation history for a single user (shop owner).
+func (h *Handler) GetUserConversations(c *fiber.Ctx) error {
+	userID, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.BadRequest(c, "Invalid user ID")
+	}
+
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 10)
+
+	conversations, total, err := h.Service.GetUserConversations(userID, page, limit)
+	if err != nil {
+		return response.InternalError(c)
+	}
+
+	totalPages := int(total) / limit
+	if int(total)%limit > 0 {
+		totalPages++
+	}
+
+	return response.SuccessWithMeta(c, conversations, response.PaginationMeta{
+		Page: page, PerPage: limit, Total: total, TotalPages: totalPages,
+	})
+}
+
 // ── Tasks ──
 
 func (h *Handler) ListAllTasks(c *fiber.Ctx) error {

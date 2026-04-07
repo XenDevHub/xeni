@@ -213,6 +213,7 @@ func Setup(
 	adminGroup.Delete("/users/:id", middleware.RBACMiddleware(models.RoleSuperAdmin), adminHandler.DeleteUser)
 	
 	adminGroup.Get("/users/:id/tasks", adminHandler.GetUserTasks)
+	adminGroup.Get("/users/:id/conversations", adminHandler.GetUserConversations)
 	adminGroup.Get("/tasks", adminHandler.ListAllTasks)
 	adminGroup.Get("/tasks/stats", adminHandler.GetTaskStats)
 	adminGroup.Post("/tasks/:id/retry", adminHandler.RetryTask)

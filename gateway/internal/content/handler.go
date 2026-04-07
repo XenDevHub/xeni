@@ -472,6 +472,9 @@ func (h *Handler) AdminEditReview(c *fiber.Ctx) error {
 		return response.InternalError(c)
 	}
 
+	adminID := h.getAdminID(c)
+	audit.LogAudit(h.DB, adminID, audit.AuditReviewUpdate, reviewID.String(), map[string]interface{}{"updates": req}, c.IP(), c.Get("User-Agent"))
+
 	h.Service.invalidateReviewsCache()
 	return response.Success(c, review)
 }
@@ -493,6 +496,9 @@ func (h *Handler) DeleteReview(c *fiber.Ctx) error {
 	if err := h.Service.Repo.DeleteReview(reviewID); err != nil {
 		return response.InternalError(c)
 	}
+
+	adminID := h.getAdminID(c)
+	audit.LogAudit(h.DB, adminID, audit.AuditReviewDelete, reviewID.String(), map[string]interface{}{}, c.IP(), c.Get("User-Agent"))
 
 	h.Service.invalidateReviewsCache()
 	return response.Success(c, fiber.Map{"message": "Review deleted"})

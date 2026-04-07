@@ -1,15 +1,15 @@
-'use client';
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useRouter } from '@/i18n/routing';
 import { useThemeStore } from '@/store/theme';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/api';
 import {
   Sparkles, ArrowRight, Check, ChevronDown, Star, Zap, Shield, Globe,
   Sun, Moon, Menu, X, TrendingUp, Quote, Send,
   MessageCircle, ShoppingBag, Package, Wand2, BarChart3,
-  Rocket, Bot, CreditCard, Truck
+  Rocket, Bot, CreditCard, Truck, AlertCircle
 } from 'lucide-react';
 
 /* ──────── DATA ──────── */
@@ -84,36 +84,87 @@ function FAQItem({ q, a, isOpen, onClick }: { q: string; a: string; isOpen: bool
 function AgentCard({ agent, index, t, isExpanded, onToggle }: { agent: any; index: number; t: any; isExpanded: boolean; onToggle: () => void }) {
   const Icon = agent.icon;
   const features: string[] = t.raw(`agents.${agent.key}.features`) || [];
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  const glowClass = agent.key === 'conversation' ? 'glow-violet' : 
+                    agent.key === 'order' ? 'glow-emerald' : 
+                    agent.key === 'inventory' ? 'glow-cyan' : 
+                    agent.key === 'creative' ? 'glow-pink' : 'glow-amber';
 
   return (
-    <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }} viewport={{ once: true }} className="glass-card-hover p-7 flex flex-col h-full cursor-pointer relative overflow-hidden group border border-white/10" onClick={onToggle}>
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ backgroundImage: `linear-gradient(to right, var(--glow-primary), var(--glow-accent))` }}></div>
-      <div className="flex items-start justify-between mb-5">
-        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${agent.color} flex items-center justify-center shadow-lg relative overflow-hidden group-hover:scale-110 transition-transform duration-500`}>
+    <motion.div 
+      initial={{ opacity: 0, y: 30 }} 
+      whileInView={{ opacity: 1, y: 0 }} 
+      transition={{ delay: index * 0.1 }} 
+      viewport={{ once: true }} 
+      onMouseMove={handleMouseMove}
+      style={{ 
+        '--mouse-x': `${mousePos.x}px`, 
+        '--mouse-y': `${mousePos.y}px` 
+      } as any}
+      className={`glass-bento p-8 flex flex-col h-full cursor-pointer group ${isExpanded ? 'ring-2 ring-primary/40 ' + glowClass : 'hover:' + glowClass}`} 
+      onClick={onToggle}
+    >
+      <div className="flex items-start justify-between mb-8">
+        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${agent.color} flex items-center justify-center shadow-2xl relative overflow-hidden group-hover:scale-110 transition-transform duration-500`}>
           <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <Icon className="w-7 h-7 text-white" />
+          <Icon className="w-8 h-8 text-white drop-shadow-md" />
         </div>
-        <span className="badge bg-primary/10 text-primary text-[11px] font-bold uppercase tracking-wider border border-primary/20 shadow-sm">{agent.tier}</span>
+        <div className="flex flex-col items-end gap-2">
+            <span className="badge bg-white/5 text-dark-300 text-[10px] font-bold uppercase tracking-widest border border-white/10">{agent.tier}</span>
+            {isExpanded && <Sparkles className="w-4 h-4 text-primary animate-pulse" />}
+        </div>
       </div>
-      <h3 className="text-xl md:text-2xl font-heading font-bold mb-3" style={{ color: 'var(--text-primary)' }}>{t(`agents.${agent.key}.name`)}</h3>
-      <p className="text-[15px] mb-6 leading-relaxed flex-grow" style={{ color: 'var(--text-muted)' }}>{t(`agents.${agent.key}.description`)}</p>
+
+      <h3 className="text-2xl md:text-3xl font-heading font-black mb-4 tracking-tight group-hover:gradient-text transition-all duration-300">
+        {t(`agents.${agent.key}.name`)}
+      </h3>
+      <p className="text-base text-dark-400 mb-8 leading-relaxed font-medium">
+        {t(`agents.${agent.key}.description`)}
+      </p>
 
       <div className="mt-auto">
-        <div className="flex items-center justify-between border-t pt-5 transition-colors duration-300" style={{ borderColor: 'var(--border-color)' }}>
-          <span className="text-sm font-semibold gradient-text tracking-wide uppercase">{t('landing.learn_more')}</span>
-          <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ type: "spring", stiffness: 200, damping: 20 }} className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-inner group-hover:bg-primary/20">
+        <div className="flex items-center justify-between pt-6 border-t border-white/5 transition-colors duration-300">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${agent.color} animate-pulse`} />
+            <span className="text-xs font-bold text-dark-500 tracking-widest uppercase">{isExpanded ? 'Hide Details' : 'View Capabilities'}</span>
+          </div>
+          <motion.div 
+            animate={{ rotate: isExpanded ? 180 : 0, scale: isExpanded ? 1.2 : 1 }} 
+            className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isExpanded ? 'bg-primary text-white shadow-glow' : 'bg-white/5 text-dark-400 group-hover:bg-white/10 group-hover:text-white'}`}
+          >
             <ChevronDown className="w-5 h-5" />
           </motion.div>
         </div>
 
         <AnimatePresence initial={false}>
           {isExpanded && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.3, ease: 'easeInOut' }} className="overflow-hidden">
-              <ul className="pt-5 space-y-3 pb-2">
+            <motion.div 
+                initial={{ height: 0, opacity: 0 }} 
+                animate={{ height: 'auto', opacity: 1 }} 
+                exit={{ height: 0, opacity: 0 }} 
+                transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }} 
+                className="overflow-hidden"
+            >
+              <ul className="pt-8 space-y-4 pb-4">
                 {features.map((feature, idx) => (
-                  <motion.li initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 + (idx * 0.05) }} key={idx} className="flex items-start gap-3 text-[14px]" style={{ color: 'var(--text-secondary)' }}>
-                    <div className="mt-0.5 w-5 h-5 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0">
-                      <Check className="w-3.5 h-3.5 text-emerald-500" />
+                  <motion.li 
+                    initial={{ opacity: 0, x: -20 }} 
+                    animate={{ opacity: 1, x: 0 }} 
+                    transition={{ delay: 0.1 + (idx * 0.05) }} 
+                    key={idx} 
+                    className="flex items-start gap-4 text-sm font-medium text-dark-300"
+                  >
+                    <div className="mt-0.5 w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20">
+                      <Check className="w-3.5 h-3.5 text-primary" />
                     </div>
                     <span className="leading-snug">{feature}</span>
                   </motion.li>
@@ -132,17 +183,64 @@ export default function LandingPage() {
   const t = useTranslations();
   const locale = useLocale();
   const { theme, toggleTheme } = useThemeStore();
-  const router = useRouter();
   const [mobileMenu, setMobileMenu] = useState(false);
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [expandedAgent, setExpandedAgent] = useState<string | null>(null);
 
+  // Queries
+  const { data: heroData, isLoading: isHeroLoading } = useQuery({ queryKey: ['hero'], queryFn: async () => (await api.get('/content/hero')).data.data });
+  const { data: bannerData } = useQuery({ queryKey: ['banner'], queryFn: async () => (await api.get('/content/banner')).data.data });
+  const { data: plansData, isLoading: isPlansLoading } = useQuery({ queryKey: ['plans'], queryFn: async () => (await api.get('/billing/plans')).data.data });
+  const { data: reviewsData, isLoading: isReviewsLoading } = useQuery({ queryKey: ['reviews'], queryFn: async () => (await api.get('/content/reviews')).data.data });
+  const { data: faqData, isLoading: isFaqLoading } = useQuery({ queryKey: ['faq'], queryFn: async () => (await api.get('/content/faq')).data.data });
+  
+  const heroEn = heroData?.en;
+  const heroBn = heroData?.bn;
+  const hero = locale === 'bn' ? heroBn : heroEn;
+
+  // ── SKELETON COMPONENT ──
+  const Skeleton = ({ className }: { className?: string }) => (
+    <div className={`animate-pulse bg-white/5 rounded-lg ${className}`} />
+  );
+
+  const bannerEn = bannerData?.en;
+  const bannerBn = bannerData?.bn;
+  const banner = locale === 'bn' ? bannerBn : bannerEn;
+  const isBannerActive = bannerData?.en?.is_active;
+
+  // Fallbacks and Dynamic Data
+  const displayPlans = plansData && plansData.length > 0 ? plansData : plans;
+  const displayFaqs = (locale === 'bn' ? faqData?.bn?.items : faqData?.en?.items) || faqs;
+  const displayTestimonials = reviewsData && reviewsData.length > 0 ? reviewsData : testimonials;
+
   return (
     <div className="min-h-screen" style={{ background: 'var(--bg-primary)' }}>
+      {/* ═══ BANNER ═══ */}
+      <AnimatePresence>
+        {isBannerActive && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="w-full relative z-[60] py-2 text-center text-xs md:text-sm font-bold text-white shadow-lg overflow-hidden animate-pulse-glow"
+            style={{ backgroundColor: bannerData?.en?.color || '#7C3AED' }}
+          >
+            {banner?.link ? (
+              <Link href={banner.link} className="hover:underline flex items-center justify-center gap-2">
+                 <AlertCircle className="w-3.5 h-3.5" /> {banner.text}
+              </Link>
+            ) : (
+              <span className="flex items-center justify-center gap-2">
+                 <AlertCircle className="w-3.5 h-3.5" /> {banner?.text}
+              </span>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ═══ NAVBAR ═══ */}
-      <nav className="fixed top-0 w-full z-50 glass-card border-none border-b" style={{ borderColor: 'var(--border-color)' }}>
+      <nav className={`fixed ${isBannerActive ? 'top-[36px]' : 'top-0'} w-full z-50 glass-card border-none border-b transition-all duration-300`} style={{ borderColor: 'var(--border-color)' }}>
         <div className="section-container py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2 group">
             <Sparkles className="w-8 h-8 text-primary group-hover:scale-110 transition-transform" />
@@ -194,58 +292,194 @@ export default function LandingPage() {
       </nav>
 
       {/* ═══ HERO ═══ */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-36 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-primary/10 rounded-full blur-[150px] animate-pulse-glow pointer-events-none" />
-        <div className="absolute top-40 right-10 w-[400px] h-[400px] bg-emerald-500/10 rounded-full blur-[120px] animate-float pointer-events-none" />
-        <div className="absolute bottom-10 left-10 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[100px] animate-float pointer-events-none" style={{ animationDelay: '2s' }} />
+      <section className="relative pt-32 pb-20 lg:pt-56 lg:pb-44 overflow-hidden mesh-gradient">
+        {/* Animated Orbs */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/20 rounded-full blur-[120px] animate-pulse" />
+        
+        <div className="section-container relative z-10">
+          <div className="flex flex-col lg:flex-row items-center gap-16 lg:gap-24">
+            {/* Left Content */}
+            <motion.div 
+              initial={{ opacity: 0, x: -50 }} 
+              animate={{ opacity: 1, x: 0 }} 
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="flex-1 text-center lg:text-left"
+            >
+              {isHeroLoading ? (
+                <div className="space-y-6">
+                  <Skeleton className="w-64 h-8 rounded-full mx-auto lg:mx-0" />
+                  <Skeleton className="w-full h-24 mx-auto lg:mx-0" />
+                  <Skeleton className="w-[80%] h-12 mx-auto lg:mx-0" />
+                  <div className="flex gap-4 justify-center lg:justify-start">
+                    <Skeleton className="w-44 h-16 rounded-xl" />
+                    <Skeleton className="w-44 h-16 rounded-xl" />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="inline-flex items-center gap-2 bg-white/5 border border-white/10 backdrop-blur-md rounded-full px-5 py-2 mb-8 shadow-sm"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
+                    <span className="text-xs font-bold text-dark-300 uppercase tracking-[0.2em]">{heroEn?.badge || 'Next-Gen AI Platform'}</span>
+                  </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} className="section-container relative text-center z-10">
-          <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-5 py-2 mb-10 shadow-glow cursor-pointer hover:bg-primary/20 transition-colors">
-            <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-primary tracking-wide">🇧🇩 Built for Bangladesh F-Commerce</span>
+                  <h1 className="text-5xl sm:text-6xl lg:text-8xl font-heading font-black mb-8 leading-[0.95] tracking-tight">
+                    <span className="text-white drop-shadow-2xl">{hero?.headline?.split(' ')[0] || 'Scale'}</span><br />
+                    <span className="gradient-text drop-shadow-xl">{hero?.headline?.split(' ').slice(1).join(' ') || 'F-Commerce with AI'}</span>
+                  </h1>
+
+                  <p className="text-lg md:text-xl text-dark-400 mb-12 leading-relaxed font-medium max-w-xl mx-auto lg:mx-0 italic">
+                    {hero?.subheadline || 'Automate every Messenger interaction, order, and delivery with Xeni - the only AI OS built for Bangladesh.'}
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start">
+                    <Link href="/register" prefetch={true} className="btn-primary text-lg px-12 py-5 flex items-center justify-center gap-3 shadow-2xl group overflow-hidden">
+                      <span className="relative z-10">{t('landing.cta')}</span>
+                      <ArrowRight className="w-6 h-6 group-hover:translate-x-1.5 transition-transform" />
+                    </Link>
+                    <a href="#agents" className="btn-secondary text-lg px-12 py-5 flex items-center justify-center gap-3 group">
+                      {t('landing.cta_secondary')} <Bot className="w-5 h-5 opacity-70 group-hover:rotate-12 transition-transform" />
+                    </a>
+                  </div>
+
+                  {/* Trust Indicators */}
+                  <div className="mt-16 flex items-center gap-8 justify-center lg:justify-start grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+                     <div className="flex items-center gap-2">
+                        <ShoppingBag className="w-5 h-5" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-dark-500">Shopify Sync</span>
+                     </div>
+                     <div className="flex items-center gap-2">
+                        <Shield className="w-5 h-5 text-emerald-500" />
+                        <span className="text-xs font-bold uppercase tracking-widest text-dark-500">Secured Payments</span>
+                     </div>
+                  </div>
+                </>
+              )}
+            </motion.div>
+
+            {/* Right Mockup */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.8, rotateY: 20 }}
+              animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+              transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
+              className="flex-1 relative perspective-1000 hidden lg:block"
+            >
+              <div className="relative group">
+                {/* Glow effect back */}
+                <div className="absolute inset-0 bg-primary/20 rounded-[3rem] blur-[60px] group-hover:bg-primary/30 transition-all duration-700" />
+                
+                {/* Floating Image */}
+                <motion.div
+                  animate={{ 
+                    y: [0, -20, 0],
+                    rotateX: [0, 2, 0],
+                    rotateY: [0, -2, 0]
+                  }}
+                  transition={{ 
+                    duration: 6, 
+                    repeat: Infinity, 
+                    ease: "easeInOut" 
+                  }}
+                  className="relative z-10 glass-bento p-2 border-white/20 shadow-3xl"
+                >
+                  <img 
+                    src="/hero-mockup.png" 
+                    alt="Xeni AI Dashboard Mockup" 
+                    className="rounded-[2.5rem] w-full h-auto shadow-2xl"
+                  />
+                  
+                  {/* Floating elements on top of mockup */}
+                  <motion.div 
+                    animate={{ y: [0, -15, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                    className="absolute -top-10 -right-10 glass-card p-4 flex items-center gap-3 border-emerald-500/30 glow-emerald"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                        <TrendingUp className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <div className="text-[10px] uppercase font-bold text-dark-500">Sales Growth</div>
+                        <div className="text-sm font-black text-white">+142%</div>
+                    </div>
+                  </motion.div>
+
+                  <motion.div 
+                    animate={{ y: [0, 15, 0] }}
+                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                    className="absolute -bottom-10 -left-10 glass-card p-4 flex items-center gap-3 border-primary/30 glow-violet"
+                  >
+                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                        <MessageCircle className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <div className="text-[10px] uppercase font-bold text-dark-500">AI Response</div>
+                        <div className="text-sm font-black text-white">Live Automating</div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              </div>
+            </motion.div>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-extrabold mb-8 leading-[1.15] tracking-tight">
-            <span className="gradient-text drop-shadow-xl">{t('landing.hero_title')}</span>
-          </h1>
-          <p className="text-lg md:text-xl max-w-4xl mx-auto mb-12 leading-relaxed font-medium drop-shadow-sm italic" style={{ color: 'var(--text-secondary)' }}>
-            {t('landing.hero_subtitle')}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-5 justify-center">
-            <Link href="/register" prefetch={true} className="btn-primary text-lg px-10 py-5 flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(124,58,237,0.4)] hover:shadow-[0_0_40px_rgba(124,58,237,0.6)]">
-              {t('landing.cta')} <ArrowRight className="w-6 h-6" />
-            </Link>
-            <a href="#agents" className="btn-secondary text-lg px-10 py-5 flex items-center justify-center gap-3 border-primary/20 hover:border-primary/50 bg-white/5 backdrop-blur-md">
-              {t('landing.cta_secondary')} <Bot className="w-5 h-5 opacity-70" />
-            </a>
-          </div>
-
-          {/* Stats Bar */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="flex flex-wrap justify-center gap-12 mt-20 pt-10 border-t border-white/10" style={{ borderColor: 'var(--border-color)' }}>
-            {[{ n: '5', l: 'Smart Agents' }, { n: '24/7', l: 'Messenger Auto-Reply' }, { n: '99.9%', l: 'Uptime' }, { n: 'বাংলা', l: '& English Support' }].map(s => (
-              <div key={s.l} className="text-center group">
-                <div className="text-3xl md:text-4xl font-heading font-black gradient-text group-hover:scale-110 transition-transform duration-300">{s.n}</div>
-                <div className="text-sm md:text-base mt-2 font-medium" style={{ color: 'var(--text-muted)' }}>{s.l}</div>
+          {/* Stats Bar (Refined) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="flex flex-wrap justify-center gap-8 md:gap-20 mt-32 pt-16 border-t border-white/5 relative overflow-hidden group"
+          >
+            <div className="absolute inset-0 bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
+            {[{ n: '5', l: 'Smart Agents' }, { n: '24/7', l: 'Messenger Auto-Reply' }, { n: '99.9%', l: 'Uptime Guarantee' }, { n: 'বাংলা', l: '& English Support' }].map((s, i) => (
+              <div key={s.l} className="text-center group/item relative z-10">
+                <motion.div 
+                  initial={{ scale: 0.5 }}
+                  whileInView={{ scale: 1 }}
+                  transition={{ delay: 0.2 + (i * 0.1), type: "spring" }}
+                  className="text-4xl md:text-6xl font-heading font-black gradient-text group-hover/item:scale-110 transition-transform duration-500"
+                >
+                  {s.n}
+                </motion.div>
+                <div className="text-xs md:text-sm mt-3 font-bold uppercase tracking-[0.2em] text-dark-500 hover:text-dark-300 transition-colors" style={{ color: 'var(--text-muted)' }}>{s.l}</div>
               </div>
             ))}
           </motion.div>
-        </motion.div>
+        </div>
       </section>
 
       {/* ═══ HOW IT WORKS ═══ */}
-      <section id="how-it-works" className="section-padding" style={{ background: 'var(--bg-secondary)' }}>
+      <section id="how-it-works" className="section-padding relative overflow-hidden" style={{ background: 'var(--bg-secondary)' }}>
         <div className="section-container">
-          <h2 className="section-title">How It <span className="gradient-text">Works</span></h2>
-          <p className="section-subtitle">Start automating your F-commerce in 4 simple steps</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }} 
+            whileInView={{ opacity: 1, y: 0 }} 
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="section-title">How It <span className="gradient-text">Works</span></h2>
+            <p className="section-subtitle">Start automating your F-commerce in 4 simple steps</p>
+          </motion.div>
+ 
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, i) => (
-              <motion.div key={step.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }} className="glass-card p-6 text-center relative">
-                <div className="absolute -top-3 -left-3 w-8 h-8 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-sm font-bold">{i + 1}</div>
-                <step.icon className="w-10 h-10 text-primary mx-auto mb-4" />
-                <h3 className="text-lg font-heading font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>{step.title}</h3>
-                <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{step.description}</p>
+              <motion.div 
+                key={step.title} 
+                initial={{ opacity: 0, scale: 0.9 }} 
+                whileInView={{ opacity: 1, scale: 1 }} 
+                transition={{ delay: i * 0.15, duration: 0.5 }} 
+                viewport={{ once: true }} 
+                className="glass-bento p-8 text-center relative group hover:glow-violet transition-all"
+              >
+                <div className="absolute -top-4 -left-4 w-10 h-10 rounded-2xl bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-sm font-black shadow-lg z-20 group-hover:scale-110 transition-transform">{i + 1}</div>
+                <div className="w-16 h-16 rounded-2xl bg-white/5 mx-auto mb-6 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                    <step.icon className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-xl font-heading font-black mb-3 tracking-tight" style={{ color: 'var(--text-primary)' }}>{step.title}</h3>
+                <p className="text-sm font-medium leading-relaxed" style={{ color: 'var(--text-muted)' }}>{step.description}</p>
               </motion.div>
             ))}
           </div>
@@ -263,112 +497,225 @@ export default function LandingPage() {
             <p className="section-subtitle text-xl max-w-3xl leading-relaxed italic">{t('landing.features_subtitle')}</p>
           </motion.div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-16">
-            {agents.slice(0, 3).map((agent, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-16">
+            {/* Row 1: 2 Columns + 1 Column */}
+            <div className="lg:col-span-2">
               <AgentCard
-                key={agent.key}
-                agent={agent}
-                index={i}
+                agent={agents[0]}
+                index={0}
                 t={t}
-                isExpanded={expandedAgent === agent.key}
-                onToggle={() => setExpandedAgent(expandedAgent === agent.key ? null : agent.key)}
+                isExpanded={expandedAgent === agents[0].key}
+                onToggle={() => setExpandedAgent(expandedAgent === agents[0].key ? null : agents[0].key)}
               />
-            ))}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8 max-w-4xl mx-auto">
-            {agents.slice(3).map((agent, i) => (
+            </div>
+            <div className="lg:col-span-1">
               <AgentCard
-                key={agent.key}
-                agent={agent}
-                index={i + 3}
+                agent={agents[1]}
+                index={1}
                 t={t}
-                isExpanded={expandedAgent === agent.key}
-                onToggle={() => setExpandedAgent(expandedAgent === agent.key ? null : agent.key)}
+                isExpanded={expandedAgent === agents[1].key}
+                onToggle={() => setExpandedAgent(expandedAgent === agents[1].key ? null : agents[1].key)}
               />
-            ))}
+            </div>
+
+            {/* Row 2: 1 Column + 2 Columns */}
+            <div className="lg:col-span-1">
+              <AgentCard
+                agent={agents[2]}
+                index={2}
+                t={t}
+                isExpanded={expandedAgent === agents[2].key}
+                onToggle={() => setExpandedAgent(expandedAgent === agents[2].key ? null : agents[2].key)}
+              />
+            </div>
+            <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+                {agents.slice(3).map((agent, i) => (
+                  <AgentCard
+                    key={agent.key}
+                    agent={agent}
+                    index={i + 3}
+                    t={t}
+                    isExpanded={expandedAgent === agent.key}
+                    onToggle={() => setExpandedAgent(expandedAgent === agent.key ? null : agent.key)}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ═══ PRICING ═══ */}
-      <section id="pricing" className="section-padding" style={{ background: 'var(--bg-secondary)' }}>
+      <section id="pricing" className="section-padding relative overflow-hidden" style={{ background: 'var(--bg-secondary)' }}>
         <div className="section-container">
-          <h2 className="section-title">Simple, Transparent <span className="gradient-text">Pricing</span></h2>
-          <p className="section-subtitle">All prices in BDT. Pay with bKash, Nagad, or card via SSLCommerz.</p>
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }} 
+            whileInView={{ opacity: 1, y: 0 }} 
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <h2 className="section-title">Simple, Transparent <span className="gradient-text">Pricing</span></h2>
+            <p className="section-subtitle">All prices in BDT. Pay with bKash, Nagad, or card via SSLCommerz.</p>
+          </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-            {plans.map((plan, i) => (
-              <motion.div key={plan.tier} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }}
-                className={`glass-card p-6 relative ${plan.popular ? 'ring-2 ring-primary shadow-glow' : ''}`}>
-                {plan.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
-                    MOST POPULAR
+            {isPlansLoading ? (
+              [1, 2, 3, 4].map((i) => (
+                <div key={i} className="glass-card p-6 h-[420px] flex flex-col animate-pulse">
+                  <Skeleton className="w-32 h-6 mb-4" />
+                  <Skeleton className="w-24 h-10 mb-2" />
+                  <Skeleton className="w-16 h-4 mb-8" />
+                  <div className="space-y-3 mb-8">
+                    {[1, 2, 3, 4, 5].map(j => <Skeleton key={j} className="w-full h-4" />)}
                   </div>
-                )}
-                <h3 className="text-lg font-heading font-bold capitalize mb-1" style={{ color: 'var(--text-primary)' }}>{t(`billing.${plan.tier}`)}</h3>
-                <div className="mb-5">
-                  {plan.price > 0 ? (
-                    <>
-                      <span className="text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                        ৳{plan.price.toLocaleString()}
-                      </span>
-                      <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('billing.month')}</span>
-                    </>
-                  ) : (
-                    <span className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('billing.custom_pricing')}</span>
-                  )}
+                  <Skeleton className="w-full h-10 mt-auto rounded-lg" />
                 </div>
-                <ul className="space-y-2.5 mb-6">
-                  {plan.features.map(f => (
-                    <li key={f} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                      <Check className="w-4 h-4 text-success mt-0.5 shrink-0" />{f}
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/register" prefetch={true} className={plan.popular ? 'btn-primary w-full text-center text-sm' : 'btn-secondary w-full text-center text-sm'}>
-                  {plan.tier === 'enterprise' ? t('billing.contact_sales') : t('billing.subscribe')}
-                </Link>
-              </motion.div>
-            ))}
+              ))
+            ) : (
+              displayPlans.map((plan: any, i: number) => {
+                const popular = plan.tier === 'professional';
+                return (
+                  <motion.div key={plan.id || plan.tier} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }}
+                    className={`glass-card p-6 relative ${popular ? 'ring-2 ring-primary shadow-glow' : ''}`}>
+                    {popular && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-accent text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">
+                        MOST POPULAR
+                      </div>
+                    )}
+                    <h3 className="text-lg font-heading font-bold capitalize mb-1" style={{ color: 'var(--text-primary)' }}>{plan.name || t(`billing.${plan.tier}`)}</h3>
+                    <div className="mb-5">
+                      {(plan.price_monthly_bdt || plan.price) > 0 ? (
+                        <>
+                          <span className="text-4xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                            ৳{(plan.price_monthly_bdt || plan.price).toLocaleString()}
+                          </span>
+                          <span className="text-sm" style={{ color: 'var(--text-muted)' }}>{t('billing.month')}</span>
+                        </>
+                      ) : (
+                        <span className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>{t('billing.custom_pricing')}</span>
+                      )}
+                    </div>
+                    <ul className="space-y-2.5 mb-6">
+                      {(plan.features || []).map((f: string) => (
+                        <li key={f} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                          <Check className="w-4 h-4 text-success mt-0.5 shrink-0" />{f}
+                        </li>
+                      ))}
+                    </ul>
+                    <Link href="/register" prefetch={true} className={popular ? 'btn-primary w-full text-center text-sm' : 'btn-secondary w-full text-center text-sm'}>
+                      {plan.cta_text || (plan.tier === 'enterprise' ? t('billing.contact_sales') : t('billing.subscribe'))}
+                    </Link>
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </div>
       </section>
 
       {/* ═══ TESTIMONIALS ═══ */}
-      <section className="section-padding">
+      <section className="section-padding relative overflow-hidden">
         <div className="section-container">
-          <h2 className="section-title">Loved by <span className="gradient-text">Sellers</span> Across Bangladesh</h2>
-          <p className="section-subtitle">See what F-commerce owners say about XENI</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <motion.div key={t.name} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} viewport={{ once: true }} className="glass-card p-6">
-                <Quote className="w-8 h-8 text-primary/30 mb-4" />
-                <p className="text-sm mb-6 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>&ldquo;{t.text}&rdquo;</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-sm font-bold">{t.avatar}</div>
-                  <div>
-                    <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{t.name}</p>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t.role}, {t.company}</p>
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }} 
+            whileInView={{ opacity: 1, y: 0 }} 
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <h2 className="section-title">Loved by <span className="gradient-text">Sellers</span> Across Bangladesh</h2>
+            <p className="section-subtitle">See what F-commerce owners say about XENI</p>
+          </motion.div>
+ 
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {isReviewsLoading ? (
+              [1, 2, 3].map((i) => (
+                <div key={i} className="glass-bento p-8 animate-pulse">
+                  <div className="w-10 h-10 bg-white/5 rounded-2xl mb-6" />
+                  <Skeleton className="w-full h-4 mb-3" />
+                  <Skeleton className="w-[80%] h-4 mb-8" />
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="w-12 h-12 rounded-full" />
+                    <div>
+                      <Skeleton className="w-24 h-4 mb-2" />
+                      <Skeleton className="w-16 h-3" />
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-0.5 mt-3">{[...Array(5)].map((_, j) => <Star key={j} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />)}</div>
-              </motion.div>
-            ))}
+              ))
+            ) : (
+              displayTestimonials.map((testi: any, i: number) => (
+                <motion.div 
+                    key={i} 
+                    initial={{ opacity: 0, y: 30 }} 
+                    whileInView={{ opacity: 1, y: 0 }} 
+                    transition={{ delay: i * 0.1, duration: 0.5 }} 
+                    viewport={{ once: true }} 
+                    className="glass-bento p-8 group hover:glow-cyan transition-all"
+                >
+                  <Quote className="w-10 h-10 text-primary/20 mb-6 group-hover:text-primary/40 transition-colors" />
+                  <p className="text-base mb-8 leading-relaxed min-h-[80px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                    &ldquo;{testi.review_text || testi.text}&rdquo;
+                  </p>
+                  <div className="flex items-center gap-4 mt-auto">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-base font-black shadow-lg group-hover:scale-110 transition-transform">
+                        {testi.reviewer_name?.charAt(0) || testi.avatar}
+                    </div>
+                    <div>
+                      <p className="text-sm font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>{testi.reviewer_name || testi.name}</p>
+                      <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{testi.role}, {testi.company}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 mt-6">
+                    {[...Array(5)].map((_, j) => (
+                      <Star key={j} className={`w-4 h-4 ${j < (testi.star_rating || 5) ? 'text-amber-400 fill-amber-400 shadow-glow' : 'text-white/5'}`} />
+                    ))}
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
       </section>
 
       {/* ═══ FAQ ═══ */}
-      <section id="faq" className="section-padding" style={{ background: 'var(--bg-secondary)' }}>
-        <div className="section-container max-w-3xl">
-          <h2 className="section-title">Frequently Asked <span className="gradient-text">Questions</span></h2>
-          <p className="section-subtitle">Everything you need to know about XENI</p>
+      <section id="faq" className="section-padding relative overflow-hidden" style={{ background: 'var(--bg-secondary)' }}>
+        <div className="section-container max-w-3xl relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }} 
+            whileInView={{ opacity: 1, y: 0 }} 
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <h2 className="section-title">Frequently Asked <span className="gradient-text">Questions</span></h2>
+            <p className="section-subtitle">Everything you need to know about XENI</p>
+          </motion.div>
 
-          <div className="space-y-3">
-            {faqs.map((faq, i) => (
-              <FAQItem key={i} q={faq.q} a={faq.a} isOpen={openFAQ === i} onClick={() => setOpenFAQ(openFAQ === i ? null : i)} />
-            ))}
+          <div className="space-y-4">
+            {isFaqLoading ? (
+              [1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="glass-bento p-6 border border-white/5 animate-pulse">
+                  <Skeleton className="w-full h-6" />
+                </div>
+              ))
+            ) : (
+              displayFaqs.map((faq: any, i: number) => (
+                <motion.div 
+                    key={i} 
+                    initial={{ opacity: 0, x: -20 }} 
+                    whileInView={{ opacity: 1, x: 0 }} 
+                    transition={{ delay: i * 0.1 }} 
+                    viewport={{ once: true }}
+                >
+                    <FAQItem 
+                        q={faq.question || faq.q} 
+                        a={faq.answer || faq.a} 
+                        isOpen={openFAQ === i} 
+                        onClick={() => setOpenFAQ(openFAQ === i ? null : i)} 
+                    />
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
       </section>

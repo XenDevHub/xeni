@@ -278,6 +278,69 @@ export default function AnalyticsPage() {
           </div>
         </motion.div>
       </div>
+ 
+      {/* Customer Sentiment Analysis (New Highlight) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} className="lg:col-span-2 glass-card p-8 relative overflow-hidden bg-gradient-to-br from-primary/5 to-transparent">
+           <div className="flex items-center justify-between mb-8">
+              <h3 className="text-xl font-heading font-black text-white flex items-center gap-3">
+                 <Brain className="w-6 h-6 text-primary" /> Customer Sentiment Pulse
+              </h3>
+              <span className="text-[10px] font-black uppercase bg-primary/10 text-primary px-2 py-1 rounded">AI Analyzed</span>
+           </div>
+           
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {[
+                { label: 'Happy', value: 72, emoji: '😊', color: 'bg-emerald-500', glow: 'shadow-[0_0_15px_rgba(16,185,129,0.4)]' },
+                { label: 'Neutral', value: 18, emoji: '😐', color: 'bg-amber-400', glow: 'shadow-[0_0_15px_rgba(245,158,11,0.3)]' },
+                { label: 'Frustrated', value: 10, emoji: '😟', color: 'bg-rose-500', glow: 'shadow-[0_0_15px_rgba(244,63,94,0.4)]' }
+              ].map((s, i) => (
+                <div key={s.label} className="flex flex-col items-center text-center group">
+                   <div className="text-4xl mb-4 group-hover:scale-125 transition-transform duration-500">{s.emoji}</div>
+                   <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden mb-3 relative">
+                      <motion.div 
+                        initial={{ width: 0 }} 
+                        animate={{ width: `${s.value}%` }} 
+                        transition={{ delay: 0.7 + i * 0.1, duration: 1 }}
+                        className={`h-full ${s.color} ${s.glow} rounded-full`} 
+                      />
+                   </div>
+                   <span className="text-lg font-black text-white">{s.value}%</span>
+                   <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest">{s.label}</span>
+                </div>
+              ))}
+           </div>
+
+           <div className="mt-10 p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-4">
+              <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+              <p className="text-xs text-dark-300">
+                <span className="font-bold text-white">Coach Insight:</span> "Most frustrations revolve around **Delivery Speed**. Automating your courier sync could improve satisfaction by 15%."
+              </p>
+           </div>
+        </motion.div>
+
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }} className="lg:col-span-1 glass-card p-8 flex flex-col">
+           <h3 className="text-lg font-heading font-black text-white mb-6">Trending Topics</h3>
+           <div className="flex flex-wrap gap-2">
+              {['Price Inquiry', 'Size Guide', 'Shipping Cost', 'Restock?', 'Order Status', 'Quality Check', 'Discount Code', 'Shop Location'].map((tag, i) => (
+                <motion.span 
+                  key={tag}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.8 + i * 0.05 }}
+                  className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tight border hover:scale-110 transition-transform cursor-default ${i < 3 ? 'bg-primary/20 border-primary text-white shadow-lg' : 'bg-white/5 border-white/5 text-dark-400'}`}
+                >
+                  {tag}
+                </motion.span>
+              ))}
+           </div>
+           <div className="mt-auto pt-8">
+              <button className="w-full btn-secondary py-3 text-xs font-black flex items-center justify-center gap-2">
+                 Analyze All Chats <ArrowUpRight className="w-4 h-4" />
+              </button>
+           </div>
+        </motion.div>
+      </div>
 
       {/* AI Recommendations */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6 }} className="glass-card p-6">

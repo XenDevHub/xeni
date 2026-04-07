@@ -271,6 +271,12 @@ func (s *Service) UpdatePlan(planID uuid.UUID, updates map[string]interface{}) e
 	return nil
 }
 
+// ── User Conversations ──
+
+func (s *Service) GetUserConversations(userID uuid.UUID, page, limit int) ([]models.Conversation, int64, error) {
+	return s.Repo.GetConversationsByUser(userID, page, limit)
+}
+
 func (s *Service) invalidateUserListCache() {
 	if s.Cache != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)

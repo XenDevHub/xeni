@@ -33,6 +33,9 @@
   --glass-border: rgba(255,255,255,0.1);
   --glow-primary: rgba(124,58,237,0.25);
   --glow-accent: rgba(6,182,212,0.15);
+  --mesh-1: rgba(124,58,237,0.15);
+  --mesh-2: rgba(6,182,212,0.1);
+  --mesh-3: rgba(236,72,153,0.08);
 }
 
 @layer base {
@@ -60,6 +63,31 @@
     background: var(--bg-card-hover);
     border-color: rgba(124,58,237,0.3);
     @apply shadow-glow;
+  }
+
+  .glass-bento {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    @apply rounded-[2rem] overflow-hidden relative;
+  }
+  .glass-bento:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-4px);
+  }
+  .glass-bento::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(255,255,255,0.05) 0%, transparent 50%);
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+  .glass-bento:hover::before {
+    opacity: 1;
   }
 
   /* Buttons */
@@ -154,5 +182,22 @@ html { scroll-behavior: smooth; }
   0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.2); }
   50% { box-shadow: 0 0 40px rgba(124,58,237,0.4); }
 }
+@keyframes mesh {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 .animate-float { animation: float 6s ease-in-out infinite; }
 .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.mesh-gradient {
+  background: linear-gradient(-45deg, var(--bg-primary), var(--mesh-1), var(--bg-secondary), var(--mesh-2));
+  background-size: 400% 400%;
+  animation: mesh 15s ease infinite;
+}
+
+/* Specific Glows */
+.glow-violet { box-shadow: 0 0 40px -10px rgba(124,58,237,0.3); }
+.glow-cyan { box-shadow: 0 0 40px -10px rgba(6,182,212,0.3); }
+.glow-emerald { box-shadow: 0 0 40px -10px rgba(16,185,129,0.3); }
+.glow-pink { box-shadow: 0 0 40px -10px rgba(236,72,153,0.3); }
+.glow-amber { box-shadow: 0 0 40px -10px rgba(245,158,11,0.3); }

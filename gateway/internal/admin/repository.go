@@ -364,3 +364,22 @@ func (r *Repository) ListTasks(page, limit int, agentType, status, userID string
 
 	return tasks, total, err
 }
+
+// ── User Conversations ──
+
+func (r *Repository) GetConversationsByUser(userID uuid.UUID, page, limit int) ([]models.Conversation, int64, error) {
+	var conversations []models.Conversation
+	var total int64
+
+	query := r.DB.Table("conversations").
+		Joins("JOIN shops ON conversations.shop_id = shops.id").
+		Where("shops.user_id = ?", userID)
+
+	query.Count(&total)
+	err := query.Order("conversations.updated_at DESC").
+		Offset((page - 1) * limit).
+		Limit(limit).
+		Find(&conversations).Error
+
+	return conversations, total, err
+}

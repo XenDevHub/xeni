@@ -1,40 +1,46 @@
-'use client';
-
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Search, Download, Filter, MoreVertical, ShieldAlert } from 'lucide-react';
 import { DataTable } from '@/components/admin/DataTable';
 import { UserDetailPanel } from './UserDetailPanel';
+import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
 export default function UserManagementPage() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
 
-  // Mock users
-  const users = Array.from({ length: 25 }).map((_, i) => ({
-    id: `usr_${i}`,
-    full_name: `Test User ${i}`,
-    email: `user${i}@example.com`,
-    role: i === 0 ? 'super_admin' : (i < 3 ? 'admin' : 'user'),
-    plan: i % 3 === 0 ? 'premium' : (i % 2 === 0 ? 'professional' : 'starter'),
-    status: i === 4 ? 'suspended' : 'active',
-    joined: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-    last_active: '2 hours ago',
-    tasks_month: Math.floor(Math.random() * 5000),
-  }));
+  const { data: userData, isLoading, refetch } = useQuery({
+    queryKey: ['admin-users', page, search],
+    queryFn: async () => {
+      const res = await api.get('/admin/users', {
+        params: { page, search, limit: 15 }
+      });
+      return res.data;
+    }
+  });
 
-  const columns = [
+  const users = userData?.data || [];
+  const meta = userData?.meta;
+
+  const handleExport = () => {
+    window.open(`${process.env.NEXT_PUBLIC_API_URL}/admin/users/export`, '_blank');
+    toast.success('Export started');
+  };
+
+  const columns = useMemo(() => [
     {
       header: 'User',
       accessorKey: 'full_name',
       cell: (info: any) => (
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white text-xs font-bold">
-            {info.getValue().charAt(0)}
+            {(info.getValue() || info.row.original.email).charAt(0)}
           </div>
-          <div>
-            <div className="font-medium text-white">{info.getValue()}</div>
-            <div className="text-xs text-dark-500">{info.row.original.email}</div>
+          <div className="min-w-0">
+            <div className="font-medium text-white truncate">{info.getValue() || 'No Name'}</div>
+            <div className="text-xs text-dark-500 truncate">{info.row.original.email}</div>
           </div>
         </div>
       )
@@ -50,13 +56,14 @@ export default function UserManagementPage() {
     },
     {
       header: 'Plan',
-      accessorKey: 'plan',
+      accessorKey: 'plan_tier',
       cell: (info: any) => {
+        const val = info.getValue()?.toLowerCase() || 'none';
         let colors = 'bg-white/10 text-dark-400';
-        if (info.getValue() === 'starter') colors = 'bg-cyan-500/20 text-cyan-400';
-        if (info.getValue() === 'professional') colors = 'bg-violet-500/20 text-violet-400';
-        if (info.getValue() === 'premium') colors = 'bg-emerald-500/20 text-emerald-400';
-        return <span className={`badge ${colors} capitalize text-[10px] w-20 justify-center`}>{info.getValue()}</span>;
+        if (val === 'starter') colors = 'bg-cyan-500/20 text-cyan-400';
+        if (val === 'professional') colors = 'bg-violet-500/20 text-violet-400';
+        if (val === 'premium') colors = 'bg-emerald-500/20 text-emerald-400';
+        return <span className={`badge ${colors} capitalize text-[10px] w-20 justify-center`}>{val}</span>;
       }
     },
     {
@@ -68,17 +75,13 @@ export default function UserManagementPage() {
     },
     {
       header: 'Joined',
-      accessorKey: 'joined',
+      accessorKey: 'created_at',
       cell: (info: any) => new Date(info.getValue()).toLocaleDateString()
     },
     {
-      header: 'Last Active',
-      accessorKey: 'last_active'
-    },
-    {
-      header: 'Tasks (mo)',
-      accessorKey: 'tasks_month',
-      cell: (info: any) => <div className="font-mono text-xs">{info.getValue()}</div>
+      header: 'Spend (Total)',
+      accessorKey: 'total_spent',
+      cell: (info: any) => <div className="font-mono text-xs text-white">৳{(info.getValue() || 0).toLocaleString()}</div>
     },
     {
       header: '',
@@ -94,7 +97,7 @@ export default function UserManagementPage() {
         </div>
       )
     }
-  ];
+  ], []);
 
   return (
     <div className="p-8 space-y-6 max-w-[1600px] mx-auto pb-24 h-full flex flex-col">
@@ -119,7 +122,7 @@ export default function UserManagementPage() {
           <button className="btn-secondary py-2 px-4 text-sm flex items-center gap-2">
             <Filter className="w-4 h-4" /> Filters
           </button>
-          <button onClick={() => toast.success('Export started')} className="btn-secondary py-2 px-4 text-sm flex items-center gap-2 border-primary/30 text-primary-300 hover:text-primary hover:border-primary">
+          <button onClick={handleExport} className="btn-secondary py-2 px-4 text-sm flex items-center gap-2 border-primary/30 text-primary-300 hover:text-primary hover:border-primary">
             <Download className="w-4 h-4" /> Export CSV
           </button>
         </div>
@@ -128,13 +131,21 @@ export default function UserManagementPage() {
       <div className="flex-1 min-h-0">
         <DataTable 
           columns={columns} 
-          data={users.filter(u => u.full_name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()))} 
-          pageCount={2}
+          data={users} 
+          pageCount={meta?.total_pages || 1}
           pageSize={15}
+          isLoading={isLoading}
         />
       </div>
 
-      <UserDetailPanel userId={selectedUserId} onClose={() => setSelectedUserId(null)} />
+      <UserDetailPanel 
+        userId={selectedUserId} 
+        onClose={() => {
+          setSelectedUserId(null);
+          refetch();
+        }} 
+      />
     </div>
   );
 }
+
