@@ -100,8 +100,8 @@ func Seed(db *gorm.DB) {
 				ContentBN:  models.JSON(`{"items":[],"headline":"","subheadline":"","text":""}`),
 			}
 			if key == "hero" {
-				section.ContentEN = models.JSON(`{"headline":"I'm XENI | Your Smart Assistant","subheadline":"Scale Your F-commerce Smartly","cta_text":"Start Free"}`)
-				section.ContentBN = models.JSON(`{"headline":"আমি জেনি (XENI) | আপনার স্মার্ট অ্যাসিস্ট্যান্ট","subheadline":"আপনার এফ-কমার্স ব্যবসা স্মার্টলি স্কেল করুন","cta_text":"শুরু করুন"}`)
+				section.ContentEN = models.JSON(`{"headline":"I'm XENI | Your | Smart Assistant","subheadline":"Scale Your F-commerce Smartly","cta_text":"Start Free"}`)
+				section.ContentBN = models.JSON(`{"headline":"আমি জেনি (XENI) | আপনার | স্মার্ট অ্যাসিস্ট্যান্ট","subheadline":"আপনার এফ-কমার্স ব্যবসা স্মার্টলি স্কেল করুন","cta_text":"শুরু করুন"}`)
 			}
 			if key == "banner" {
 				section.ContentEN = models.JSON(`{"text":"Welcome to Xeni AI!","link":"","is_active":false,"color":"#7C3AED"}`)

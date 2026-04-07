@@ -331,12 +331,15 @@ export default function LandingPage() {
                     <span className="text-xs font-bold text-dark-300 uppercase tracking-[0.2em]">{heroEn?.badge || 'Next-Gen AI Platform'}</span>
                   </motion.div>
 
-                  <h1 className="text-5xl sm:text-6xl lg:text-8xl font-heading font-black mb-8 leading-[0.95] tracking-tight">
+                  <h1 className="font-heading font-black mb-8 leading-[0.95] tracking-tight">
                     {(() => {
-                      const headline = hero?.headline || "I'm XENI | Your Smart Assistant";
+                      const headline = hero?.headline || "I'm XENI | Your | Smart Assistant";
                       const parts = headline.includes('|') ? headline.split('|') : [headline.split(' ')[0], headline.split(' ').slice(1).join(' ')];
                       return parts.map((part: string, i: number) => (
-                        <span key={i} className={`block ${i === 1 ? 'gradient-text' : 'text-white'} drop-shadow-2xl whitespace-nowrap`}>
+                        <span 
+                          key={i} 
+                          className={`block ${i === 0 ? 'text-5xl sm:text-6xl lg:text-8xl text-white' : 'text-3xl sm:text-4xl lg:text-6xl gradient-text'} drop-shadow-2xl mb-2`}
+                        >
                           {part.trim()}
                         </span>
                       ));
