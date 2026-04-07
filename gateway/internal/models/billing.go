@@ -45,6 +45,12 @@ type Plan struct {
 	PriceMonthlyBDT float64   `gorm:"column:price_monthly_bdt;type:decimal(12,2);default:0;not null" json:"price_monthly_bdt"`
 	Features        JSON      `gorm:"type:jsonb;default:'{}';not null" json:"features"`
 	IsActive        bool      `gorm:"default:true;not null" json:"is_active"`
+	Tagline         *string   `gorm:"size:100" json:"tagline"`
+	TaglineBN       *string   `gorm:"column:tagline_bn;size:200" json:"tagline_bn"`
+	CTAText         string    `gorm:"column:cta_text;size:50;default:'Get Started'" json:"cta_text"`
+	CTATextBN       string    `gorm:"column:cta_text_bn;size:100;default:'শুরু করুন'" json:"cta_text_bn"`
+	IsMostPopular   bool      `gorm:"default:false" json:"is_most_popular"`
+	DisplayOrder    int       `gorm:"default:0" json:"display_order"`
 	CreatedAt       time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt       time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

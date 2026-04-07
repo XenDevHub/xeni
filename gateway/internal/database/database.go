@@ -59,5 +59,10 @@ func autoMigrate(db *gorm.DB) error {
 		&models.Payment{},
 		&models.AgentTask{},
 		&models.AuditLog{},
+		// Admin dashboard tables
+		&models.ContentSection{},
+		&models.Review{},
+		&models.ReviewSettings{},
+		&models.PlatformMetricsCache{},
 	)
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/xeni-ai/gateway/internal/cache"
 	"github.com/xeni-ai/gateway/internal/config"
 	"github.com/xeni-ai/gateway/internal/database"
+	"github.com/xeni-ai/gateway/internal/jobs"
 	"github.com/xeni-ai/gateway/internal/rabbitmq"
 	"github.com/xeni-ai/gateway/internal/router"
 	"github.com/xeni-ai/gateway/internal/storage"
@@ -95,6 +96,11 @@ func main() {
 
 	// Setup routes
 	router.Setup(app, cfg, db, redisClient, jwtManager, wsHub, agentHandler, rmqClient, spacesClient)
+
+	// Initialize and start background jobs
+	jobScheduler := jobs.NewScheduler(db, redisClient)
+	jobScheduler.Start()
+	defer jobScheduler.Stop()
 
 	// Graceful shutdown
 	quit := make(chan os.Signal, 1)

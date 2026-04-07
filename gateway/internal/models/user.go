@@ -51,6 +51,10 @@ type User struct {
 	TwoFASecret       *string      `gorm:"column:two_fa_secret;size:255" json:"-"`
 	PreferredLanguage string       `gorm:"size:5;default:'en';not null" json:"preferred_language"`
 	LastLoginAt       *time.Time   `json:"last_login_at"`
+	SuspendedReason   *string      `gorm:"type:text" json:"suspended_reason"`
+	SuspendedAt       *time.Time   `json:"suspended_at"`
+	DeletedAt         *time.Time   `json:"deleted_at"`
+	AdminNote         *string      `gorm:"type:text" json:"admin_note"`
 	CreatedAt         time.Time    `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt         time.Time    `gorm:"autoUpdateTime" json:"updated_at"`
 }

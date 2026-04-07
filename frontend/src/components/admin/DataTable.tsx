@@ -1,0 +1,102 @@
+'use client';
+
+import { 
+  useReactTable, getCoreRowModel, flexRender, getPaginationRowModel 
+} from '@tanstack/react-table';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+
+interface DataTableProps<TData, TValue> {
+  columns: any[];
+  data: TData[];
+  pageCount?: number;
+  onPaginationChange?: (updater: any) => void;
+  pageIndex?: number;
+  pageSize?: number;
+  isLoading?: boolean;
+}
+
+export function DataTable<TData, TValue>({
+  columns, data, pageCount, onPaginationChange, pageIndex = 0, pageSize = 20, isLoading
+}: DataTableProps<TData, TValue>) {
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    pageCount: pageCount ?? -1,
+    state: { pagination: { pageIndex, pageSize } },
+    onPaginationChange,
+    manualPagination: true,
+  });
+
+  return (
+    <div className="glass-card overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            {table.getHeaderGroups().map(headerGroup => (
+              <tr key={headerGroup.id} className="border-b border-white/10 bg-black/20">
+                {headerGroup.headers.map(header => (
+                  <th key={header.id} className="text-left text-dark-500 font-medium px-6 py-4 whitespace-nowrap">
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-b border-white/5">
+                  {columns.map((c, j) => (
+                    <td key={j} className="px-6 py-4"><div className="skeleton h-6 w-full" /></td>
+                  ))}
+                </tr>
+              ))
+            ) : table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map(row => (
+                <tr key={row.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                  {row.getVisibleCells().map(cell => (
+                    <td key={cell.id} className="px-6 py-4 text-dark-600 group-hover:text-white transition-colors whitespace-nowrap">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={columns.length} className="h-24 text-center text-dark-500">
+                  No results found.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+      
+      {pageCount && pageCount > 1 && (
+        <div className="flex items-center justify-between px-6 py-4 border-t border-white/5 bg-black/10">
+          <span className="text-sm text-dark-500">
+            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount() || 1}
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="p-2 rounded-lg bg-white/5 text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="p-2 rounded-lg bg-white/5 text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

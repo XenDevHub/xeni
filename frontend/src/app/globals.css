@@ -37,13 +37,10 @@
 
 @layer base {
   body {
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    @apply antialiased transition-colors duration-300;
+    @apply bg-gradient-to-br from-gray-950 via-gray-900 to-violet-950 text-white min-h-screen bg-fixed antialiased selection:bg-primary/30 selection:text-white;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-bold;
-    color: var(--text-primary);
+    @apply font-heading font-bold text-white;
   }
 }
 

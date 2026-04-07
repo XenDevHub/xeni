@@ -15,6 +15,7 @@ import (
 	"github.com/xeni-ai/gateway/internal/billing"
 	"github.com/xeni-ai/gateway/internal/cache"
 	"github.com/xeni-ai/gateway/internal/config"
+	"github.com/xeni-ai/gateway/internal/content"
 	"github.com/xeni-ai/gateway/internal/conversations"
 	"github.com/xeni-ai/gateway/internal/messenger"
 	"github.com/xeni-ai/gateway/internal/middleware"
@@ -178,18 +179,69 @@ func Setup(
 	agentGroup.Get("/:slug/tasks/:taskId", agentHandler.GetTask)
 	agentGroup.Delete("/:slug/tasks/:taskId", agentHandler.DeleteTask)
 
+	// ── Content Routes (no auth) ──
+	contentRepo := content.NewRepository(db)
+	contentSvc := content.NewService(contentRepo, redis, wsHub)
+	contentHandler := content.NewContentHandler(db, contentSvc)
+
+	publicContent := api.Group("/content")
+	publicContent.Get("/hero", contentHandler.GetHero)
+	publicContent.Get("/banner", contentHandler.GetBanner)
+	publicContent.Get("/faq", contentHandler.GetFAQ)
+	publicContent.Get("/reviews", contentHandler.GetApprovedReviews)
+
+	// User review submission (authenticated users)
+	api.Post("/content/reviews", middleware.AuthMiddleware(jwtManager, redis), contentHandler.SubmitReview)
+
 	// ── Admin Routes ──
-	adminHandler := admin.NewHandler(db)
+	adminSvc := admin.NewService(db, redis, wsHub)
+	adminHandler := admin.NewHandler(adminSvc)
 	adminGroup := api.Group("/admin",
 		middleware.AuthMiddleware(jwtManager, redis),
-		middleware.RBACMiddleware(models.RoleSuperAdmin),
+		middleware.RBACMiddleware(models.RoleSuperAdmin, models.RoleAdmin), // Now Super Admin AND Admin
 	)
+
+	adminGroup.Get("/overview", adminHandler.GetOverview)
 	adminGroup.Get("/users", adminHandler.ListUsers)
-	adminGroup.Put("/users/:id/status", adminHandler.UpdateUserStatus)
-	adminGroup.Put("/users/:id/role", adminHandler.UpdateUserRole)
-	adminGroup.Post("/users/:id/grant-plan", adminHandler.GrantSubscription)
+	adminGroup.Get("/users/export", adminHandler.ExportUsers)
+	adminGroup.Get("/users/:id", adminHandler.GetUser)
+	// Some actions might be super_admin only, but the global router lets admin in.
+	// RBAC for these specific routes should be enforced explicitly. We wrap them:
+	adminGroup.Put("/users/:id/role", middleware.RBACMiddleware(models.RoleSuperAdmin), adminHandler.ChangeUserRole)
+	adminGroup.Put("/users/:id/plan", adminHandler.OverrideUserPlan)
+	adminGroup.Put("/users/:id/status", adminHandler.ChangeUserStatus)
+	adminGroup.Delete("/users/:id", middleware.RBACMiddleware(models.RoleSuperAdmin), adminHandler.DeleteUser)
+	
+	adminGroup.Get("/users/:id/tasks", adminHandler.GetUserTasks)
 	adminGroup.Get("/tasks", adminHandler.ListAllTasks)
-	adminGroup.Get("/metrics", adminHandler.GetMetrics)
+	adminGroup.Get("/tasks/stats", adminHandler.GetTaskStats)
+	adminGroup.Post("/tasks/:id/retry", adminHandler.RetryTask)
+	
+	adminGroup.Get("/transactions", adminHandler.ListTransactions)
+	adminGroup.Get("/transactions/export", adminHandler.ExportTransactions)
+	adminGroup.Get("/transactions/:id", adminHandler.GetTransaction)
+	
+	adminGroup.Get("/plans/:id", adminHandler.GetPlan)
+	adminGroup.Put("/plans/:id", adminHandler.UpdatePlan)
+
+	// ── Admin Content Routes ──
+	adminContent := adminGroup.Group("/content")
+	adminContent.Get("/hero", contentHandler.AdminGetHero)
+	adminContent.Put("/hero", contentHandler.UpdateHero)
+	adminContent.Get("/banner", contentHandler.AdminGetBanner)
+	adminContent.Put("/banner", contentHandler.UpdateBanner)
+	adminContent.Get("/faq", contentHandler.AdminGetFAQ)
+	adminContent.Put("/faq", contentHandler.UpdateFAQ)
+	
+	adminContent.Get("/reviews", contentHandler.AdminListReviews)
+	adminContent.Put("/reviews/reorder", contentHandler.ReorderReviews)
+	adminContent.Get("/reviews/settings", contentHandler.GetReviewSettings)
+	adminContent.Put("/reviews/settings", contentHandler.UpdateReviewSettings)
+	adminContent.Put("/reviews/:id", contentHandler.AdminEditReview)
+	adminContent.Put("/reviews/:id/approve", contentHandler.ApproveReview)
+	adminContent.Put("/reviews/:id/reject", contentHandler.RejectReview)
+	adminContent.Delete("/reviews/:id", contentHandler.DeleteReview)
+
 
 	// ── Bootstrap Admin (only works if no super_admin exists) ──
 	api.Post("/admin/bootstrap", middleware.AuthMiddleware(jwtManager, redis), func(c *fiber.Ctx) error {
@@ -225,6 +277,12 @@ func Setup(
 		}
 
 		wsHub.Register(claims.UserID, conn)
+		
+		// If admin or super_admin, also add to admin room
+		if claims.Role == string(models.RoleAdmin) || claims.Role == string(models.RoleSuperAdmin) {
+			wsHub.RegisterAdmin(claims.UserID, conn)
+		}
+		
 		defer wsHub.Unregister(claims.UserID)
 
 		for {
