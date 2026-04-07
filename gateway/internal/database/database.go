@@ -101,7 +101,7 @@ func Seed(db *gorm.DB) {
 	}
 
 	// Seed Content Sections
-	headers := []string{"hero", "banner", "faq"}
+	headers := []string{"hero", "banner", "faq", "pricing_settings"}
 	for _, key := range headers {
 		var count int64
 		db.Model(&models.ContentSection{}).Where("section_key = ?", key).Count(&count)
@@ -109,16 +109,23 @@ func Seed(db *gorm.DB) {
 			slog.Info("seeding content section", "key", key)
 			section := models.ContentSection{
 				SectionKey: key,
-				ContentEN:  models.JSON(`{"items":[],"headline":"","subheadline":"","text":""}`),
-				ContentBN:  models.JSON(`{"items":[],"headline":"","subheadline":"","text":""}`),
+				ContentEN:  models.JSON(`{}`),
+				ContentBN:  models.JSON(`{}`),
 			}
-			if key == "hero" {
-				section.ContentEN = models.JSON(`{"headline":"I'm XENI | Your | Smart Assistant","subheadline":"Scale Your F-commerce Smartly","cta_text":"Start Free"}`)
-				section.ContentBN = models.JSON(`{"headline":"আমি জেনি (XENI) | আপনার | স্মার্ট অ্যাসিস্ট্যান্ট","subheadline":"আপনার এফ-কমার্স ব্যবসা স্মার্টলি স্কেল করুন","cta_text":"শুরু করুন"}`)
-			}
-			if key == "banner" {
-				section.ContentEN = models.JSON(`{"text":"Welcome to Xeni AI!","link":"","is_active":false,"color":"#7C3AED"}`)
-				section.ContentBN = models.JSON(`{"text":"জেনি এআই-তে স্বাগতম!","link":"","is_active":false,"color":"#7C3AED"}`)
+			
+			switch key {
+			case "hero":
+				section.ContentEN = models.JSON(`{"headline":"Your Online Shop AI Employee","subheadline":"Automate conversations, orders, and content 24/7","cta_text":"Start Free","badge_text":"Now with AI Image Generation"}`)
+				section.ContentBN = models.JSON(`{"headline":"আপনার অনলাইন শপের AI কর্মী","subheadline":"কথোপকথন, অর্ডার এবং কন্টেন্ট ২৪/৭ স্বয়ংক্রিয় করুন","cta_text":"বিনামূল্যে শুরু করুন","badge_text":"এখন AI ইমেজ জেনারেশনসহ"}`)
+			case "banner":
+				section.ContentEN = models.JSON(`{"text":"Welcome to Xeni AI!","color":"violet","link":"","is_active":false}`)
+				section.ContentBN = models.JSON(`{"text":"জেনি এআই-তে স্বাগতম!","link":"","is_active":false}`)
+			case "faq":
+				section.ContentEN = models.JSON(`{"items":[]}`)
+				section.ContentBN = models.JSON(`{"items":[]}`)
+			case "pricing_settings":
+				section.ContentEN = models.JSON(`{"show_most_popular":true,"most_popular_plan_id":""}`)
+				section.ContentBN = models.JSON(`{}`)
 			}
 			db.Create(&section)
 		}
@@ -129,8 +136,10 @@ func Seed(db *gorm.DB) {
 	db.Model(&models.ReviewSettings{}).Count(&settingCount)
 	if settingCount == 0 {
 		db.Create(&models.ReviewSettings{
-			ShowStarRating: true,
-			MinStarToShow:  4,
+			ID:                  1,
+			AutoApprovePremium:  false,
+			ShowStarRating:      true,
+			MinStarToShow:       4,
 			MaxReviewsOnLanding: 6,
 		})
 	}

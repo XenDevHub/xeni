@@ -23,10 +23,17 @@ func (j *JSON) Scan(value interface{}) error {
 		*j = JSON("{}")
 		return nil
 	}
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed for JSON column")
+
+	var bytes []byte
+	switch v := value.(type) {
+	case []byte:
+		bytes = v
+	case string:
+		bytes = []byte(v)
+	default:
+		return errors.New("type assertion failed for JSON column: value is neither []byte nor string")
 	}
+
 	*j = JSON(bytes)
 	return nil
 }

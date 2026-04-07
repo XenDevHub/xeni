@@ -830,9 +830,9 @@ export default function LandingPage() {
             <div>
               <h4 className="font-heading font-semibold text-sm mb-3" style={{ color: 'var(--text-primary)' }}>Legal</h4>
               <ul className="space-y-2 text-sm" style={{ color: 'var(--text-muted)' }}>
-                <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Refund Policy</a></li>
+                <li><Link href="/privacy-policy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms-of-service" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+                <li><Link href="#" className="hover:text-primary transition-colors">Refund Policy</Link></li>
               </ul>
             </div>
           </div>
