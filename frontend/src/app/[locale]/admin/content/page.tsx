@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileText, Type, Users, Save, List, AlertCircle, MessageSquare, Star, CheckCircle, Ban, GripVertical, Loader2 } from 'lucide-react';
