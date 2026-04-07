@@ -222,9 +222,11 @@ export default function CreativePage() {
             
             <div className="bg-black/20 p-5 rounded-xl border flex flex-col gap-4" style={{ borderColor: 'var(--border-color)' }}>
               
+              {result.imageUrl && (
                 <div className="relative w-full min-h-[300px] rounded-lg overflow-hidden flex items-center justify-center">
                   <Image src={result.imageUrl} alt="Generated AI Image" fill className="object-contain rounded-lg shadow-xl" />
                 </div>
+              )}
 
               {result.caption && (
                 <p className="whitespace-pre-wrap leading-relaxed text-sm" style={{ color: 'var(--text-primary)' }}>{result.caption}</p>

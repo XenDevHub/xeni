@@ -43,7 +43,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)'
             }}
             itemStyle={{ fontSize: '14px', fontWeight: 500 }}
-            formatter={(value: number) => [`৳${value.toLocaleString()}`, undefined]}
+            formatter={(value: any) => [`৳${Number(value).toLocaleString()}`, '']}
           />
           <Legend wrapperStyle={{ paddingTop: '20px' }} iconType="circle" />
           <Line 
