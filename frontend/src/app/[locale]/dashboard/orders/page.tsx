@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShoppingBag, Filter, Eye, ChevronDown, CheckCircle2, 
   MapPin, Phone, CreditCard, Truck, Calendar, 
-  ArrowRight, Search, Zap, Clock, X, Printer
+  ArrowRight, Search, Zap, Clock, X, Printer, User, DollarSign
 } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -61,7 +61,7 @@ export default function OrdersPage() {
     if (order.delivery_status === 'delivered') return 4;
     if (order.delivery_status === 'in_transit' || order.delivery_status === 'booked') return 3;
     if (order.payment_status === 'verified') return 2;
-    if (order.payment_status === 'pending' || order.payment_status === 'verified') return 1;
+    if (order.payment_status === 'pending') return 1;
     return 0;
   };
 

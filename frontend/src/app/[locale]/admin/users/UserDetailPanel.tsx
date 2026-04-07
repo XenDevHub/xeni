@@ -296,7 +296,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                           
                           <div className="bg-black/40 rounded-lg p-2.5 mb-2 border border-white/5">
                             <p className="text-xs text-dark-300 italic line-clamp-2">
-                                "{conv.last_message_preview || 'No messages yet'}"
+                                &ldquo;{conv.last_message_preview || 'No messages yet'}&rdquo;
                             </p>
                           </div>
 
@@ -320,7 +320,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                       <MessageSquare className="w-12 h-12 text-dark-600 mb-4 opacity-20" />
                       <p className="text-white font-medium mb-1">No Conversations Found</p>
-                      <p className="text-xs text-dark-500 px-8">There are no interaction logs available for this user's shop at the moment.</p>
+                      <p className="text-xs text-dark-500 px-8">There are no interaction logs available for this user&apos;s shop at the moment.</p>
                     </div>
                   )}
                 </div>

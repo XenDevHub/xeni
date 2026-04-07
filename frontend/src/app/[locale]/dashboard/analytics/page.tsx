@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, TrendingUp, Clock, MapPin, ShoppingBag, Lightbulb, MessageCircle, Users } from 'lucide-react';
+import { BarChart3, TrendingUp, Clock, MapPin, ShoppingBag, Lightbulb, MessageCircle, Users, Brain, ArrowUpRight } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store/auth';
@@ -314,7 +314,7 @@ export default function AnalyticsPage() {
            <div className="mt-10 p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-4">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               <p className="text-xs text-dark-300">
-                <span className="font-bold text-white">Coach Insight:</span> "Most frustrations revolve around **Delivery Speed**. Automating your courier sync could improve satisfaction by 15%."
+                <span className="font-bold text-white">Coach Insight:</span> &ldquo;Most frustrations revolve around **Delivery Speed**. Automating your courier sync could improve satisfaction by 15%.&rdquo;
               </p>
            </div>
         </motion.div>

@@ -149,9 +149,6 @@ function AgentTile({ name, icon: Icon, metric, lastActivity, status, href, requi
   );
 }
 
-  );
-}
-
 function LivePulseMonitor() {
   const [events, setEvents] = useState([
     { id: 1, type: 'ai', text: 'AI replied to Karim regarding "Price of Silk Saree"', time: 'Just now', icon: Brain },
@@ -361,6 +358,8 @@ export default function DashboardOverview() {
           href="/dashboard/analytics"
           requiredPlan="Premium"
           available={['premium', 'enterprise'].includes(planTier)}
+        />
+
         {/* Quick Actions & Live Pulse */}
         <div className="col-span-12 lg:col-span-4 row-span-2 flex flex-col gap-6">
            {/* Live Pulse Monitor */}
@@ -391,8 +390,6 @@ export default function DashboardOverview() {
            </div>
         </div>
      </div>
-
-      </div>
 
       {/* Intelligence Feed (Bottom Full Width) Overhaul */}
       <div className="flex items-center justify-between mb-8">
@@ -446,10 +443,10 @@ export default function DashboardOverview() {
            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <Brain className="w-32 h-32" />
            </div>
-           <h3 className="text-xl font-heading font-black text-white mb-6">Today's Insight</h3>
+           <h3 className="text-xl font-heading font-black text-white mb-6">Today&apos;s Insight</h3>
            <div className="space-y-6 relative z-10">
               <p className="text-sm text-dark-300 italic leading-relaxed">
-                "Your orders from **Chittagong** have increased by **24%** this morning. Consider launching a targeted ad campaign for that region."
+                &ldquo;Your orders from **Chittagong** have increased by **24%** this morning. Consider launching a targeted ad campaign for that region.&rdquo;
               </p>
               <div className="flex items-center gap-4">
                  <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
