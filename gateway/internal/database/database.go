@@ -96,12 +96,16 @@ func Seed(db *gorm.DB) {
 			slog.Info("seeding content section", "key", key)
 			section := models.ContentSection{
 				SectionKey: key,
-				ContentEN:  models.JSON(`{"items":[]}`),
-				ContentBN:  models.JSON(`{"items":[]}`),
+				ContentEN:  models.JSON(`{"items":[],"headline":"","subheadline":"","text":""}`),
+				ContentBN:  models.JSON(`{"items":[],"headline":"","subheadline":"","text":""}`),
 			}
 			if key == "hero" {
-				section.ContentEN = models.JSON(`{"headline":"Your Online Shop AI Employee","subheadline":"Automate conversations, orders, and content 24/7","cta_text":"Start Free"}`)
-				section.ContentBN = models.JSON(`{"headline":"আপনার অনলাইন শপের AI কর্মী","subheadline":"কথোপকথন, অর্ডার এবং কন্টেন্ট ২৪/৭ স্বয়ংক্রিয় করুন","cta_text":"শুরু করুন"}`)
+				section.ContentEN = models.JSON(`{"headline":"Scale your | F-commerce | with XENI","subheadline":"Your smart assistant","cta_text":"Start Free"}`)
+				section.ContentBN = models.JSON(`{"headline":"XENI-এর সাথে আপনার | এফ-কমার্স | স্কেল করুন","subheadline":"আপনার স্মার্ট অ্যাসিস্ট্যান্ট","cta_text":"শুরু করুন"}`)
+			}
+			if key == "banner" {
+				section.ContentEN = models.JSON(`{"text":"Welcome to Xeni AI!","link":"","is_active":false,"color":"#7C3AED"}`)
+				section.ContentBN = models.JSON(`{"text":"জেনি এআই-তে স্বাগতম!","link":"","is_active":false,"color":"#7C3AED"}`)
 			}
 			db.Create(&section)
 		}

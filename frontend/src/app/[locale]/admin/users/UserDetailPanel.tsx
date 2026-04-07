@@ -179,7 +179,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                       <div className="flex justify-between pt-1">
                         <span className="text-dark-500">Member Since</span>
                         <span className="text-white flex items-center gap-1">
-                          <Calendar className="w-3 h-3" /> {new Date(user?.created_at || Date.now()).toLocaleDateString()}
+                          <Calendar className="w-3 h-3" /> {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'n/a'}
                         </span>
                       </div>
                     </div>
@@ -238,7 +238,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                         <span className="text-xs font-medium text-white capitalize">{task.agent_type?.replace('_', ' ')}</span>
                         <span className={`text-[10px] badge ${task.status === 'completed' ? 'badge-success' : 'badge-danger'}`}>{task.status}</span>
                       </div>
-                      <div className="text-[10px] text-dark-500 mb-2">{new Date(task.created_at).toLocaleString()}</div>
+                      <div className="text-[10px] text-dark-500 mb-2">{task.created_at ? new Date(task.created_at).toLocaleString() : 'n/a'}</div>
                       <div className="text-[11px] text-dark-300 font-mono bg-black/30 p-2 rounded line-clamp-2">
                         {JSON.stringify(task.input_data)}
                       </div>

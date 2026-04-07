@@ -332,12 +332,19 @@ export default function LandingPage() {
                   </motion.div>
 
                   <h1 className="text-5xl sm:text-6xl lg:text-8xl font-heading font-black mb-8 leading-[0.95] tracking-tight">
-                    <span className="text-white drop-shadow-2xl">{hero?.headline?.split(' ')[0] || 'Scale'}</span><br />
-                    <span className="gradient-text drop-shadow-xl">{hero?.headline?.split(' ').slice(1).join(' ') || 'F-Commerce with AI'}</span>
+                    {(() => {
+                      const headline = hero?.headline || 'Scale your | F-commerce | with XENI';
+                      const parts = headline.includes('|') ? headline.split('|') : [headline.split(' ')[0], headline.split(' ').slice(1).join(' ')];
+                      return parts.map((part, i) => (
+                        <span key={i} className={`block ${i === 1 ? 'gradient-text' : 'text-white'} drop-shadow-2xl whitespace-nowrap`}>
+                          {part.trim()}
+                        </span>
+                      ));
+                    })()}
                   </h1>
 
                   <p className="text-lg md:text-xl text-dark-400 mb-12 leading-relaxed font-medium max-w-xl mx-auto lg:mx-0 italic">
-                    {hero?.subheadline || 'Automate every Messenger interaction, order, and delivery with Xeni - the only AI OS built for Bangladesh.'}
+                    {hero?.subheadline || 'Your smart assistant'}
                   </p>
 
                   <div className="flex flex-col sm:flex-row gap-5 justify-center lg:justify-start">

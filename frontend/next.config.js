@@ -11,6 +11,7 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: '**.googleusercontent.com' },
       { protocol: 'https', hostname: '**.amazonaws.com' },
+      { protocol: 'https', hostname: '**.digitaloceanspaces.com' },
     ],
   },
 };

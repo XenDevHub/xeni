@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   MessageCircle, Send, Bot, User, ToggleLeft, ToggleRight, 
@@ -58,7 +58,7 @@ export default function ConversationsPage() {
   }, []);
 
   // Real-time message listener
-  useXeniSocket('new_message', (payload: { conversation_id: string; message: Message }) => {
+  const handleNewMessage = useCallback((payload: { conversation_id: string; message: Message }) => {
     if (selected?.id === payload.conversation_id) {
       setMessages(prev => [...prev, payload.message]);
       scrollToBottom();
@@ -78,14 +78,17 @@ export default function ConversationsPage() {
       const item = updated.splice(index, 1)[0];
       return [item, ...updated];
     });
-  });
+  }, [selected?.id]);
 
-  useXeniSocket('message_replied', (payload: { conversation_id: string; message: Message }) => {
+  const handleMessageReplied = useCallback((payload: { conversation_id: string; message: Message }) => {
     if (selected?.id === payload.conversation_id) {
       setMessages(prev => [...prev, payload.message]);
       scrollToBottom();
     }
-  });
+  }, [selected?.id]);
+
+  useXeniSocket('new_message', handleNewMessage);
+  useXeniSocket('message_replied', handleMessageReplied);
 
   const fetchConversations = async () => {
     try {

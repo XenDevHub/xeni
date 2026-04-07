@@ -53,30 +53,30 @@ export default function AdminOverview() {
       <div className="grid grid-cols-1 md:grid-cols-2 ml:grid-cols-4 gap-6">
         <StatCard 
           label="Total Users" 
-          value={metrics?.totalUsers.toLocaleString() || '...'} 
+          value={(metrics?.totalUsers ?? 0).toLocaleString()} 
           icon={Users} color="text-cyan-400"
-          change={{ value: `${metrics?.userChange}%`, isPositive: true }}
+          change={{ value: `${metrics?.userChange ?? 0}%`, isPositive: true }}
           delay={0.1}
         />
         <StatCard 
           label="Monthly Revenue" 
-          value={`৳${(metrics?.monthlyRevenue || 0).toLocaleString()}`} 
+          value={`৳${(metrics?.monthlyRevenue ?? 0).toLocaleString()}`} 
           icon={DollarSign} color="text-emerald-400"
-          change={{ value: `${metrics?.revenueChange}%`, isPositive: true }}
+          change={{ value: `${metrics?.revenueChange ?? 0}%`, isPositive: true }}
           delay={0.2}
         />
         <StatCard 
           label="Active Subscriptions" 
-          value={metrics?.activeSubscriptions.toLocaleString() || '...'} 
+          value={(metrics?.activeSubscriptions ?? 0).toLocaleString()} 
           icon={CreditCard} color="text-primary-400"
-          change={{ value: `${Math.abs(metrics?.subChange || 0)}%`, isPositive: false }}
+          change={{ value: `${Math.abs(metrics?.subChange ?? 0)}%`, isPositive: false }}
           delay={0.3}
         />
         <StatCard 
           label="AI Tasks Today" 
-          value={metrics?.tasksToday.toLocaleString() || '...'} 
+          value={(metrics?.tasksToday ?? 0).toLocaleString()} 
           icon={Zap} color="text-amber-400"
-          change={{ value: `${metrics?.taskChange}%`, isPositive: true }}
+          change={{ value: `${metrics?.taskChange ?? 0}%`, isPositive: true }}
           delay={0.4}
         />
       </div>
