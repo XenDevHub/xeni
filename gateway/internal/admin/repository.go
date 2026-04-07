@@ -103,7 +103,25 @@ func (r *Repository) GetRevenueChart(months int) ([]RevenueChartPoint, error) {
 	`
 
 	r.DB.Raw(fmt.Sprintf(query, months)).Scan(&results)
-	return results, nil
+
+	// Pad missing months with zeros
+	padded := make([]RevenueChartPoint, 0, months)
+	now := time.Now().UTC()
+	for i := months - 1; i >= 0; i-- {
+		m := now.AddDate(0, -i, 0).Format("2006-01")
+		found := false
+		for _, v := range results {
+			if v.Month == m {
+				padded = append(padded, v)
+				found = true
+				break
+			}
+		}
+		if !found {
+			padded = append(padded, RevenueChartPoint{Month: m})
+		}
+	}
+	return padded, nil
 }
 
 type UserGrowthPoint struct {
@@ -123,7 +141,25 @@ func (r *Repository) GetUserGrowthChart(months int) ([]UserGrowthPoint, error) {
 		ORDER BY month
 	`
 	r.DB.Raw(fmt.Sprintf(query, months)).Scan(&results)
-	return results, nil
+
+	// Pad missing months with zeros
+	padded := make([]UserGrowthPoint, 0, months)
+	now := time.Now().UTC()
+	for i := months - 1; i >= 0; i-- {
+		m := now.AddDate(0, -i, 0).Format("2006-01")
+		found := false
+		for _, v := range results {
+			if v.Month == m {
+				padded = append(padded, v)
+				found = true
+				break
+			}
+		}
+		if !found {
+			padded = append(padded, UserGrowthPoint{Month: m})
+		}
+	}
+	return padded, nil
 }
 
 type PlanDistribution struct {
@@ -198,7 +234,7 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 		order = "desc"
 	}
 
-	err := baseQuery.Select(`users.*, 
+	if err := baseQuery.Select(`users.id, users.email, users.full_name, users.role, users.status, users.created_at,
 			pl.name as plan_name, pl.tier as plan_tier, 
 			s.status as sub_status, 
 			sh.shop_name,
@@ -206,9 +242,12 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 		Order(fmt.Sprintf("users.%s %s", sort, order)).
 		Offset((page - 1) * limit).
 		Limit(limit).
-		Find(&users).Error
+		Find(&users).Error; err != nil {
+		fmt.Printf("DEBUG: ListUsers SQL Error: %v\n", err)
+		return nil, 0, err
+	}
 
-	return users, total, err
+	return users, total, nil
 }
 
 type UserDetail struct {

@@ -168,7 +168,7 @@ func (h *Handler) getAdminID(c *fiber.Ctx) uuid.UUID {
 
 // AdminGetHero returns the hero section for admin editing.
 func (h *Handler) AdminGetHero(c *fiber.Ctx) error {
-	section, err := h.Service.Repo.GetSection("hero")
+	section, err := h.Service.GetSection("hero", cache.KeyContentHero)
 	if err != nil {
 		return response.NotFound(c, "Hero section not found")
 	}
@@ -205,7 +205,7 @@ func (h *Handler) UpdateHero(c *fiber.Ctx) error {
 
 // AdminGetBanner returns the banner section for admin editing.
 func (h *Handler) AdminGetBanner(c *fiber.Ctx) error {
-	section, err := h.Service.Repo.GetSection("banner")
+	section, err := h.Service.GetSection("banner", cache.KeyContentBanner)
 	if err != nil {
 		return response.NotFound(c, "Banner not found")
 	}
@@ -256,7 +256,7 @@ func (h *Handler) UpdateBanner(c *fiber.Ctx) error {
 
 // AdminGetFAQ returns the FAQ for admin editing.
 func (h *Handler) AdminGetFAQ(c *fiber.Ctx) error {
-	section, err := h.Service.Repo.GetSection("faq")
+	section, err := h.Service.GetSection("faq", cache.KeyContentFAQ)
 	if err != nil {
 		return response.NotFound(c, "FAQ not found")
 	}

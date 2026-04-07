@@ -45,6 +45,22 @@ func (s *Service) GetSection(key string, cacheKey string) (*models.ContentSectio
 	// Cache miss — query DB
 	section, err := s.Repo.GetSection(key)
 	if err != nil {
+		// Auto-repair missing sections (hero, banner, faq)
+		if key == "hero" || key == "banner" || key == "faq" {
+			slog.Info("auto-repairing missing content section", "key", key)
+			section = &models.ContentSection{
+				SectionKey: key,
+				ContentEN:  models.JSON(`{"headline":"","subheadline":"","text":""}`),
+				ContentBN:  models.JSON(`{"headline":"","subheadline":"","text":""}`),
+			}
+			if key == "hero" {
+				section.ContentEN = models.JSON(`{"headline":"I'm XENI | Your | Smart Assistant","subheadline":"Scale Your F-commerce Smartly","cta_text":"Start Free"}`)
+				section.ContentBN = models.JSON(`{"headline":"আমি জেনি (XENI) | আপনার | স্মার্ট অ্যাসিস্ট্যান্ট","subheadline":"আপনার এফ-কমার্স ব্যবসা স্মার্টলি স্কেল করুন","cta_text":"শুরু করুন"}`)
+			}
+			if err := s.Repo.DB.Create(section).Error; err == nil {
+				return section, nil
+			}
+		}
 		return nil, err
 	}
 
