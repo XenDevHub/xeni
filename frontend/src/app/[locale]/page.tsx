@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -400,9 +402,12 @@ export default function LandingPage() {
                   }}
                   className="relative z-10 glass-bento p-2 border-white/20 shadow-3xl"
                 >
-                  <img 
+                  <Image 
                     src="/hero-mockup.png" 
                     alt="Xeni AI Dashboard Mockup" 
+                    width={1200}
+                    height={800}
+                    priority
                     className="rounded-[2.5rem] w-full h-auto shadow-2xl"
                   />
                   
@@ -610,11 +615,20 @@ export default function LandingPage() {
                       )}
                     </div>
                     <ul className="space-y-2.5 mb-6">
-                      {(Array.isArray(plan.features) ? plan.features : []).map((f: string) => (
-                        <li key={f} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                          <Check className="w-4 h-4 text-success mt-0.5 shrink-0" />{f}
-                        </li>
-                      ))}
+                      {(() => {
+                        let featureList = [];
+                        if (Array.isArray(plan.features)) {
+                          featureList = plan.features;
+                        } else if (typeof plan.features === 'string') {
+                          try { featureList = JSON.parse(plan.features); } catch (e) { featureList = []; }
+                        }
+                        
+                        return (Array.isArray(featureList) ? featureList : []).map((f: string) => (
+                          <li key={f} className="flex items-start gap-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            <Check className="w-4 h-4 text-success mt-0.5 shrink-0" />{f}
+                          </li>
+                        ));
+                      })()}
                     </ul>
                     <Link href="/register" prefetch={true} className={popular ? 'btn-primary w-full text-center text-sm' : 'btn-secondary w-full text-center text-sm'}>
                       {plan.cta_text || (plan.tier === 'enterprise' ? t('billing.contact_sales') : t('billing.subscribe'))}

@@ -78,9 +78,22 @@ func Seed(db *gorm.DB) {
 	if planCount == 0 {
 		slog.Info("seeding default plans...")
 		plans := []models.Plan{
-			{Name: "Starter", Tier: models.TierStarter, PriceMonthlyBDT: 1000, IsActive: true, CTAText: "Start Free", Features: models.JSON(`["💬 Conversation Agent", "200 orders/month", "1 Facebook Page", "2 GB storage"]`)},
-			{Name: "Professional", Tier: models.TierProfessional, PriceMonthlyBDT: 2500, IsActive: true, IsMostPopular: true, CTAText: "Get Pro", Features: models.JSON(`["💬 Conversation Agent", "📦 Order Processing Agent", "📊 Inventory Agent", "1,000 orders/month"]`)},
-			{Name: "Premium", Tier: models.TierPremium, PriceMonthlyBDT: 5000, IsActive: true, CTAText: "Get Premium", Features: models.JSON(`["All 5 AI Agents", "Unlimited orders", "10 Facebook Pages", "🎨 AI Image Generation"]`)},
+			{
+				Name: "Starter", Tier: models.TierStarter, PriceMonthlyBDT: 1000, IsActive: true, DisplayOrder: 1,
+				CTAText: "Start Free", Features: models.JSON(`["💬 Conversation Agent", "200 orders/month", "1 Facebook Page", "2 GB storage", "Email support"]`),
+			},
+			{
+				Name: "Professional", Tier: models.TierProfessional, PriceMonthlyBDT: 2500, IsActive: true, IsMostPopular: true, DisplayOrder: 2,
+				CTAText: "Get Pro", Features: models.JSON(`["💬 Conversation Agent", "📦 Order Processing Agent", "📊 Inventory Agent", "1,000 orders/month", "3 Facebook Pages", "10 GB storage", "Priority support"]`),
+			},
+			{
+				Name: "Premium", Tier: models.TierPremium, PriceMonthlyBDT: 5000, IsActive: true, DisplayOrder: 3,
+				CTAText: "Get Premium", Features: models.JSON(`["All 5 AI Agents", "Unlimited orders", "10 Facebook Pages", "50 GB storage", "🎨 AI Image Generation", "🧠 Sales Intelligence", "Dedicated support"]`),
+			},
+			{
+				Name: "Enterprise", Tier: models.TierEnterprise, PriceMonthlyBDT: 0, IsActive: true, DisplayOrder: 4,
+				CTAText: "Contact Sales", Features: models.JSON(`["All 5 AI Agents", "White-label branding", "Custom API access", "ERP Integration", "SLA guarantee", "Dedicated account manager"]`),
+			},
 		}
 		for _, p := range plans {
 			db.Create(&p)

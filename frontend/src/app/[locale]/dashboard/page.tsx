@@ -61,7 +61,7 @@ function AskXeniBar() {
   useEffect(() => {
     const timer = setInterval(() => setPlaceholderIdx(prev => (prev + 1) % placeholders.length), 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [placeholders.length]);
 
   return (
     <div className="relative group w-full max-w-xl">

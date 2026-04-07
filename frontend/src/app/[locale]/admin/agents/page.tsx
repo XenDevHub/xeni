@@ -3,7 +3,10 @@
 import { StatCard } from '@/components/admin/StatCard';
 import { Bot, MessageSquare, ShoppingBag, Box, Palette, LineChart } from 'lucide-react';
 import { DataTable } from '@/components/admin/DataTable';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/api';
 
+export default function AgentUsagePage() {
   const { data: agentStats, isLoading: statsLoading } = useQuery({
     queryKey: ['admin-agent-stats'],
     queryFn: async () => {

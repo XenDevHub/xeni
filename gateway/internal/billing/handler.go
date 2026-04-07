@@ -48,7 +48,7 @@ func (h *Handler) GetPlans(c *fiber.Ctx) error {
 	}
 
 	var plans []models.Plan
-	if err := h.DB.Where("is_active = true").Order("price_monthly_bdt ASC").Find(&plans).Error; err != nil {
+	if err := h.DB.Where("is_active = true").Order("display_order ASC, price_monthly_bdt ASC").Find(&plans).Error; err != nil {
 		return response.InternalError(c)
 	}
 

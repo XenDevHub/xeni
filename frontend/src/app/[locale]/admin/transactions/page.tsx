@@ -4,6 +4,11 @@ import { DataTable } from '@/components/admin/DataTable';
 import { Search, Download, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { useQuery } from '@tanstack/react-query';
+import api from '@/lib/api';
+
+export default function TransactionsPage() {
+  const [search, setSearch] = useState('');
 
   const { data: trxData, isLoading } = useQuery({
     queryKey: ['admin-transactions', search],
