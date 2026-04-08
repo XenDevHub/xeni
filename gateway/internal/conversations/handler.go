@@ -1,6 +1,12 @@
 package conversations
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log/slog"
+	"net/http"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -140,8 +146,29 @@ func (h *Handler) SendMessage(c *fiber.Ctx) error {
 		return response.BadRequest(c, "text is required")
 	}
 
-	// In production: send via Facebook Graph API using Page Access Token
-	// POST /{page-id}/messages with recipient={id: customer_psid}
+	// Fetch connected page to get access token
+	var page models.ConnectedPage
+	if err := h.DB.Where("page_id = ?", conv.PageID).First(&page).Error; err != nil {
+		slog.Error("Failed to find connected page for sending message", "error", err)
+		return response.InternalError(c)
+	}
+
+	fbPayload := map[string]interface{}{
+		"recipient": map[string]string{"id": conv.CustomerPSID},
+		"message":   map[string]string{"text": req.Text},
+	}
+	fbPayloadBytes, _ := json.Marshal(fbPayload)
+
+	reqURL := fmt.Sprintf("https://graph.facebook.com/v19.0/me/messages?access_token=%s", page.PageAccessToken)
+	resp, reqErr := http.Post(reqURL, "application/json", bytes.NewBuffer(fbPayloadBytes))
+	if reqErr != nil {
+		slog.Error("Failed to send message to Facebook", "error", reqErr)
+	} else {
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			slog.Warn("Facebook returned non-200 status", "status", resp.StatusCode)
+		}
+	}
 
 	msg := models.Message{
 		ConversationID: conv.ID,
@@ -216,9 +243,16 @@ func (h *Handler) GetConversationStats(c *fiber.Ctx) error {
 	h.DB.Model(&models.Conversation{}).Where("shop_id = ? AND status = 'open'", shop.ID).Select("COALESCE(SUM(unread_count), 0) as sum").Scan(&unreadResult)
 	totalUnread = unreadResult.Sum
 
+	var messagesReplied int64
+	h.DB.Model(&models.Message{}).
+		Joins("JOIN conversations ON conversations.id = messages.conversation_id").
+		Where("conversations.shop_id = ? AND messages.direction = 'outbound'", shop.ID).
+		Count(&messagesReplied)
+
 	return response.Success(c, map[string]interface{}{
 		"open_conversations":     totalOpen,
 		"resolved_conversations": totalResolved,
+		"messages_replied":       messagesReplied,
 		"total_unread":           totalUnread,
 	})
 }

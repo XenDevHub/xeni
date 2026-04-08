@@ -86,7 +86,7 @@ function AskXeniBar() {
 
 interface Stats {
   orders: { total_orders: number; pending_payment: number; pending_delivery: number; total_revenue: number };
-  conversations: { open_conversations: number; resolved_conversations: number; total_unread: number };
+  conversations: { open_conversations: number; resolved_conversations: number; total_unread: number; messages_replied: number };
 }
 
 interface AgentProps {
@@ -203,22 +203,27 @@ export default function DashboardOverview() {
   const { subscription } = useAuthStore();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [auditTasks, setAuditTasks] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchStats() {
       try {
-        const [ordersRes, convsRes] = await Promise.allSettled([
+        const [ordersRes, convsRes, auditRes] = await Promise.allSettled([
           api.get('/orders/stats'),
           api.get('/conversations/stats'),
+          api.get('/agents/inventory/tasks?per_page=5')
         ]);
         setStats({
           orders: ordersRes.status === 'fulfilled' ? ordersRes.value.data.data : { total_orders: 0, pending_payment: 0, pending_delivery: 0, total_revenue: 0 },
-          conversations: convsRes.status === 'fulfilled' ? convsRes.value.data.data : { open_conversations: 0, resolved_conversations: 0, total_unread: 0 },
+          conversations: convsRes.status === 'fulfilled' ? convsRes.value.data.data : { open_conversations: 0, resolved_conversations: 0, total_unread: 0, messages_replied: 0 },
         });
+        if (auditRes.status === 'fulfilled') {
+          setAuditTasks(auditRes.value.data.data || []);
+        }
       } catch {
         setStats({
           orders: { total_orders: 0, pending_payment: 0, pending_delivery: 0, total_revenue: 0 },
-          conversations: { open_conversations: 0, resolved_conversations: 0, total_unread: 0 },
+          conversations: { open_conversations: 0, resolved_conversations: 0, total_unread: 0, messages_replied: 0 },
         });
       }
       setLoading(false);
@@ -229,7 +234,7 @@ export default function DashboardOverview() {
   const planTier = subscription?.plan_tier || 'free';
 
   const statCards = [
-    { title: 'Messages Replied', value: stats?.conversations.resolved_conversations || 0, icon: MessageCircle, color: 'from-violet-500 to-purple-600' },
+    { title: 'Messages Replied', value: stats?.conversations.messages_replied || 0, icon: MessageCircle, color: 'from-violet-500 to-purple-600' },
     { title: 'Orders Processed', value: stats?.orders.total_orders || 0, icon: ShoppingBag, color: 'from-blue-500 to-indigo-600' },
     { title: 'Revenue Today', value: `৳${(stats?.orders.total_revenue || 0).toLocaleString()}`, icon: DollarSign, color: 'from-emerald-500 to-green-600' },
     { title: 'Stock Alerts', value: '3', icon: AlertTriangle, color: 'from-amber-500 to-orange-600', alert: true },
@@ -300,7 +305,7 @@ export default function DashboardOverview() {
           className="col-span-12 lg:col-span-6 row-span-2"
           name="Conversation Agent"
           icon={MessageCircle}
-          metric={`${stats?.conversations.resolved_conversations || 0} messages replied today`}
+          metric={`${stats?.conversations.messages_replied || 0} messages replied today`}
           lastActivity="2 minutes ago"
           status="active"
           href="/dashboard/conversations"
@@ -405,9 +410,13 @@ export default function DashboardOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 glass-card p-4">
           <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-            {[1,2,3,4,5,6].map(i => (
+            {auditTasks.length === 0 ? (
+               <div className="p-8 text-center text-dark-500 font-medium">
+                 No AI insights available yet. Run an AI Audit from your Products page!
+               </div>
+            ) : auditTasks.map((task, i) => (
               <motion.div 
-                key={i} 
+                key={task.task_id || i} 
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -415,22 +424,24 @@ export default function DashboardOverview() {
                 className="flex items-center justify-between p-5 hover:bg-white/5 transition-all border-b border-white/5 last:border-0 rounded-2xl group"
               >
                  <div className="flex items-center gap-5">
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${i % 3 === 0 ? 'bg-primary/20 text-primary shadow-[0_0_15px_rgba(124,58,237,0.2)]' : i % 3 === 1 ? 'bg-emerald-500/20 text-emerald-500' : 'bg-blue-500/20 text-blue-400'}`}>
-                      {i % 3 === 0 ? <Brain className="w-6 h-6" /> : i % 3 === 1 ? <ShoppingBag className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 bg-primary/20 text-primary shadow-[0_0_15px_rgba(124,58,237,0.2)]">
+                      <Brain className="w-6 h-6" />
                     </div>
                     <div>
                       <p className="text-base text-white font-bold group-hover:text-primary transition-colors">
-                        {i % 3 === 0 ? 'Inventory Optimization' : i % 3 === 1 ? 'Automated Order Verification' : 'Customer Intent Analyzed'}
+                        {task.agent_type === 'inventory' ? 'Inventory Optimization' : 'AI Action'}
                       </p>
                       <p className="text-sm text-dark-500 mt-1 leading-relaxed max-w-lg">
-                        {i % 3 === 0 ? "AI noticed 'Panjabi Black L' is selling 4x faster than usual. Recommend restocking 20 units." : i % 3 === 1 ? "Payment ৳1,450 verified successfully via bKash. Order #9281 moved to pending delivery." : "Customer is asking about 'Refund Policy'. AI directed to Human support as per escalation rules."}
+                        {task.summary || 'AI task completed.'}
                       </p>
                     </div>
                  </div>
-                 <div className="text-right">
-                    <span className="text-[10px] text-dark-500 font-bold block mb-1">{i * 2 + 3} mins ago</span>
-                    <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${i % 3 === 0 ? 'bg-primary/10 text-primary' : 'bg-white/5 text-dark-400'}`}>
-                       {i % 3 === 0 ? 'Insight' : 'Event'}
+                 <div className="text-right shrink-0">
+                    <span className="text-[10px] text-dark-500 font-bold block mb-1">
+                      {new Date(task.created_at).toLocaleDateString()}
+                    </span>
+                    <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-primary/10 text-primary">
+                       Insight
                     </span>
                  </div>
               </motion.div>
@@ -443,18 +454,28 @@ export default function DashboardOverview() {
            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
               <Brain className="w-32 h-32" />
            </div>
-           <h3 className="text-xl font-heading font-black text-white mb-6">Today&apos;s Insight</h3>
+           <h3 className="text-xl font-heading font-black text-white mb-6">Latest Audit Insight</h3>
            <div className="space-y-6 relative z-10">
-              <p className="text-sm text-dark-300 italic leading-relaxed">
-                &ldquo;Your orders from **Chittagong** have increased by **24%** this morning. Consider launching a targeted ad campaign for that region.&rdquo;
+              <p className="text-sm text-dark-300 italic leading-relaxed shadow-glow-sm">
+                {auditTasks[0]?.result?.restock_recommendations?.[0]?.reasoning ? 
+                  `"${auditTasks[0].result.restock_recommendations[0].reasoning}"` : 
+                  "Run an AI Audit to get inventory insights and smart restocking recommendations for your business."}
               </p>
-              <div className="flex items-center gap-4">
-                 <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
-                    <motion.div initial={{ width: 0 }} animate={{ width: '70%' }} className="h-full bg-primary" />
+              {auditTasks[0]?.result?.restock_recommendations?.[0] && (
+                 <div className="flex items-center gap-4">
+                    <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+                       <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} className="h-full bg-primary" />
+                    </div>
+                    <span className="text-xs font-bold text-white text-right">
+                       Represents {auditTasks[0].result.restock_recommendations[0].urgency || 'Action Needed'}
+                    </span>
                  </div>
-                 <span className="text-xs font-bold text-white">70% Target</span>
-              </div>
-              <button className="btn-primary w-full py-4 text-sm font-black shadow-2xl">Apply Recommendation</button>
+              )}
+              {auditTasks.length > 0 ? (
+                 <Link href="/dashboard/products" className="btn-primary w-full py-4 text-sm font-black shadow-2xl block text-center">Take Action Now</Link>
+              ) : (
+                 <Link href="/dashboard/products" className="btn-secondary w-full py-4 text-sm font-black shadow-2xl block text-center">Run Audit</Link>
+              )}
            </div>
         </div>
       </div>
