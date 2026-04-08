@@ -358,6 +358,108 @@ export default function ProductsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* FB Post Modal */}
+      <AnimatePresence>
+        {showFBModal && fbProduct && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4" onClick={() => setShowFBModal(false)}>
+            <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }} onClick={e => e.stopPropagation()} className="glass-card p-0 w-full max-w-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]" style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)' }}>
+              
+              {/* Left Side: Image Preview (Static) */}
+              <div className="w-full md:w-2/5 aspect-square md:aspect-auto bg-black/20 relative">
+                {fbProduct.images?.[0] ? (
+                  <Image src={fbProduct.images[0]} alt={fbProduct.name} fill className="object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted"><Package className="w-12 h-12 opacity-20" /></div>
+                )}
+                <div className="absolute top-4 left-4">
+                  <span className="badge-primary shadow-xl flex items-center gap-1.5 backdrop-blur-md bg-primary/80 border-0">
+                    <Facebook className="w-3.5 h-3.5" /> Post Preview
+                  </span>
+                </div>
+              </div>
+
+              {/* Right Side: Content & Controls */}
+              <div className="w-full md:w-3/5 p-6 flex flex-col gap-5 overflow-y-auto">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-heading font-bold" style={{ color: 'var(--text-primary)' }}>Generate AI Post</h2>
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Creating a post for <span className="font-medium text-primary">{fbProduct.name}</span></p>
+                  </div>
+                  <button onClick={() => setShowFBModal(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors"><X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} /></button>
+                </div>
+
+                {/* Page Selection */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Select Facebook Page</label>
+                  {connectedPages.length > 0 ? (
+                    <select className="input-field cursor-pointer" value={selectedPage} onChange={e => setSelectedPage(e.target.value)}>
+                      {connectedPages.map(p => (
+                        <option key={p.page_id} value={p.page_id}>{p.page_name}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 text-amber-200/70 text-sm flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 shrink-0" />
+                      No pages connected. Go to <a href="/dashboard/pages" className="underline font-bold">Pages</a> first.
+                    </div>
+                  )}
+                </div>
+
+                {/* Main Content Area */}
+                <div className="space-y-2 flex-grow">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Post Content</label>
+                    {generatingPost && <Loader2 className="w-4 h-4 animate-spin text-primary" />}
+                  </div>
+                  <textarea 
+                    className="input-field min-h-[180px] text-sm leading-relaxed resize-none" 
+                    placeholder={generatingPost ? "AI is typing..." : "Post content will appear here..."}
+                    value={generatedPost}
+                    onChange={e => setGeneratedPost(e.target.value)}
+                    disabled={generatingPost}
+                    style={{ background: 'rgba(255,255,255,0.03)' }}
+                  />
+                </div>
+
+                {/* Refinement / Regeneration */}
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Ask AI for changes</label>
+                  <div className="flex gap-2">
+                    <input 
+                      className="input-field py-2.5" 
+                      placeholder="e.g. Make it more professional..." 
+                      value={refinement}
+                      onChange={e => setRefinement(e.target.value)}
+                      onKeyPress={e => e.key === 'Enter' && generateFBPost(fbProduct, refinement)}
+                    />
+                    <button 
+                      onClick={() => generateFBPost(fbProduct, refinement)} 
+                      disabled={generatingPost || !refinement.trim()}
+                      className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-primary transition-colors disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-5 h-5 ${generatingPost ? 'animate-spin' : ''}`} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="flex gap-3 pt-2">
+                  <button onClick={() => setShowFBModal(false)} className="btn-secondary flex-1 py-3 border-0 bg-white/5 hover:bg-white/10">Discard</button>
+                  <button 
+                    onClick={publishToFB} 
+                    disabled={publishing || !generatedPost || !selectedPage}
+                    className="btn-primary flex-1 py-3 flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                  >
+                    {publishing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-4 h-4" />}
+                    Publish Post
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
