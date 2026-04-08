@@ -57,7 +57,7 @@ func Connect(uri string) (*Client, error) {
 	// Declare exchange to ensure it exists before publishing
 	err = ch.ExchangeDeclare(
 		"xeni.tasks", // name
-		"topic",       // type
+		"direct",      // type — must match definitions.json (direct, not topic)
 		true,          // durable
 		false,         // auto-deleted
 		false,         // internal

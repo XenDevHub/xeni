@@ -200,34 +200,52 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 	var users []UserListItem
 	var total int64
 
-	// Create a clean base query
-	// Using LEFT JOIN for payments aggregation for better performance and stability
-	query := r.DB.Model(&models.User{}).
+	// ── Count Query (clean, no complex JOINs) ──
+	countQuery := r.DB.Model(&models.User{}).Where("users.deleted_at IS NULL")
+	if search != "" {
+		searchTerm := "%" + search + "%"
+		countQuery = countQuery.Where("(users.full_name ILIKE ? OR users.email ILIKE ?)", searchTerm, searchTerm)
+	}
+	if role != "" {
+		countQuery = countQuery.Where("users.role = ?", role)
+	}
+	if status != "" {
+		countQuery = countQuery.Where("users.status = ?", status)
+	}
+	if plan != "" {
+		// Only add plan JOIN for count when filtering by plan
+		countQuery = countQuery.
+			Joins("LEFT JOIN subscriptions s_cnt ON s_cnt.user_id = users.id AND s_cnt.status = 'active'").
+			Joins("LEFT JOIN plans pl_cnt ON s_cnt.plan_id = pl_cnt.id").
+			Where("pl_cnt.tier = ?", plan)
+	}
+
+	if err := countQuery.Count(&total).Error; err != nil {
+		fmt.Printf("ERROR Admin ListUsers Count: %v\n", err)
+		return nil, 0, err
+	}
+
+	// ── Data Query (with JOINs for related data) ──
+	dataQuery := r.DB.Model(&models.User{}).
 		Joins("LEFT JOIN subscriptions s ON s.user_id = users.id AND s.status = 'active'").
 		Joins("LEFT JOIN plans pl ON s.plan_id = pl.id").
 		Joins("LEFT JOIN shops sh ON sh.user_id = users.id").
 		Joins("LEFT JOIN (SELECT user_id, SUM(amount) as spent FROM payments WHERE status = 'success' GROUP BY user_id) p ON p.user_id = users.id").
 		Where("users.deleted_at IS NULL")
 
-	// Apply filters
+	// Apply same filters to data query
 	if search != "" {
 		searchTerm := "%" + search + "%"
-		query = query.Where("(users.full_name ILIKE ? OR users.email ILIKE ?)", searchTerm, searchTerm)
+		dataQuery = dataQuery.Where("(users.full_name ILIKE ? OR users.email ILIKE ?)", searchTerm, searchTerm)
 	}
 	if role != "" {
-		query = query.Where("users.role = ?", role)
+		dataQuery = dataQuery.Where("users.role = ?", role)
 	}
 	if plan != "" {
-		query = query.Where("pl.tier = ?", plan)
+		dataQuery = dataQuery.Where("pl.tier = ?", plan)
 	}
 	if status != "" {
-		query = query.Where("users.status = ?", status)
-	}
-
-	// Get Total Count using a clean session
-	if err := query.Session(&gorm.Session{}).Count(&total).Error; err != nil {
-		fmt.Printf("ERROR Admin ListUsers Count: %v\n", err)
-		return nil, 0, err
+		dataQuery = dataQuery.Where("users.status = ?", status)
 	}
 
 	// Default sorting
@@ -247,13 +265,14 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 		orderBy = fmt.Sprintf("pl.name %s", order)
 	case "shop_name":
 		orderBy = fmt.Sprintf("sh.shop_name %s", order)
+	case "total_spent":
+		orderBy = fmt.Sprintf("COALESCE(p.spent, 0) %s", order)
 	default:
 		orderBy = fmt.Sprintf("users.%s %s", sort, order)
 	}
 
 	// Explicitly select fields to populate UserListItem and embedded models.User
-	// This prevents same-named columns (id, status, created_at) from overlapping during scanning
-	err := query.Select(`
+	err := dataQuery.Select(`
 			users.id, users.email, users.full_name, users.role, users.status, users.created_at,
 			pl.name as plan_name, pl.tier as plan_tier, 
 			s.status as sub_status, 

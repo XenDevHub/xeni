@@ -154,19 +154,22 @@ export default function ProductsPage() {
   };
 
   const generateFBPost = async (product: Product, instructions?: string) => {
-    if (!fbProduct) return;
+    if (!product) return;
     setGeneratingPost(true);
-    const toastId = toast.loading(instructions ? 'Regenerating post...' : 'AI is writing your post...', { id: 'fb-gen' });
+    toast.loading(instructions ? 'Regenerating post...' : 'AI is writing your post...', { id: 'fb-gen' });
     
     try {
       const res = await api.post(`/agents/creative/run`, {
-        product_id: fbProduct.id,
-        instructions: instructions,
+        product_id: product.id,
+        product_name: product.name,
+        price: product.price,
+        content_type: 'facebook_post',
+        instructions: instructions || `Create an engaging Facebook post for ${product.name} priced at ৳${product.price}`,
         context: 'facebook_post_generation'
       });
       
       const { task_id } = res.data.data;
-      pollTaskStatus(task_id);
+      pollTaskStatus(task_id, product);
     } catch (err: any) {
       const errorMsg = err.response?.data?.error || 'Failed to start AI generation';
       toast.error(errorMsg, { id: 'fb-gen' });
@@ -174,8 +177,17 @@ export default function ProductsPage() {
     }
   };
 
-  const pollTaskStatus = async (taskId: string) => {
+  const pollTaskStatus = async (taskId: string, product?: Product) => {
+    let attempts = 0;
+    const maxAttempts = 30; // 60 seconds max
     const interval = setInterval(async () => {
+      attempts++;
+      if (attempts > maxAttempts) {
+        clearInterval(interval);
+        setGeneratingPost(false);
+        toast.error('Generation timed out. Please try again.', { id: 'fb-gen' });
+        return;
+      }
       try {
         const res = await api.get(`/agents/creative/tasks/${taskId}`);
         const task = res.data.data;
@@ -183,18 +195,32 @@ export default function ProductsPage() {
         if (task.status === 'completed') {
           clearInterval(interval);
           setGeneratingPost(false);
-          // Assuming result is in task.result or task.mongo_doc_id
-          // In this system, results are often JSON in the task object or fetched separately.
-          // Based on Handler.go, result is updated in DB. We might need another fetch if result is not in this task record.
           
-          // Let's check for result. In typical implementations, it's in task.result or task.data
-          const content = task.result?.content || task.data?.content || task.summary || 'Enjoy our new product!';
-          setGeneratedPost(content);
+          // Extract AI-generated content from the result
+          // The creative agent returns: { generated_content: { caption_en, caption_bn, hashtags, ... }, ... }
+          const result = task.result || {};
+          const generated = result.generated_content || {};
+          const captionBn = generated.caption_bn || '';
+          const captionEn = generated.caption_en || '';
+          const hashtags = (generated.hashtags || []).join(' ');
+          const productName = result.product_name || product?.name || '';
+          
+          let postContent = '';
+          if (captionBn) postContent += captionBn + '\n\n';
+          if (captionEn) postContent += captionEn + '\n\n';
+          if (hashtags) postContent += hashtags;
+          
+          // Fallback if AI returned empty content
+          if (!postContent.trim()) {
+            postContent = task.summary || `🔥 ${productName} — Order now!`;
+          }
+          
+          setGeneratedPost(postContent.trim());
           toast.success('Post generated! ✍️', { id: 'fb-gen' });
         } else if (task.status === 'failed') {
           clearInterval(interval);
           setGeneratingPost(false);
-          toast.error('AI generation failed', { id: 'fb-gen' });
+          toast.error(task.error_message || 'AI generation failed', { id: 'fb-gen' });
         }
       } catch (err) {
         clearInterval(interval);
