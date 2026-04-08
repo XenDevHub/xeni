@@ -74,42 +74,69 @@ export default function VerifyOTPPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-dark relative overflow-hidden">
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[100px]" />
+    <div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-gray-950 via-gray-900 to-violet-950 relative overflow-hidden">
+      {/* Background Decorations */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <motion.div 
+          animate={{ x: [0, 50, 0], y: [0, -40, 0] }}
+          transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]" 
+        />
+        <motion.div 
+          animate={{ x: [0, -50, 0], y: [0, 40, 0] }}
+          transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+          className="absolute -bottom-[10%] -right-[10%] w-[45%] h-[45%] bg-accent/10 rounded-full blur-[120px]" 
+        />
+      </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative w-full max-w-md">
-        <div className="glass-card p-8 text-center">
-          <Shield className="w-12 h-12 text-primary mx-auto mb-4" />
-          <h1 className="text-2xl font-heading font-bold text-white mb-1">{t('auth.verify_title')}</h1>
-          <p className="text-dark-500 text-sm mb-2">{t('auth.verify_subtitle')}</p>
-          {email && <p className="text-primary text-sm mb-8">{email}</p>}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative w-full max-w-md z-10">
+        <div className="glass-card p-8 text-center border-white/10 shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
-          {/* OTP Inputs */}
-          <div className="flex gap-3 justify-center mb-8" onPaste={handlePaste}>
-            {code.map((digit, i) => (
-              <input
-                key={i}
-                id={`otp-${i}`}
-                type="text"
-                inputMode="numeric"
-                maxLength={1}
-                value={digit}
-                onChange={e => handleChange(i, e.target.value.replace(/\D/, ''))}
-                onKeyDown={e => handleKeyDown(i, e)}
-                className="w-12 h-14 text-center text-2xl font-mono font-bold input-field focus:ring-primary"
-                autoFocus={i === 0}
-              />
-            ))}
+          <div className="relative z-10">
+            <div className="w-20 h-20 rounded-2xl bg-primary/15 flex items-center justify-center mx-auto mb-6 border border-primary/20 shadow-glow-sm">
+              <Shield className="w-10 h-10 text-primary" />
+            </div>
+            <h1 className="text-3xl font-heading font-black text-white tracking-tight mb-2">{t('auth.verify_title')}</h1>
+            <p className="text-dark-400 text-sm mb-2 font-medium">{t('auth.verify_subtitle')}</p>
+            {email && <div className="badge bg-primary/10 text-primary-300 border-primary/20 font-bold px-4 py-1.5 mb-8">{email}</div>}
+
+            {/* OTP Inputs */}
+            <div className="flex gap-3 justify-center mb-10" onPaste={handlePaste}>
+              {code.map((digit, i) => (
+                <input
+                  key={i}
+                  id={`otp-${i}`}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={1}
+                  value={digit}
+                  onChange={e => handleChange(i, e.target.value.replace(/\D/, ''))}
+                  onKeyDown={e => handleKeyDown(i, e)}
+                  className="w-12 h-14 text-center text-2xl font-mono font-black glass-card bg-white/5 border-white/10 focus:bg-white/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-glow-sm"
+                  autoFocus={i === 0}
+                />
+              ))}
+            </div>
+
+            <button 
+              onClick={handleVerify} 
+              disabled={loading || code.join('').length !== 6} 
+              className="btn-primary w-full py-4 text-sm uppercase tracking-widest font-black shadow-glow mb-6 disabled:opacity-50 disabled:shadow-none"
+            >
+              {loading ? t('common.loading') : t('common.confirm')}
+            </button>
+
+            <div className="space-y-4">
+              <p className="text-dark-500 text-sm font-medium">
+                Didn&apos;t receive the code?{' '}
+                <button onClick={handleResend} className="text-primary hover:text-primary-400 font-bold transition-colors">Resend</button>
+              </p>
+              <Link href="/login" className="text-dark-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                Back to Login
+              </Link>
+            </div>
           </div>
-
-          <button onClick={handleVerify} disabled={loading || code.join('').length !== 6} className="btn-primary w-full mb-4">
-            {loading ? t('common.loading') : t('common.confirm')}
-          </button>
-
-          <p className="text-dark-500 text-sm">
-            Didn&apos;t receive the code?{' '}
-            <button onClick={handleResend} className="text-primary hover:text-primary-400 font-medium">Resend</button>
-          </p>
         </div>
       </motion.div>
     </div>

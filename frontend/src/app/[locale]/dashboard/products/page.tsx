@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Plus, Search, Edit, Trash2, X, AlertTriangle } from 'lucide-react';
+import { Package, Plus, Search, Edit, Trash2, X, AlertTriangle, Facebook, Loader2, Send, RefreshCw } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -29,6 +29,16 @@ export default function ProductsPage() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState({ name: '', name_bn: '', price: 0, sku: '', initial_stock: 0, low_stock_threshold: 5, images: [] as string[] });
   const [uploading, setUploading] = useState(false);
+  
+  // Facebook Post State
+  const [fbProduct, setFbProduct] = useState<Product | null>(null);
+  const [showFBModal, setShowFBModal] = useState(false);
+  const [generatingPost, setGeneratingPost] = useState(false);
+  const [generatedPost, setGeneratedPost] = useState('');
+  const [refinement, setRefinement] = useState('');
+  const [selectedPage, setSelectedPage] = useState('');
+  const [connectedPages, setConnectedPages] = useState<any[]>([]);
+  const [publishing, setPublishing] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -121,6 +131,106 @@ export default function ProductsPage() {
     } catch { toast.error('Failed to delete'); }
   };
 
+  const openFBModal = async (product: Product) => {
+    setFbProduct(product);
+    setShowFBModal(true);
+    setGeneratedPost('');
+    setRefinement('');
+    
+    // Fetch pages if not already fetched
+    if (connectedPages.length === 0) {
+      try {
+        const res = await api.get('/pages');
+        setConnectedPages(res.data.data || []);
+        if (res.data.data?.length > 0) {
+          setSelectedPage(res.data.data[0].page_id);
+        }
+      } catch (err) {
+        console.error('Failed to fetch pages', err);
+      }
+    }
+
+    generateFBPost(product);
+  };
+
+  const generateFBPost = async (product: Product, extraPrompt?: string) => {
+    setGeneratingPost(true);
+    const toastId = toast.loading(extraPrompt ? 'Regenerating post...' : 'AI is writing your post...', { id: 'fb-gen' });
+    
+    try {
+      const res = await api.post('/agents/creative/run', {
+        payload: {
+          product: {
+            name: product.name,
+            price: product.price,
+            stock: product.current_stock,
+            sku: product.sku
+          },
+          platform: 'facebook',
+          refinement_prompt: extraPrompt || ''
+        }
+      });
+
+      const taskId = res.data.data.task_id;
+      pollTaskStatus(taskId);
+    } catch (err) {
+      toast.error('Failed to start AI generation', { id: 'fb-gen' });
+      setGeneratingPost(false);
+    }
+  };
+
+  const pollTaskStatus = async (taskId: string) => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.get(`/agents/creative/tasks/${taskId}`);
+        const task = res.data.data;
+        
+        if (task.status === 'completed') {
+          clearInterval(interval);
+          setGeneratingPost(false);
+          // Assuming result is in task.result or task.mongo_doc_id
+          // In this system, results are often JSON in the task object or fetched separately.
+          // Based on Handler.go, result is updated in DB. We might need another fetch if result is not in this task record.
+          
+          // Let's check for result. In typical implementations, it's in task.result or task.data
+          const content = task.result?.content || task.data?.content || task.summary || 'Enjoy our new product!';
+          setGeneratedPost(content);
+          toast.success('Post generated! ✍️', { id: 'fb-gen' });
+        } else if (task.status === 'failed') {
+          clearInterval(interval);
+          setGeneratingPost(false);
+          toast.error('AI generation failed', { id: 'fb-gen' });
+        }
+      } catch (err) {
+        clearInterval(interval);
+        setGeneratingPost(false);
+        toast.error('Error checking status', { id: 'fb-gen' });
+      }
+    }, 2000);
+  };
+
+  const publishToFB = async () => {
+    if (!selectedPage) { toast.error('Please select a Facebook Page'); return; }
+    if (!generatedPost) { toast.error('Post content is empty'); return; }
+    
+    setPublishing(true);
+    const toastId = toast.loading('Publishing to Facebook...', { id: 'fb-pub' });
+    
+    try {
+      await api.post('/pages/publish', {
+        page_id: selectedPage,
+        message: generatedPost,
+        image_url: fbProduct?.images?.[0] || ''
+      });
+      toast.success('Published successfully! 🚀', { id: 'fb-pub' });
+      setShowFBModal(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to publish', { id: 'fb-pub' });
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   return (
     <div className="p-6 lg:p-8 max-w-6xl">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
@@ -199,6 +309,7 @@ export default function ProductsPage() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => openFBModal(p)} className="p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-blue-400/60 hover:text-blue-400" title="Generate FB Post"><Facebook className="w-4 h-4" /></button>
                         <button onClick={() => openEdit(p)} className="p-2 rounded-lg hover:bg-white/10 transition-colors"><Edit className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /></button>
                         <button onClick={() => handleDelete(p.id)} className="p-2 rounded-lg hover:bg-danger/10 transition-colors text-danger/60 hover:text-danger"><Trash2 className="w-4 h-4" /></button>
                       </div>
