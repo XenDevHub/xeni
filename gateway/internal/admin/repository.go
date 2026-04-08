@@ -200,8 +200,8 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 	var users []UserListItem
 	var total int64
 
-	// Create a clean base query
-	query := r.DB.Table("users").
+	// Create a clean base query using Model for better schema context
+	query := r.DB.Model(&models.User{}).
 		Joins("LEFT JOIN subscriptions s ON s.user_id = users.id AND s.status = 'active'").
 		Joins("LEFT JOIN plans pl ON s.plan_id = pl.id").
 		Joins("LEFT JOIN shops sh ON sh.user_id = users.id").
@@ -222,10 +222,9 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 		query = query.Where("users.status = ?", status)
 	}
 
-	// Get Total Count using a separate session to avoid state pollution
-	// and explicitly count users.id to prevent ambiguity
+	// Get Total Count using a separate session and explicit ID count
 	if err := query.Session(&gorm.Session{}).Count(&total).Error; err != nil {
-		fmt.Printf("DEBUG: ListUsers Count Error: %v\n", err)
+		fmt.Printf("ERROR Admin ListUsers Count: %v\n", err)
 		return nil, 0, err
 	}
 
@@ -251,7 +250,8 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 	}
 
 	// Execute paginated list
-	err := query.Select(`users.id, users.email, users.full_name, users.role, users.status, users.created_at,
+	// We select users.* to ensure the embedded models.User struct is fully populated
+	err := query.Select(`users.*, 
 			pl.name as plan_name, pl.tier as plan_tier, 
 			s.status as sub_status, 
 			sh.shop_name as shop_name,
@@ -262,7 +262,7 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 		Find(&users).Error
 
 	if err != nil {
-		fmt.Printf("DEBUG: ListUsers Find Error: %v\n", err)
+		fmt.Printf("ERROR Admin ListUsers Find: %v\n", err)
 		return nil, 0, err
 	}
 

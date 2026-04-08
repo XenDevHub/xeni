@@ -217,6 +217,15 @@ func (h *Handler) HandleResult(result rabbitmq.ResultMessage) error {
 		updates["mongo_doc_id"] = result.MongoDocID
 	}
 
+	if result.Summary != "" {
+		updates["summary"] = result.Summary
+	}
+
+	if result.Data != nil {
+		dataBytes, _ := json.Marshal(result.Data)
+		updates["result"] = models.JSON(dataBytes)
+	}
+
 	if result.Error != nil {
 		updates["error_message"] = *result.Error
 	}

@@ -63,6 +63,8 @@ type AgentTask struct {
 	TaskID       uuid.UUID  `gorm:"type:uuid;uniqueIndex;not null" json:"task_id"`
 	Status       TaskStatus `gorm:"type:task_status;default:'queued';not null;index" json:"status"`
 	MongoDocID   *string    `gorm:"size:255" json:"mongo_doc_id"`
+	Summary      *string    `gorm:"type:text" json:"summary"`
+	Result       JSON       `gorm:"type:jsonb;default:'{}'" json:"result"`
 	ErrorMessage *string    `gorm:"type:text" json:"error_message"`
 	DurationMs   *int       `json:"duration_ms"`
 	CreatedAt    time.Time  `gorm:"autoCreateTime;index" json:"created_at"`
