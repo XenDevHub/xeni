@@ -134,7 +134,7 @@ const (
 type Order struct {
 	ID                     uuid.UUID           `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
 	ShopID                 uuid.UUID           `gorm:"type:uuid;not null;index" json:"shop_id"`
-	CustomerPSID           *string             `gorm:"size:255" json:"customer_psid"`
+	CustomerPSID           *string             `gorm:"column:customer_psid;size:255" json:"customer_psid"`
 	CustomerName           *string             `gorm:"size:255" json:"customer_name"`
 	CustomerPhone          *string             `gorm:"size:20" json:"customer_phone"`
 	CustomerAddress        *string             `gorm:"type:text" json:"customer_address"`
@@ -185,7 +185,7 @@ type Conversation struct {
 	ID                 uuid.UUID                `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
 	ShopID             uuid.UUID                `gorm:"type:uuid;not null;index" json:"shop_id"`
 	PageID             string                   `gorm:"size:255;not null;index" json:"page_id"`
-	CustomerPSID       string                   `gorm:"size:255;not null" json:"customer_psid"`
+	CustomerPSID       string                   `gorm:"column:customer_psid;size:255;not null" json:"customer_psid"`
 	CustomerName       *string                  `gorm:"size:255" json:"customer_name"`
 	LastMessagePreview *string                  `gorm:"type:text" json:"last_message_preview"`
 	LastMessageAt      *time.Time               `json:"last_message_at"`
@@ -240,7 +240,7 @@ type Message struct {
 	ContentType    MessageContentType `gorm:"type:message_content_type;default:'text';not null" json:"content_type"`
 	ContentText    *string            `gorm:"type:text" json:"content_text"`
 	ContentURL     *string            `gorm:"type:text" json:"content_url"`
-	MessengerMID   *string            `gorm:"size:255;uniqueIndex" json:"messenger_mid"`
+	MessengerMID   *string            `gorm:"column:messenger_mid;size:255;uniqueIndex" json:"messenger_mid"`
 	SentAt         time.Time          `gorm:"autoCreateTime" json:"sent_at"`
 	CreatedAt      time.Time          `gorm:"autoCreateTime" json:"created_at"`
 
