@@ -73,7 +73,7 @@ function AskXeniBar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={`Ask Xeni: "${placeholders[placeholderIdx]}"`}
-          className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-white/10 transition-all placeholder:text-dark-500 font-medium"
+          className="w-full glass-card bg-white/5 py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-white/10 focus:border-primary/50 transition-all placeholder:text-dark-500 font-medium shadow-glow-sm"
        />
        <div className="absolute inset-y-0 right-4 flex items-center">
           <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border border-white/10 bg-white/5 px-1.5 font-mono text-[10px] font-medium text-dark-500">
@@ -181,14 +181,14 @@ function LivePulseMonitor() {
             initial={{ opacity: 0, x: 20, height: 0 }}
             animate={{ opacity: 1, x: 0, height: 'auto' }}
             exit={{ opacity: 0, x: -20, height: 0 }}
-            className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 group hover:bg-white/10 transition-all"
+            className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10 group hover:bg-white/10 hover:border-primary/30 transition-all"
           >
-             <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${event.type === 'ai' ? 'bg-primary/20 text-primary' : 'bg-emerald-500/20 text-emerald-500'}`}>
+             <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${event.type === 'ai' ? 'bg-primary/20 text-primary glow-violet' : 'bg-emerald-500/20 text-emerald-500 glow-emerald'}`}>
                 <event.icon className="w-4 h-4" />
              </div>
              <div className="flex-1 min-w-0">
                 <p className="text-[11px] text-white font-medium truncate">{event.text}</p>
-                <p className="text-[9px] text-dark-500">{event.time}</p>
+                <p className="text-[9px] text-dark-500 font-semibold">{event.time}</p>
              </div>
              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
           </motion.div>
@@ -243,11 +243,11 @@ export default function DashboardOverview() {
           <HealthScoreGauge score={84} />
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl md:text-4xl font-heading font-black text-white tracking-tight">Active Pulse</h1>
-              <span className="badge bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px] uppercase tracking-tighter">Live Monitor</span>
+              <h1 className="text-3xl md:text-4xl font-heading font-black text-white tracking-tight drop-shadow-glow">Active Pulse</h1>
+              <span className="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] uppercase tracking-tighter">Live Monitor</span>
             </div>
             <div className="flex items-center gap-3">
-               <span className="badge bg-primary/10 text-primary border-primary/20 px-3 capitalize font-bold">{planTier} Plan</span>
+               <span className="badge bg-primary/20 text-primary-300 border border-primary/30 px-3 capitalize font-bold shadow-glow-sm">{planTier} Plan</span>
                <span className="text-dark-500 text-sm flex items-center gap-1.5 font-medium">
                   <Activity className="w-4 h-4 text-success animate-pulse" /> All systems operational
                </span>
@@ -255,12 +255,12 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        <div className="flex-1 flex justify-center">
+        <div className="flex-1 flex justify-center px-4">
            <AskXeniBar />
         </div>
 
         <div className="flex items-center gap-3 self-end lg:self-auto">
-          <button className="glass-card px-5 py-3 text-sm font-bold text-white flex items-center gap-2 hover:bg-white/10 transition-all group">
+          <button className="glass-card px-5 py-3 text-sm font-bold text-white flex items-center gap-2 hover:bg-white/10 transition-all group border-white/10">
             <Clock className="w-4 h-4 text-dark-500 group-hover:text-primary transition-colors" /> Report
           </button>
           <Link href="/dashboard/setup" className="btn-primary flex items-center gap-2 px-6 py-3 shadow-[0_0_20px_rgba(124,58,237,0.3)]">
