@@ -45,6 +45,7 @@ func (h *Handler) RunAgent(c *fiber.Ctx) error {
 	// Check subscription access
 	subInfo, err := auth.GetUserSubscription(h.DB, h.Redis, userID)
 	if err != nil {
+		slog.Error("failed to get user subscription", "user_id", userID, "error", err)
 		return response.InternalError(c)
 	}
 
@@ -78,6 +79,19 @@ func (h *Handler) RunAgent(c *fiber.Ctx) error {
 		payload = make(map[string]interface{})
 	}
 
+	// Enrich payload for creative agent
+	if agentType == models.AgentCreative {
+		if productID, ok := payload["product_id"].(string); ok && productID != "" {
+			var product models.Product
+			if err := h.DB.First(&product, "id = ?", productID).Error; err == nil {
+				payload["product_name"] = product.Name
+				payload["price"] = product.Price
+			} else {
+				slog.Warn("failed to fetch product for enrichment", "product_id", productID, "error", err)
+			}
+		}
+	}
+
 	// Create task record
 	uid, _ := uuid.Parse(userID)
 	taskID := uuid.New()
@@ -101,7 +115,8 @@ func (h *Handler) RunAgent(c *fiber.Ctx) error {
 	// Get the routing key for this agent
 	routingKey, ok := models.AgentTypeToQueue[agentType]
 	if !ok {
-		return response.InternalError(c)
+		slog.Error("missing routing key for agent type", "agent_type", agentType)
+		return c.Status(500).JSON(fiber.Map{"success": false, "error": "Invalid agent configuration"})
 	}
 
 	// Publish to RabbitMQ

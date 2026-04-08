@@ -54,12 +54,28 @@ func Connect(uri string) (*Client, error) {
 		return nil, fmt.Errorf("failed to open RabbitMQ channel: %w", err)
 	}
 
+	// Declare exchange to ensure it exists before publishing
+	err = ch.ExchangeDeclare(
+		"xeni.tasks", // name
+		"topic",       // type
+		true,          // durable
+		false,         // auto-deleted
+		false,         // internal
+		false,         // no-wait
+		nil,           // arguments
+	)
+	if err != nil {
+		ch.Close()
+		conn.Close()
+		return nil, fmt.Errorf("failed to declare RabbitMQ exchange: %w", err)
+	}
+
 	// Set QoS for fair dispatch
 	if err := ch.Qos(1, 0, false); err != nil {
 		return nil, fmt.Errorf("failed to set QoS: %w", err)
 	}
 
-	slog.Info("connected to RabbitMQ")
+	slog.Info("connected to RabbitMQ and declared exchanges")
 	return &Client{conn: conn, channel: ch}, nil
 }
 

@@ -153,28 +153,23 @@ export default function ProductsPage() {
     generateFBPost(product);
   };
 
-  const generateFBPost = async (product: Product, extraPrompt?: string) => {
+  const generateFBPost = async (product: Product, instructions?: string) => {
+    if (!fbProduct) return;
     setGeneratingPost(true);
-    const toastId = toast.loading(extraPrompt ? 'Regenerating post...' : 'AI is writing your post...', { id: 'fb-gen' });
+    const toastId = toast.loading(instructions ? 'Regenerating post...' : 'AI is writing your post...', { id: 'fb-gen' });
     
     try {
-      const res = await api.post('/agents/creative/run', {
-        payload: {
-          product: {
-            name: product.name,
-            price: product.price,
-            stock: product.current_stock,
-            sku: product.sku
-          },
-          platform: 'facebook',
-          refinement_prompt: extraPrompt || ''
-        }
+      const res = await api.post(`/agents/creative/run`, {
+        product_id: fbProduct.id,
+        instructions: instructions,
+        context: 'facebook_post_generation'
       });
-
-      const taskId = res.data.data.task_id;
-      pollTaskStatus(taskId);
-    } catch (err) {
-      toast.error('Failed to start AI generation', { id: 'fb-gen' });
+      
+      const { task_id } = res.data.data;
+      pollTaskStatus(task_id);
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.error || 'Failed to start AI generation';
+      toast.error(errorMsg, { id: 'fb-gen' });
       setGeneratingPost(false);
     }
   };

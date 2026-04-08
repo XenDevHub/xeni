@@ -287,6 +287,8 @@ class CreativeAgent(BaseWorker):
                 }
         else:
             # Text Generation (Caption) via GPT
+            instructions = payload.get("instructions") or payload.get("refinement_prompt") or "Create a standard engaging post."
+            
             prompt = f"""
             You are an elite e-commerce marketing expert for the Bangladeshi market.
             Create an engaging marketing post for a product.
@@ -294,6 +296,9 @@ class CreativeAgent(BaseWorker):
             Product Name: {product_name}
             Price: ৳{product_price}
             Platform/Type: {content_type}
+            
+            CUSTOM INSTRUCTIONS:
+            "{instructions}"
             
             Provide the response STRICTLY as a valid JSON object with the following keys:
             - caption_en: A highly engaging English caption with emojis.
