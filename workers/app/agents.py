@@ -32,21 +32,49 @@ class ConversationAgent(BaseWorker):
         message_text = payload.get("message_text", "")
         customer_psid = payload.get("customer_psid", "unknown")
         page_access_token = payload.get("page_access_token", "")
+        catalog = payload.get("catalog", [])
+        history = payload.get("history", [])
 
         # Send typing_on indicator instantly to FB
         if page_access_token:
             self._send_facebook_action(customer_psid, page_access_token, "typing_on")
 
+        catalog_text = "No products available at the moment."
+        if catalog:
+            catalog_text = "\n".join([f"- {p.get('name')} (Price: ৳{p.get('price')}, Stock: {p.get('stock')})" for p in catalog])
+
+        # Format history string
+        history_text = "No prior history."
+        if history:
+            formatted_history = []
+            for h in history:
+                sender_label = "CUSTOMER" if h.get("sender") == "customer" else "XENI"
+                formatted_history.append(f"{sender_label}: {h.get('text')}")
+            history_text = "\n".join(formatted_history)
+
         prompt = f"""
         You are Xeni, a helpful and professional customer support bot for an online shop in Bangladesh.
-        The customer just sent the following message:
+        
+        ---
+        RECENT CONVERSATION HISTORY:
+        {history_text}
+        
+        NEW MESSAGE FROM CUSTOMER:
         "{message_text}"
+        ---
 
-        Goals:
-        1. Answer their question politely. 
-        2. If they ask about prices, assume typical e-commerce prices (e.g., T-Shirts 450 BDT) unless you know otherwise.
-        3. If they are angry or complaining, apologize and say a human will assist them shortly.
-        4. Reply in the same language they wrote in (Bengali or English). Use friendly emojis.
+        ---
+        SHOP'S ACTUAL PRODUCT CATALOG:
+        {catalog_text}
+        ---
+
+        Goals & Rules:
+        1. Context: Use the "RECENT CONVERSATION HISTORY" above to understand what the customer is talking about (e.g., if they asked a follow-up question).
+        2. Greeting: Always greet with "Assalamu Alaikum" / "আসসালামু আলাইকুম" naturally ONLY if it's the very first interaction. Do not use "Nomoskar".
+        3. Pricing: STRICTLY use the "SHOP'S ACTUAL PRODUCT CATALOG" provided above. Do not invent fake prices. If the customer asks for a product not in the catalog, politely say you don't have it right now.
+        4. F-Commerce Order Taking: DO NOT tell the customer to go to a website to buy. You are an F-commerce bot. You take orders directly here on Messenger! Ask them for their "Delivery Address", "Phone Number", and "Which product they want to confirm".
+        5. Escalation: If they are angry or complaining, apologize and say a human will assist them shortly.
+        6. Language: Reply in the same language they wrote in (Bengali or English). Use friendly emojis.
         
         Return your response strictly as a JSON object with:
         - "reply": the text message to send back.

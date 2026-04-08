@@ -6,7 +6,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log/slog"
+	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -89,10 +91,28 @@ func (h *Handler) handleIncomingMessage(pageID string, event MessagingEvent) {
 	var conv models.Conversation
 	err := h.DB.Where("page_id = ? AND customer_psid = ?", pageID, senderPSID).First(&conv).Error
 	if err == gorm.ErrRecordNotFound {
+		// Try to fetch customer name from Graph API
+		customerName := senderPSID
+		reqURL := fmt.Sprintf("https://graph.facebook.com/v19.0/%s?fields=first_name,last_name&access_token=%s", senderPSID, page.PageAccessToken)
+		if resp, err := http.Get(reqURL); err == nil {
+			defer resp.Body.Close()
+			if resp.StatusCode == 200 {
+				var fbUser map[string]interface{}
+				if err := json.NewDecoder(resp.Body).Decode(&fbUser); err == nil {
+					firstName, _ := fbUser["first_name"].(string)
+					lastName, _ := fbUser["last_name"].(string)
+					if firstName != "" {
+						customerName = firstName + " " + lastName
+					}
+				}
+			}
+		}
+
 		conv = models.Conversation{
 			ShopID:       page.ShopID,
 			PageID:       pageID,
 			CustomerPSID: senderPSID,
+			CustomerName: &customerName,
 			Status:       models.ConversationOpen,
 			HandlingMode: models.HandlingModeAI,
 		}
@@ -153,6 +173,42 @@ func (h *Handler) handleIncomingMessage(pageID string, event MessagingEvent) {
 
 	// If conversation is in AI mode, dispatch to conversation worker via RabbitMQ
 	if conv.HandlingMode == models.HandlingModeAI && h.RabbitMQ != nil {
+		// Fetch product catalog to give accurate info to AI
+		var products []models.Product
+		h.DB.Where("shop_id = ? AND is_active = true", page.ShopID).Find(&products)
+		
+		var catalog []map[string]interface{}
+		for _, p := range products {
+			catalog = append(catalog, map[string]interface{}{
+				"name": p.Name,
+				"price": p.Price,
+				"stock": p.CurrentStock,
+			})
+		}
+
+		// Fetch conversation history (last 10 messages)
+		var recentMessages []models.Message
+		h.DB.Where("conversation_id = ?", conv.ID).Order("sent_at DESC").Limit(10).Find(&recentMessages)
+		
+		// Reverse to make it chronological
+		for i, j := 0, len(recentMessages)-1; i < j; i, j = i+1, j-1 {
+			recentMessages[i], recentMessages[j] = recentMessages[j], recentMessages[i]
+		}
+
+		var history []map[string]interface{}
+		for _, m := range recentMessages {
+			sender := "customer"
+			if m.Direction == models.DirectionOutbound {
+				sender = string(m.SenderType) // "ai" or "human"
+			}
+			text := ""
+			if m.ContentText != nil { text = *m.ContentText }
+			history = append(history, map[string]interface{}{
+				"sender": sender,
+				"text":   text,
+			})
+		}
+
 		taskID := uuid.New()
 		taskMsg := &rabbitmq.TaskMessage{
 			TaskID:    taskID.String(),
@@ -169,6 +225,8 @@ func (h *Handler) handleIncomingMessage(pageID string, event MessagingEvent) {
 				"message_text":      contentText,
 				"message_type":      string(contentType),
 				"message_url":       contentURL,
+				"catalog":           catalog,
+				"history":           history,
 			},
 		}
 
