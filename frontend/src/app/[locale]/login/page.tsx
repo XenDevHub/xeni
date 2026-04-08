@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { motion } from 'framer-motion';
 import { Link, useRouter } from '@/i18n/routing';
 import { Sparkles, Mail, Lock, Eye, EyeOff } from 'lucide-react';
@@ -12,6 +12,7 @@ import { useGoogleLogin } from '@react-oauth/google';
 
 export default function LoginPage() {
   const t = useTranslations();
+  const locale = useLocale();
   const router = useRouter();
   const { setAuth, setSubscription } = useAuthStore();
   const [email, setEmail] = useState('');
@@ -143,7 +144,7 @@ export default function LoginPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between ml-1">
                   <label className="text-xs font-bold text-dark-400 uppercase tracking-widest">{t('auth.password')}</label>
-                  <Link href="/forgot-password" locale={useLocale()} className="text-[10px] uppercase font-black text-primary hover:underline">{t('auth.forgot_password')}</Link>
+                  <Link href="/forgot-password" locale={locale} className="text-[10px] uppercase font-black text-primary hover:underline">{t('auth.forgot_password')}</Link>
                 </div>
                 <div className="relative group">
                   <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />

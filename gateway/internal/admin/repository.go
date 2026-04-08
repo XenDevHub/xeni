@@ -200,33 +200,36 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 	var users []UserListItem
 	var total int64
 
-	// Base query for both list and count to ensure consistency
-	baseQuery := r.DB.Table("users").
+	// Create a clean base query
+	query := r.DB.Table("users").
 		Joins("LEFT JOIN subscriptions s ON s.user_id = users.id AND s.status = 'active'").
 		Joins("LEFT JOIN plans pl ON s.plan_id = pl.id").
 		Joins("LEFT JOIN shops sh ON sh.user_id = users.id").
 		Where("users.deleted_at IS NULL")
 
+	// Apply filters
 	if search != "" {
 		searchTerm := "%" + search + "%"
-		baseQuery = baseQuery.Where("users.full_name ILIKE ? OR users.email ILIKE ?", searchTerm, searchTerm)
+		query = query.Where("(users.full_name ILIKE ? OR users.email ILIKE ?)", searchTerm, searchTerm)
 	}
 	if role != "" {
-		baseQuery = baseQuery.Where("users.role = ?", role)
+		query = query.Where("users.role = ?", role)
 	}
 	if plan != "" {
-		baseQuery = baseQuery.Where("pl.tier = ?", plan)
+		query = query.Where("pl.tier = ?", plan)
 	}
 	if status != "" {
-		baseQuery = baseQuery.Where("users.status = ?", status)
+		query = query.Where("users.status = ?", status)
 	}
 
-	// Get Total Count
-	if err := baseQuery.Count(&total).Error; err != nil {
+	// Get Total Count using a separate session to avoid state pollution
+	// and explicitly count users.id to prevent ambiguity
+	if err := query.Session(&gorm.Session{}).Count(&total).Error; err != nil {
+		fmt.Printf("DEBUG: ListUsers Count Error: %v\n", err)
 		return nil, 0, err
 	}
 
-	// Get List
+	// Default sorting
 	if sort == "" {
 		sort = "created_at"
 	}
@@ -234,16 +237,32 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 		order = "desc"
 	}
 
-	if err := baseQuery.Select(`users.id, users.email, users.full_name, users.role, users.status, users.created_at,
+	// For specific known fields, ensure table prefix
+	var orderBy string
+	switch sort {
+	case "id", "email", "full_name", "role", "status", "created_at":
+		orderBy = fmt.Sprintf("users.%s %s", sort, order)
+	case "plan_name":
+		orderBy = fmt.Sprintf("pl.name %s", order)
+	case "shop_name":
+		orderBy = fmt.Sprintf("sh.shop_name %s", order)
+	default:
+		orderBy = fmt.Sprintf("users.%s %s", sort, order)
+	}
+
+	// Execute paginated list
+	err := query.Select(`users.id, users.email, users.full_name, users.role, users.status, users.created_at,
 			pl.name as plan_name, pl.tier as plan_tier, 
 			s.status as sub_status, 
-			sh.shop_name,
+			sh.shop_name as shop_name,
 			COALESCE((SELECT SUM(amount) FROM payments WHERE user_id = users.id AND status = 'success'), 0) as total_spent`).
-		Order(fmt.Sprintf("users.%s %s", sort, order)).
+		Order(orderBy).
 		Offset((page - 1) * limit).
 		Limit(limit).
-		Find(&users).Error; err != nil {
-		fmt.Printf("DEBUG: ListUsers SQL Error: %v\n", err)
+		Find(&users).Error
+
+	if err != nil {
+		fmt.Printf("DEBUG: ListUsers Find Error: %v\n", err)
 		return nil, 0, err
 	}
 
