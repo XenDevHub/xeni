@@ -200,11 +200,13 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 	var users []UserListItem
 	var total int64
 
-	// Create a clean base query using Model for better schema context
+	// Create a clean base query
+	// Using LEFT JOIN for payments aggregation for better performance and stability
 	query := r.DB.Model(&models.User{}).
 		Joins("LEFT JOIN subscriptions s ON s.user_id = users.id AND s.status = 'active'").
 		Joins("LEFT JOIN plans pl ON s.plan_id = pl.id").
 		Joins("LEFT JOIN shops sh ON sh.user_id = users.id").
+		Joins("LEFT JOIN (SELECT user_id, SUM(amount) as spent FROM payments WHERE status = 'success' GROUP BY user_id) p ON p.user_id = users.id").
 		Where("users.deleted_at IS NULL")
 
 	// Apply filters
@@ -222,7 +224,7 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 		query = query.Where("users.status = ?", status)
 	}
 
-	// Get Total Count using a separate session and explicit ID count
+	// Get Total Count using a clean session
 	if err := query.Session(&gorm.Session{}).Count(&total).Error; err != nil {
 		fmt.Printf("ERROR Admin ListUsers Count: %v\n", err)
 		return nil, 0, err
@@ -249,13 +251,14 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 		orderBy = fmt.Sprintf("users.%s %s", sort, order)
 	}
 
-	// Execute paginated list
-	// We select users.* to ensure the embedded models.User struct is fully populated
-	err := query.Select(`users.*, 
+	// Explicitly select fields to populate UserListItem and embedded models.User
+	// This prevents same-named columns (id, status, created_at) from overlapping during scanning
+	err := query.Select(`
+			users.id, users.email, users.full_name, users.role, users.status, users.created_at,
 			pl.name as plan_name, pl.tier as plan_tier, 
 			s.status as sub_status, 
 			sh.shop_name as shop_name,
-			COALESCE((SELECT SUM(amount) FROM payments WHERE user_id = users.id AND status = 'success'), 0) as total_spent`).
+			COALESCE(p.spent, 0) as total_spent`).
 		Order(orderBy).
 		Offset((page - 1) * limit).
 		Limit(limit).

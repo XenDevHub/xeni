@@ -368,7 +368,9 @@ export default function ProductsPage() {
               {/* Left Side: Image Preview (Static) */}
               <div className="w-full md:w-2/5 aspect-square md:aspect-auto bg-black/20 relative">
                 {fbProduct.images?.[0] ? (
-                  <Image src={fbProduct.images[0]} alt={fbProduct.name} fill className="object-cover" />
+                  <div className="w-full h-full bg-black/5 flex items-center justify-center">
+                    <Image src={fbProduct.images[0]} alt={fbProduct.name} fill className="object-contain" />
+                  </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-muted"><Package className="w-12 h-12 opacity-20" /></div>
                 )}

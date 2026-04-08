@@ -86,9 +86,15 @@ func (h *Handler) RunAgent(c *fiber.Ctx) error {
 		AgentType: agentType,
 		TaskID:    taskID,
 		Status:    models.TaskQueued,
+		Result:    models.JSON("{}"), // Explicitly initialize
 	}
 	if err := h.DB.Create(&task).Error; err != nil {
-		slog.Error("failed to create agent task", "error", err)
+		slog.Error("failed to create agent task in DB", 
+			"error", err, 
+			"user_id", userID, 
+			"agent_type", agentType,
+			"task_id", taskID,
+		)
 		return response.InternalError(c)
 	}
 
