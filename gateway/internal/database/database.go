@@ -47,7 +47,7 @@ func Connect(cfg *config.DBConfig, env string) (*gorm.DB, error) {
 }
 
 func autoMigrate(db *gorm.DB) error {
-	return db.AutoMigrate(
+	modelsToMigrate := []interface{}{
 		&models.User{},
 		&models.RefreshToken{},
 		&models.OTPCode{},
@@ -70,7 +70,15 @@ func autoMigrate(db *gorm.DB) error {
 		// Rules Engine
 		&models.SystemSetting{},
 		&models.AgentRule{},
-	)
+	}
+
+	for _, m := range modelsToMigrate {
+		if err := db.AutoMigrate(m); err != nil {
+			slog.Error("failed to migrate model", "error", err)
+			// Continue to next model regardless of failure
+		}
+	}
+	return nil
 }
 
 // Seed inserts default data if tables are empty.
@@ -163,13 +171,16 @@ func Seed(db *gorm.DB) {
 
 	// Seed default Global Agent Rules (structured)
 	var agentRuleCount int64
-	db.Model(&models.AgentRule{}).Where("scope = 'global'").Count(&agentRuleCount)
-	if agentRuleCount == 0 {
-		slog.Info("seeding default global agent rules...")
-		defaultRules := models.DefaultGlobalRules()
-		for _, rule := range defaultRules {
-			db.Create(&rule)
+	if err := db.Model(&models.AgentRule{}).Where("scope = 'global'").Count(&agentRuleCount).Error; err == nil {
+		if agentRuleCount == 0 {
+			slog.Info("seeding default global agent rules...")
+			defaultRules := models.DefaultGlobalRules()
+			for _, rule := range defaultRules {
+				db.Create(&rule)
+			}
+			slog.Info("seeded global agent rules", "count", len(defaultRules))
 		}
-		slog.Info("seeded global agent rules", "count", len(defaultRules))
+	} else {
+		slog.Warn("could not check agent rules count, skipping seed", "error", err)
 	}
 }
