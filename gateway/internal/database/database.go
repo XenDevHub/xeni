@@ -170,17 +170,24 @@ func Seed(db *gorm.DB) {
 	}
 
 	// Seed default Global Agent Rules (structured)
-	var agentRuleCount int64
-	if err := db.Model(&models.AgentRule{}).Where("scope = 'global'").Count(&agentRuleCount).Error; err == nil {
-		if agentRuleCount == 0 {
-			slog.Info("seeding default global agent rules...")
-			defaultRules := models.DefaultGlobalRules()
-			for _, rule := range defaultRules {
-				db.Create(&rule)
-			}
-			slog.Info("seeded global agent rules", "count", len(defaultRules))
+	slog.Info("synchronizing default global agent rules...")
+	defaultRules := models.DefaultGlobalRules()
+	for _, rule := range defaultRules {
+		var existing models.AgentRule
+		// Find by Title and Scope to see if it exists
+		err := db.Where("scope = ? AND title = ?", rule.Scope, rule.Title).First(&existing).Error
+		if err == gorm.ErrRecordNotFound {
+			db.Create(&rule)
+		} else if err == nil {
+			// Update the rule content to match the new simplified version
+			db.Model(&existing).Updates(models.AgentRule{
+				Rule:     rule.Rule,
+				Priority: rule.Priority,
+				Category: rule.Category,
+			})
 		}
-	} else {
-		slog.Warn("could not check agent rules count, skipping seed", "error", err)
 	}
+	
+	// Optional: Remove legacy global_agent_rules setting to clean up DB
+	db.Where("setting_key = ?", "global_agent_rules").Delete(&models.SystemSetting{})
 }
