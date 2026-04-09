@@ -222,8 +222,8 @@ export default function ShopRulesPage() {
                 {filteredShopRules.length === 0 && (
                   <div className="col-span-full py-12 text-center border border-dashed border-white/10 rounded-2xl bg-black/10">
                     <BrainCircuit className="w-8 h-8 text-dark-600 mx-auto mb-3" />
-                    <p className="text-dark-400 font-medium">You haven't defined any custom rules yet.</p>
-                    <p className="text-sm text-dark-500 mt-1">Add rules to teach the AI about your shop's return policy, delivery fees, and identity.</p>
+                    <p className="text-dark-400 font-medium">You haven&apos;t defined any custom rules yet.</p>
+                    <p className="text-sm text-dark-500 mt-1">Add rules to teach the AI about your shop&apos;s return policy, delivery fees, and identity.</p>
                     <button onClick={() => handleOpenModal()} className="mt-4 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-sm text-white transition-colors">
                       Create First Rule
                     </button>
@@ -243,7 +243,7 @@ export default function ShopRulesPage() {
                     <div>
                       <h3 className="text-amber-300 font-bold mb-1">Platform Master Rules (Enforced)</h3>
                       <p className="text-sm text-amber-300/80 mb-3">
-                        Xeni's AI is globally restricted from performing certain actions across all shops. These include: never sharing personal data, never making up prices, never discussing politics/religion, and escalating angry customers to humans.
+                        Xeni&apos;s AI is globally restricted from performing certain actions across all shops. These include: never sharing personal data, never making up prices, never discussing politics/religion, and escalating angry customers to humans.
                       </p>
                       <p className="text-xs text-amber-300/60 font-mono">
                         These rules are set by Xeni Administrators and apply to all shops.

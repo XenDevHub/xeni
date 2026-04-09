@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Settings, Shield, Globe, Bell, Save, Lock, Smartphone, Cloud, Loader2, Brain } from 'lucide-react';
+import { Link } from '@/i18n/routing';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 
@@ -69,18 +70,15 @@ export default function AdminSettingsPage() {
               </div>
               <div>
                  <h3 className="text-lg font-heading font-bold text-white">AI Global Agent Rules</h3>
-                 <p className="text-[11px] text-dark-500 mt-1">These instructions are injected into every AI agent's master prompt across all shops.</p>
+                 <p className="text-[11px] text-dark-500 mt-1">Manage structured, priority-based platform constraints for all AI agents.</p>
               </div>
             </div>
             
             <div className="space-y-3">
-              <textarea 
-                value={globalRules}
-                onChange={(e) => setGlobalRules(e.target.value)}
-                placeholder="E.g., If the customer gives their address, do not ask for it again."
-                className="input-field min-h-[140px] font-mono text-sm leading-relaxed"
-              />
-              <p className="text-[10px] text-primary/70">Warning: Changing this immediately affects how all AI bots respond to customers platform-wide.</p>
+              <p className="text-sm text-dark-300">The legacy text-based rule editor has been upgraded to a powerful, two-tier Rules Engine.</p>
+              <Link href="/admin/rules" className="btn-primary inline-flex items-center gap-2 mt-2">
+                <Brain className="w-4 h-4" /> Go to New Rules Engine
+              </Link>
             </div>
           </section>
 
