@@ -24,11 +24,12 @@ type Handler struct {
 	Redis    *cache.Client
 	RabbitMQ *rabbitmq.Client
 	WSHub    *websocket.Hub
+	Config   *config.Config
 }
 
 // NewHandler creates a new agent handler.
-func NewHandler(db *gorm.DB, redis *cache.Client, rmq *rabbitmq.Client, wsHub *websocket.Hub) *Handler {
-	return &Handler{DB: db, Redis: redis, RabbitMQ: rmq, WSHub: wsHub}
+func NewHandler(db *gorm.DB, redis *cache.Client, rmq *rabbitmq.Client, wsHub *websocket.Hub, cfg *config.Config) *Handler {
+	return &Handler{DB: db, Redis: redis, RabbitMQ: rmq, WSHub: wsHub, Config: cfg}
 }
 
 // RunAgent handles POST /:agent-slug/run — submits a new task.
@@ -252,6 +253,44 @@ func (h *Handler) HandleResult(result rabbitmq.ResultMessage) error {
 		updates["result"] = models.JSON(dataBytes)
 	}
 
+	// ── Handle Automated Actions ──
+	if result.Status == "completed" && result.Data != nil {
+		action, _ := result.Data["action"].(string)
+		
+		// 1. Send AI reply back to customer
+		if reply, ok := result.Data["reply"].(string); ok && reply != "" {
+			psid, _ := result.Data["customer_psid"].(string)
+			pageID, _ := result.Data["page_id"].(string)
+			
+			var page models.ConnectedPage
+			if err := h.DB.Where("page_id = ?", pageID).First(&page).Error; err == nil {
+				h.sendMessengerMessage(psid, reply, page.PageAccessToken)
+				
+				// Save outbound message to DB
+				if convIDStr, ok := result.Data["conversation_id"].(string); ok {
+					if convID, err := uuid.Parse(convIDStr); err == nil {
+						h.DB.Create(&models.Message{
+							ConversationID: convID,
+							Direction:      models.DirectionOutbound,
+							SenderType:     models.SenderAI,
+							ContentType:    models.ContentText,
+							ContentText:    &reply,
+							SentAt:         time.Now(),
+						})
+					}
+				}
+			}
+		}
+
+		// 2. Finalize Order if requested
+		if action == "finalize_order" {
+			orderData, ok := result.Data["order_details"].(map[string]interface{})
+			if ok {
+				h.createOrderFromAI(result, orderData)
+			}
+		}
+	}
+
 	if result.Error != nil {
 		updates["error_message"] = *result.Error
 	}
@@ -306,6 +345,86 @@ func (h *Handler) HandleResult(result rabbitmq.ResultMessage) error {
 	})
 
 	return nil
+}
+
+func (h *Handler) createOrderFromAI(result rabbitmq.ResultMessage, details map[string]interface{}) {
+	slog.Info("Finalizing order from AI conversation", "task_id", result.TaskID)
+	
+	shopIDStr, _ := result.Data["shop_id"].(string)
+	sid, _ := uuid.Parse(shopIDStr)
+	
+	name, _ := details["customer_name"].(string)
+	phone, _ := details["customer_phone"].(string)
+	addr, _ := details["customer_address"].(string)
+	total, _ := details["total"].(float64)
+	
+	order := models.Order{
+		ShopID:          sid,
+		CustomerName:    &name,
+		CustomerPhone:   &phone,
+		CustomerAddress: &addr,
+		TotalAmount:     total,
+		PaymentStatus:   models.OrderPayPending,
+		DeliveryStatus:  models.DeliveryPending,
+		PlacedBy:        models.PlacedByAI,
+	}
+
+	// Handle items and stock sync
+	items, ok := details["items"].([]interface{})
+	if ok && len(items) > 0 {
+		b, _ := json.Marshal(items)
+		order.OrderItems = b
+
+		tx := h.DB.Begin()
+		if err := tx.Create(&order).Error; err == nil {
+			for _, it := range items {
+				item, ok := it.(map[string]interface{})
+				if !ok { continue }
+				
+				pidStr, _ := item["product_id"].(string)
+				pid, _ := uuid.Parse(pidStr)
+				qty := 1
+				if q, ok := item["quantity"].(float64); ok { qty = int(q) }
+
+				if vidStr, ok := item["variant_id"].(string); ok && vidStr != "" {
+					vid, _ := uuid.Parse(vidStr)
+					tx.Model(&models.ProductVariant{}).Where("id = ?", vid).Update("stock", gorm.Expr("stock - ?", qty))
+					tx.Model(&models.Product{}).Where("id = ?", pid).Update("total_sold", gorm.Expr("total_sold + ?", qty))
+				} else {
+					tx.Model(&models.Product{}).Where("id = ?", pid).Updates(map[string]interface{}{
+						"current_stock": gorm.Expr("current_stock - ?", qty),
+						"total_sold":   gorm.Expr("total_sold + ?", qty),
+					})
+				}
+			}
+			tx.Commit()
+			slog.Info("Automated order created successfully", "order_id", order.ID)
+		} else {
+			tx.Rollback()
+		}
+	}
+}
+
+func (h *Handler) sendMessengerMessage(psid, text, token string) {
+	url := fmt.Sprintf("https://graph.facebook.com/v19.0/me/messages?access_token=%s", token)
+	payload := map[string]interface{}{
+		"recipient": map[string]string{"id": psid},
+		"message":   map[string]string{"text": text},
+	}
+	
+	b, _ := json.Marshal(payload)
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(b))
+	if err != nil {
+		slog.Error("failed to send messenger reply", "error", err)
+		return
+	}
+	defer resp.Body.Close()
+	
+	if resp.StatusCode != 200 {
+		var errData map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&errData)
+		slog.Error("messenger api returned error", "status", resp.StatusCode, "data", errData)
+	}
 }
 
 // getRequiredPlan returns the minimum plan required for an agent.

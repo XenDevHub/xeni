@@ -77,7 +77,7 @@ func main() {
 	}
 
 	// Initialize agent handler
-	agentHandler := agents.NewHandler(db, redisClient, rmqClient, wsHub)
+	agentHandler := agents.NewHandler(db, redisClient, rmqClient, wsHub, cfg)
 
 	// Start consuming RabbitMQ results
 	if rmqClient != nil {

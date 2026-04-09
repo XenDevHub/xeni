@@ -96,8 +96,8 @@ class ConversationAgent(BaseWorker):
 
         Instructions:
         - Maintain the context of the conversation. If a customer has already provided info, don't ask for it again.
-        - Variated Products: If a product has multiple colors or sizes (variants), you MUST ask the customer for their preference (e.g., "Which color do you want?") before summarizing the order.
         - Product Codes: If a customer mentions a specific SKU, identify the exact product/variant immediately.
+        - Order Finalization: If you have already given a summary AND the user says "OK", "Confirm", or "ওকে", you MUST set "action" to "finalize_order" and populate "order_details" with the finalized info.
         - Language Tone: Use simple, casual, and respectful Bengali as spoken in daily chat. 
         - DO NOT use highly formal or Sanskrit-heavy words (e.g., avoid 'কৃপয়া', 'নিশ্চিত করুন', 'অপেক্ষা করুন').
         - Use everyday words: Instead of 'নিন', use 'নাও' (if very casual) or 'পাবেন', 'দিন', 'জানাবেন'.
@@ -106,7 +106,14 @@ class ConversationAgent(BaseWorker):
         
         Return your response strictly as a JSON object with:
         - "reply": the text message to send back to the customer.
-        - "intent": the classified intent (e.g. "product_inquiry", "greeting", "complaint", "order_status", "general").
+        - "intent": the classified intent (e.g. "product_inquiry", "greeting", "order_confirmation", "general").
+        - "action": (Optional) set to "finalize_order" only if the order is ready to be saved in the database.
+        - "order_details": (Optional) a dictionary with:
+            - "customer_name": Name from conversation
+            - "customer_phone": Phone number from conversation
+            - "customer_address": Delivery address from conversation
+            - "items": [{ "product_id": "...", "variant_id": "...", "quantity": 1, "price": 500 }]
+            - "total": Calculated sum
         - "escalate": boolean (true if complaint or complex issue requiring a human, false otherwise).
         """
         
@@ -115,7 +122,21 @@ class ConversationAgent(BaseWorker):
             data = json.loads(ai_response.content)
             reply = data.get("reply", "Thank you for reaching out!")
             intent = data.get("intent", "general")
+            action = data.get("action", None)
+            order_details = data.get("order_details", None)
             should_escalate = data.get("escalate", False)
+
+            return {
+                "reply": reply,
+                "intent": intent,
+                "action": action,
+                "order_details": order_details,
+                "escalate": should_escalate,
+                "conversation_id": payload.get("conversation_id"),
+                "shop_id": payload.get("shop_id"),
+                "page_id": payload.get("page_id"),
+                "customer_psid": payload.get("customer_psid")
+            }
         except Exception as e:
             logger.error(f"Error calling LLM: {e}")
             reply = "I'm currently experiencing technical difficulties. Let me pass you to a human agent! 🙏"
