@@ -4,11 +4,12 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // AgentRule represents a single AI behavioral rule — either global (admin-set) or shop-specific.
 type AgentRule struct {
-	ID        uuid.UUID  `gorm:"type:uuid;default:uuid_generate_v4();primaryKey" json:"id"`
+	ID        uuid.UUID  `gorm:"type:uuid;primaryKey" json:"id"`
 	Scope     string     `gorm:"size:20;not null;index" json:"scope"` // 'global' or 'shop'
 	ShopID    *uuid.UUID `gorm:"type:uuid;index" json:"shop_id,omitempty"`
 	Category  string     `gorm:"size:50;not null" json:"category"`
@@ -153,4 +154,11 @@ func DefaultGlobalRules() []AgentRule {
 			Rule:  "Do not provide any medical, legal, or financial advice regardless of what the customer asks. If asked, politely decline and suggest consulting a professional.",
 		},
 	}
+}
+// BeforeCreate generates a new UUID if not provided.
+func (r *AgentRule) BeforeCreate(tx *gorm.DB) (err error) {
+	if r.ID == uuid.Nil {
+		r.ID = uuid.New()
+	}
+	return
 }
