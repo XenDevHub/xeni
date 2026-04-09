@@ -104,6 +104,7 @@ func (h *Handler) UpdateMyShop(c *fiber.Ctx) error {
 		AutoReplyEnabled    *bool                   `json:"auto_reply_enabled"`
 		AutoOrderEnabled    *bool                   `json:"auto_order_enabled"`
 		Integrations        *map[string]interface{} `json:"integrations"`
+		CustomAgentRules    *string                 `json:"custom_agent_rules"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return response.BadRequest(c, "Invalid request body")
@@ -139,6 +140,9 @@ func (h *Handler) UpdateMyShop(c *fiber.Ctx) error {
 	}
 	if req.Integrations != nil {
 		updates["integrations"] = *req.Integrations
+	}
+	if req.CustomAgentRules != nil {
+		updates["custom_agent_rules"] = *req.CustomAgentRules
 	}
 
 	if len(updates) > 0 {

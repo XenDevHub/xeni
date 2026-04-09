@@ -416,3 +416,45 @@ func (h *Handler) UpdatePlan(c *fiber.Ctx) error {
 
 	return response.Success(c, fiber.Map{"message": "Plan updated"})
 }
+
+// ── System Settings ──
+
+// GetSystemSetting retrieves a global setting by key (e.g. global_agent_rules).
+func (h *Handler) GetSystemSetting(c *fiber.Ctx) error {
+	key := c.Params("key")
+	if key == "" {
+		return response.BadRequest(c, "Setting key is required")
+	}
+
+	setting, err := h.Service.GetSystemSetting(key)
+	if err != nil {
+		// If not found, return empty value rather than 404 for a better UX
+		return response.Success(c, fiber.Map{"setting_key": key, "setting_value": ""})
+	}
+
+	return response.Success(c, setting)
+}
+
+// UpdateSystemSetting updates a global setting.
+func (h *Handler) UpdateSystemSetting(c *fiber.Ctx) error {
+	key := c.Params("key")
+	if key == "" {
+		return response.BadRequest(c, "Setting key is required")
+	}
+
+	var req struct {
+		Value       string `json:"value"`
+		Description string `json:"description"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return response.BadRequest(c, "Invalid request body")
+	}
+
+	adminID := c.Locals("user_id").(string)
+
+	if err := h.Service.UpsertSystemSetting(key, req.Value, req.Description, adminID); err != nil {
+		return response.InternalError(c)
+	}
+
+	return response.Success(c, fiber.Map{"message": "Setting updated successfully"})
+}

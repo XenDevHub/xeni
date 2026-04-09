@@ -19,6 +19,44 @@ func NewRepository(db *gorm.DB) *Repository {
 	return &Repository{DB: db}
 }
 
+// GetSystemSetting retrieves a setting by key 
+func (r *Repository) GetSystemSetting(key string) (*models.SystemSetting, error) {
+	var setting models.SystemSetting
+	if err := r.DB.Where("setting_key = ?", key).First(&setting).Error; err != nil {
+		return nil, err
+	}
+	return &setting, nil
+}
+
+// UpsertSystemSetting creates or updates a global setting
+func (r *Repository) UpsertSystemSetting(key string, value string, description string, userID string) error {
+	var setting models.SystemSetting
+	isNew := false
+	if err := r.DB.Where("setting_key = ?", key).First(&setting).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			isNew = true
+			setting = models.SystemSetting{
+				SettingKey:   key,
+			}
+		} else {
+			return err
+		}
+	}
+	
+	setting.SettingValue = &value
+	setting.Description = &description
+	if userID != "" {
+		if uid, err := uuid.Parse(userID); err == nil {
+			setting.UpdatedBy = &uid
+		}
+	}
+
+	if isNew {
+		return r.DB.Create(&setting).Error
+	}
+	return r.DB.Save(&setting).Error
+}
+
 // ── Platform Overview ──
 
 type OverviewStats struct {
@@ -273,7 +311,9 @@ func (r *Repository) ListUsers(page, limit int, search, role, plan, status, sort
 
 	// Explicitly select fields to populate UserListItem and embedded models.User
 	err := dataQuery.Select(`
-			users.id, users.email, users.full_name, users.role, users.status, users.created_at,
+			users.id, users.email, users.full_name, users.role, users.status, users.created_at, 
+			users.auth_provider, users.google_id, users.facebook_id, users.avatar_url, 
+			users.last_login_at, users.is_email_verified, users.preferred_language, users.two_fa_enabled,
 			pl.name as plan_name, pl.tier as plan_tier, 
 			s.status as sub_status, 
 			sh.shop_name as shop_name,

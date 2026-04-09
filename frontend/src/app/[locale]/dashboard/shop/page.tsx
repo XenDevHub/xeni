@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Store, Save, Truck, Smartphone } from 'lucide-react';
+import { Link } from '@/i18n/routing';
+import { Store, Save, Truck, Smartphone, Brain, Lock, Info } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
 
@@ -17,6 +18,7 @@ interface Shop {
   nagad_merchant_number: string | null;
   auto_reply_enabled: boolean;
   auto_order_enabled: boolean;
+  custom_agent_rules?: string | null;
   integrations?: Record<string, string>;
 }
 
@@ -25,6 +27,7 @@ export default function ShopPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isNew, setIsNew] = useState(false);
+  const [globalRules, setGlobalRules] = useState('');
   const [form, setForm] = useState({
     shop_name: '',
     shop_description: '',
@@ -34,6 +37,7 @@ export default function ShopPage() {
     nagad_merchant_number: '',
     auto_reply_enabled: true,
     auto_order_enabled: true,
+    custom_agent_rules: '',
     integrations: {
       pathao_client_id: '',
       pathao_client_secret: '',
@@ -43,10 +47,18 @@ export default function ShopPage() {
   });
 
   useEffect(() => {
-    async function fetchShop() {
-      try {
-        const res = await api.get('/shops/me');
-        const s = res.data.data;
+    fetchShopAndRules();
+  }, []);
+
+  async function fetchShopAndRules() {
+    try {
+      const [shopRes, rulesRes] = await Promise.allSettled([
+        api.get('/shops/me'),
+        api.get('/user/global-rules'),
+      ]);
+
+      if (shopRes.status === 'fulfilled') {
+        const s = shopRes.value.data.data;
         setShop(s);
         setForm({
           shop_name: s.shop_name || '',
@@ -57,6 +69,7 @@ export default function ShopPage() {
           nagad_merchant_number: s.nagad_merchant_number || '',
           auto_reply_enabled: s.auto_reply_enabled ?? true,
           auto_order_enabled: s.auto_order_enabled ?? true,
+          custom_agent_rules: s.custom_agent_rules || '',
           integrations: {
             pathao_client_id: s.integrations?.pathao_client_id || '',
             pathao_client_secret: s.integrations?.pathao_client_secret || '',
@@ -64,13 +77,18 @@ export default function ShopPage() {
             steadfast_secret_key: s.integrations?.steadfast_secret_key || ''
           }
         });
-      } catch {
+      } else {
         setIsNew(true);
       }
-      setLoading(false);
+
+      if (rulesRes.status === 'fulfilled') {
+        setGlobalRules(rulesRes.value.data.data?.setting_value || '');
+      }
+    } catch {
+      setIsNew(true);
     }
-    fetchShop();
-  }, []);
+    setLoading(false);
+  }
 
   const handleSave = async () => {
     if (!form.shop_name.trim()) {
@@ -111,90 +129,122 @@ export default function ShopPage() {
         </p>
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 space-y-6">
-        {/* Shop Name */}
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Shop Name *</label>
-          <input
-            className="input-field"
-            placeholder="e.g., Trendy Fashion BD"
-            value={form.shop_name}
-            onChange={e => setForm({ ...form, shop_name: e.target.value })}
-          />
-        </div>
-
-        {/* Description */}
-        <div>
-          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Description</label>
-          <textarea
-            className="input-field min-h-[100px] resize-none"
-            placeholder="Describe your shop..."
-            value={form.shop_description}
-            onChange={e => setForm({ ...form, shop_description: e.target.value })}
-          />
-        </div>
-
-        {/* Language & Courier */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="space-y-6">
+        {/* ── Main Shop Form ── */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 space-y-6">
+          {/* Shop Name */}
           <div>
-            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Language</label>
-            <select className="input-field" value={form.preferred_language} onChange={e => setForm({ ...form, preferred_language: e.target.value })}>
-              <option value="bn">বাংলা (Bangla)</option>
-              <option value="en">English</option>
-            </select>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Shop Name *</label>
+            <input
+              className="input-field"
+              placeholder="e.g., Trendy Fashion BD"
+              value={form.shop_name}
+              onChange={e => setForm({ ...form, shop_name: e.target.value })}
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
-              <Truck className="w-4 h-4" /> Courier
-            </label>
-            <select className="input-field" value={form.courier_preference} onChange={e => setForm({ ...form, courier_preference: e.target.value })}>
-              <option value="pathao">Pathao</option>
-              <option value="steadfast">Steadfast</option>
-            </select>
-          </div>
-        </div>
 
-        {/* MFS Numbers */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Description */}
           <div>
-            <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
-              <Smartphone className="w-4 h-4" /> bKash Number
-            </label>
-            <input className="input-field" placeholder="01XXXXXXXXX" value={form.bkash_merchant_number} onChange={e => setForm({ ...form, bkash_merchant_number: e.target.value })} />
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Description</label>
+            <textarea
+              className="input-field min-h-[100px] resize-none"
+              placeholder="Describe your shop..."
+              value={form.shop_description}
+              onChange={e => setForm({ ...form, shop_description: e.target.value })}
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
-              <Smartphone className="w-4 h-4" /> Nagad Number
-            </label>
-            <input className="input-field" placeholder="01XXXXXXXXX" value={form.nagad_merchant_number} onChange={e => setForm({ ...form, nagad_merchant_number: e.target.value })} />
-          </div>
-        </div>
 
-        {/* Toggles */}
-        <div className="space-y-4 pt-2">
-          <label className="flex items-center justify-between cursor-pointer">
+          {/* Language & Courier */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Auto-Reply (AI Conversation)</p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Let AI respond to Messenger messages automatically</p>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Language</label>
+              <select className="input-field" value={form.preferred_language} onChange={e => setForm({ ...form, preferred_language: e.target.value })}>
+                <option value="bn">বাংলা (Bangla)</option>
+                <option value="en">English</option>
+              </select>
             </div>
-            <div className={`w-11 h-6 rounded-full relative transition-colors ${form.auto_reply_enabled ? 'bg-primary' : 'bg-gray-600'}`} onClick={() => setForm({ ...form, auto_reply_enabled: !form.auto_reply_enabled })}>
-              <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.auto_reply_enabled ? 'translate-x-5' : ''}`} />
-            </div>
-          </label>
-          <label className="flex items-center justify-between cursor-pointer">
             <div>
-              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Auto-Order Processing</p>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Automatically verify payments and book couriers</p>
+              <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                <Truck className="w-4 h-4" /> Courier
+              </label>
+              <select className="input-field" value={form.courier_preference} onChange={e => setForm({ ...form, courier_preference: e.target.value })}>
+                <option value="pathao">Pathao</option>
+                <option value="steadfast">Steadfast</option>
+              </select>
             </div>
-            <div className={`w-11 h-6 rounded-full relative transition-colors ${form.auto_order_enabled ? 'bg-primary' : 'bg-gray-600'}`} onClick={() => setForm({ ...form, auto_order_enabled: !form.auto_order_enabled })}>
-              <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.auto_order_enabled ? 'translate-x-5' : ''}`} />
-            </div>
-          </label>
-        </div>
+          </div>
 
-        {/* Separator for Integrations */}
-        <div className="pt-6 border-t" style={{ borderColor: 'var(--border-color)' }}>
-          <h2 className="text-lg font-heading font-bold mb-4" style={{ color: 'var(--text-primary)' }}>Merchant Courier API Keys</h2>
+          {/* MFS Numbers */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                <Smartphone className="w-4 h-4" /> bKash Number
+              </label>
+              <input className="input-field" placeholder="01XXXXXXXXX" value={form.bkash_merchant_number} onChange={e => setForm({ ...form, bkash_merchant_number: e.target.value })} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                <Smartphone className="w-4 h-4" /> Nagad Number
+              </label>
+              <input className="input-field" placeholder="01XXXXXXXXX" value={form.nagad_merchant_number} onChange={e => setForm({ ...form, nagad_merchant_number: e.target.value })} />
+            </div>
+          </div>
+
+          {/* Toggles */}
+          <div className="space-y-4 pt-2 border-t" style={{ borderColor: 'var(--border-color)' }}>
+            <p className="text-xs font-bold uppercase tracking-wider pt-2" style={{ color: 'var(--text-muted)' }}>Automation</p>
+            <label className="flex items-center justify-between cursor-pointer">
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Auto-Reply (AI Conversation)</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Let AI respond to Messenger messages automatically</p>
+              </div>
+              <div className={`w-11 h-6 rounded-full relative transition-colors ${form.auto_reply_enabled ? 'bg-primary' : 'bg-gray-600'}`} onClick={() => setForm({ ...form, auto_reply_enabled: !form.auto_reply_enabled })}>
+                <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.auto_reply_enabled ? 'translate-x-5' : ''}`} />
+              </div>
+            </label>
+            <label className="flex items-center justify-between cursor-pointer">
+              <div>
+                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>Auto-Order Processing</p>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Automatically verify payments and book couriers</p>
+              </div>
+              <div className={`w-11 h-6 rounded-full relative transition-colors ${form.auto_order_enabled ? 'bg-primary' : 'bg-gray-600'}`} onClick={() => setForm({ ...form, auto_order_enabled: !form.auto_order_enabled })}>
+                <div className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${form.auto_order_enabled ? 'translate-x-5' : ''}`} />
+              </div>
+            </label>
+          </div>
+
+          {/* Save */}
+          <button onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-2">
+            <Save className="w-4 h-4" />
+            {saving ? 'Saving...' : isNew ? 'Create Shop' : 'Save Changes'}
+          </button>
+        </motion.div>
+
+		{/* ── AI Rules Section ── */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="space-y-4">
+          <div className="glass-card p-6 border border-primary/20 bg-gradient-to-r from-primary/10 to-transparent">
+            <div className="flex items-start gap-4">
+              <div className="p-3 bg-primary/20 rounded-xl shrink-0">
+                <Brain className="w-8 h-8 text-primary" />
+              </div>
+              <div className="flex-1">
+                <h2 className="text-xl font-heading font-bold text-white mb-2">
+                  AI Rules Engine
+                </h2>
+                <p className="text-sm text-dark-300 mb-4">
+                  Train your Xeni bot visually. Set custom rules for tone, delivery, return policy, and behavior alongside our platform-wide master constraints.
+                </p>
+                <Link href="/dashboard/rules" className="btn-primary inline-flex items-center gap-2">
+                  <Store className="w-4 h-4" /> Manage AI Rules
+                </Link>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── Merchant Courier API Keys ── */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="glass-card p-6">
+          <h2 className="text-lg font-heading font-bold mb-2" style={{ color: 'var(--text-primary)' }}>Merchant Courier API Keys</h2>
           <p className="text-sm mb-6" style={{ color: 'var(--text-muted)' }}>Configure your custom connection keys if you want the AI to handle courier bookings under your own corporate account.</p>
 
           <div className="space-y-6">
@@ -228,14 +278,13 @@ export default function ShopPage() {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Save */}
-        <button onClick={handleSave} disabled={saving} className="btn-primary flex items-center gap-2">
-          <Save className="w-4 h-4" />
-          {saving ? 'Saving...' : isNew ? 'Create Shop' : 'Save Changes'}
-        </button>
-      </motion.div>
+          <button onClick={handleSave} disabled={saving} className="btn-primary mt-6 flex items-center gap-2">
+            <Save className="w-4 h-4" />
+            {saving ? 'Saving...' : 'Save Integrations'}
+          </button>
+        </motion.div>
+      </div>
     </div>
   );
 }

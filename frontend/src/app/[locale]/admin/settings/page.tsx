@@ -1,19 +1,43 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, Shield, Globe, Bell, Save, Lock, Smartphone, Cloud, Loader2 } from 'lucide-react';
+import { Settings, Shield, Globe, Bell, Save, Lock, Smartphone, Cloud, Loader2, Brain } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '@/lib/api';
 
 export default function AdminSettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
+  const [globalRules, setGlobalRules] = useState('');
 
-  const handleSave = () => {
+  useEffect(() => {
+    fetchglobalRules();
+  }, []);
+
+  const fetchglobalRules = async () => {
+    try {
+      const res = await api.get('/admin/settings/global_agent_rules');
+      if (res.data.data?.setting_value) {
+        setGlobalRules(res.data.data.setting_value);
+      }
+    } catch (err) {
+      console.error('Failed to load global rules:', err);
+    }
+  };
+
+  const handleSave = async () => {
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
+    try {
+      await api.put('/admin/settings/global_agent_rules', {
+        value: globalRules,
+        description: 'Global Master Prompt for all AI workers across the platform'
+      });
       toast.success('System settings updated successfully');
-    }, 1500);
+    } catch (err) {
+      toast.error('Failed to update system settings');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -34,8 +58,33 @@ export default function AdminSettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Branding & Identity */}
+        {/* Main Column */}
         <div className="lg:col-span-2 space-y-8">
+          
+          {/* AI Master Rules */}
+          <section className="glass-card p-6 space-y-6 border-primary/20 bg-primary/5">
+            <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <Brain className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                 <h3 className="text-lg font-heading font-bold text-white">AI Global Agent Rules</h3>
+                 <p className="text-[11px] text-dark-500 mt-1">These instructions are injected into every AI agent's master prompt across all shops.</p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <textarea 
+                value={globalRules}
+                onChange={(e) => setGlobalRules(e.target.value)}
+                placeholder="E.g., If the customer gives their address, do not ask for it again."
+                className="input-field min-h-[140px] font-mono text-sm leading-relaxed"
+              />
+              <p className="text-[10px] text-primary/70">Warning: Changing this immediately affects how all AI bots respond to customers platform-wide.</p>
+            </div>
+          </section>
+
+          {/* Branding & Identity */}
           <section className="glass-card p-6 space-y-6">
             <div className="flex items-center gap-3 border-b border-white/5 pb-4">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -63,30 +112,6 @@ export default function AdminSettingsPage() {
               </div>
             </div>
           </section>
-
-          {/* Infrastructure */}
-          <section className="glass-card p-6 space-y-6">
-             <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-              <div className="p-2 bg-amber-500/10 rounded-lg">
-                <Cloud className="w-5 h-5 text-amber-500" />
-              </div>
-              <h3 className="text-lg font-heading font-bold text-white">Cloud & API Services</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-dark-500 uppercase tracking-wider">DigitalOcean Space</label>
-                <input type="text" defaultValue="xeni-assets-prod" className="input-field" />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-dark-500 uppercase tracking-wider">SSLCommerz Mode</label>
-                <select className="input-field">
-                   <option value="sandbox">Sandbox (Testing)</option>
-                   <option value="live">Live (Production)</option>
-                </select>
-              </div>
-            </div>
-          </section>
         </div>
 
         {/* Right Column: Status & Toggles */}
@@ -111,27 +136,7 @@ export default function AdminSettingsPage() {
                   <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" />
                 </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-dark-300">Allow New Reviews</span>
-                <div className="w-10 h-5 bg-primary rounded-full relative">
-                  <div className="absolute right-1 top-1 w-3 h-3 bg-white rounded-full" />
-                </div>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-dark-300 opacity-50">Maintenance Mode</span>
-                <div className="w-10 h-5 bg-dark-700 rounded-full relative">
-                  <div className="absolute left-1 top-1 w-3 h-3 bg-white/50 rounded-full" />
-                </div>
-              </div>
             </div>
-          </section>
-
-          <section className="glass-card p-6 space-y-4">
-             <h3 className="font-heading font-bold text-white flex items-center gap-2">
-              <Bell className="w-4 h-4 text-cyan-400" /> Notifications
-            </h3>
-            <p className="text-xs text-dark-500">Global admin alerts for system failures or high revenue events.</p>
-            <button className="w-full btn-secondary text-xs py-2">Test Email Ping</button>
           </section>
         </div>
       </div>

@@ -34,6 +34,8 @@ class ConversationAgent(BaseWorker):
         page_access_token = payload.get("page_access_token", "")
         catalog = payload.get("catalog", [])
         history = payload.get("history", [])
+        global_rules = payload.get("global_rules", "")
+        shop_rules = payload.get("shop_rules", "")
 
         # Send typing_on indicator instantly to FB
         if page_access_token:
@@ -52,8 +54,12 @@ class ConversationAgent(BaseWorker):
                 formatted_history.append(f"{sender_label}: {h.get('text')}")
             history_text = "\n".join(formatted_history)
 
+        # Format custom rule strings safely
+        global_rules_text = f"\n        ---\n        GLOBAL SYSTEM RULES (CRITICAL):\n        {global_rules}\n" if global_rules else ""
+        shop_rules_text = f"\n        ---\n        SHOP CUSTOM RULES:\n        {shop_rules}\n" if shop_rules else ""
+
         prompt = f"""
-        You are Xeni, a helpful and professional customer support bot for an online shop in Bangladesh.
+        You are Xeni, an elite AI Agent handling customer support for an F-commerce shop in Bangladesh.
         
         ---
         RECENT CONVERSATION HISTORY:
@@ -67,19 +73,18 @@ class ConversationAgent(BaseWorker):
         SHOP'S ACTUAL PRODUCT CATALOG:
         {catalog_text}
         ---
+        {global_rules_text}
+        {shop_rules_text}
 
-        Goals & Rules:
-        1. Context: Use the "RECENT CONVERSATION HISTORY" above to understand what the customer is talking about (e.g., if they asked a follow-up question).
-        2. Greeting: Always greet with "Assalamu Alaikum" / "আসসালামু আলাইকুম" naturally ONLY if it's the very first interaction. Do not use "Nomoskar".
-        3. Pricing: STRICTLY use the "SHOP'S ACTUAL PRODUCT CATALOG" provided above. Do not invent fake prices. If the customer asks for a product not in the catalog, politely say you don't have it right now.
-        4. F-Commerce Order Taking: DO NOT tell the customer to go to a website to buy. You are an F-commerce bot. You take orders directly here on Messenger! Ask them for their "Delivery Address", "Phone Number", and "Which product they want to confirm".
-        5. Escalation: If they are angry or complaining, apologize and say a human will assist them shortly.
-        6. Language: Reply in the same language they wrote in (Bengali or English). Use friendly emojis.
+        Instructions:
+        - Analyze the context of the conversation and the new message.
+        - Strictly obey all GLOBAL SYSTEM RULES and SHOP CUSTOM RULES.
+        - Use emojis naturally to make the tone friendly but professional.
         
         Return your response strictly as a JSON object with:
-        - "reply": the text message to send back.
+        - "reply": the text message to send back to the customer.
         - "intent": the classified intent (e.g. "product_inquiry", "greeting", "complaint", "order_status", "general").
-        - "escalate": boolean (true if complaint or complex issue requiring a human).
+        - "escalate": boolean (true if complaint or complex issue requiring a human, false otherwise).
         """
         
         try:

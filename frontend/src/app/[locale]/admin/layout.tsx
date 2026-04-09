@@ -19,6 +19,7 @@ const sidebarLinks = [
   { href: '/admin/agents', label: 'Agent Usage', icon: Shield },
   { href: '/admin/content', label: 'Content Control', icon: FileText },
   { href: '/admin/plans', label: 'Plan Manager', icon: List },
+  { href: '/admin/rules', label: 'AI Rules', icon: Sparkles },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 

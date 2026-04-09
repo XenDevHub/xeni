@@ -23,6 +23,7 @@ type Shop struct {
 	AutoReplyEnabled    bool      `gorm:"default:true;not null" json:"auto_reply_enabled"`
 	AutoOrderEnabled    bool      `gorm:"default:true;not null" json:"auto_order_enabled"`
 	Integrations        JSON      `gorm:"type:jsonb;default:'{}'" json:"integrations"`
+	CustomAgentRules    *string   `gorm:"type:text" json:"custom_agent_rules"`
 	CreatedAt           time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt           time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 

@@ -81,13 +81,18 @@ func (h *Handler) RunAgent(c *fiber.Ctx) error {
 
 	// Enrich payload for creative agent
 	if agentType == models.AgentCreative {
-		if productID, ok := payload["product_id"].(string); ok && productID != "" {
-			var product models.Product
-			if err := h.DB.First(&product, "id = ?", productID).Error; err == nil {
-				payload["product_name"] = product.Name
-				payload["price"] = product.Price
+		if pidStr, ok := payload["product_id"].(string); ok && pidStr != "" {
+			pid, err := uuid.Parse(pidStr)
+			if err == nil {
+				var product models.Product
+				if err := h.DB.Select("name, price").First(&product, "id = ?", pid).Error; err == nil {
+					payload["product_name"] = product.Name
+					payload["price"] = product.Price
+				} else {
+					slog.Warn("failed to fetch product for enrichment", "product_id", pidStr, "error", err)
+				}
 			} else {
-				slog.Warn("failed to fetch product for enrichment", "product_id", productID, "error", err)
+				slog.Warn("invalid product_id provided for enrichment", "product_id", pidStr)
 			}
 		}
 	}

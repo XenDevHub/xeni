@@ -89,6 +89,20 @@ func (s *Service) GetOverview() (*AdminOverview, error) {
 	return overview, nil
 }
 
+// GetSystemSetting passes through to Repo
+func (s *Service) GetSystemSetting(key string) (*models.SystemSetting, error) {
+	return s.Repo.GetSystemSetting(key)
+}
+
+// UpsertSystemSetting passes through to Repo and can log audit
+func (s *Service) UpsertSystemSetting(key string, value string, description string, userID string) error {
+	err := s.Repo.UpsertSystemSetting(key, value, description, userID)
+	if err == nil {
+		slog.Info("Admin updated system setting", "key", key, "admin_id", userID)
+	}
+	return err
+}
+
 // InvalidateOverviewCache invalidates the admin overview cache.
 func (s *Service) InvalidateOverviewCache() {
 	if s.Cache != nil {

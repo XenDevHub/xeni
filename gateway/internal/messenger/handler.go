@@ -173,6 +173,23 @@ func (h *Handler) handleIncomingMessage(pageID string, event MessagingEvent) {
 
 	// If conversation is in AI mode, dispatch to conversation worker via RabbitMQ
 	if conv.HandlingMode == models.HandlingModeAI && h.RabbitMQ != nil {
+		// Fetch active shop and global rules
+		var adminRules []models.AgentRule
+		var storeRules []models.AgentRule
+		
+		h.DB.Where("scope = ? AND is_active = ?", models.RuleScopeGlobal, true).Order("priority ASC").Find(&adminRules)
+		h.DB.Where("scope = ? AND shop_id = ? AND is_active = ?", models.RuleScopeShop, page.ShopID, true).Order("priority ASC").Find(&storeRules)
+		
+		globalRules := ""
+		for _, r := range adminRules {
+			globalRules += "- [" + r.Category + "] " + r.Title + ": " + r.Rule + "\n"
+		}
+		
+		shopRules := ""
+		for _, r := range storeRules {
+			shopRules += "- [" + r.Category + "] " + r.Title + ": " + r.Rule + "\n"
+		}
+
 		// Fetch product catalog to give accurate info to AI
 		var products []models.Product
 		h.DB.Where("shop_id = ? AND is_active = true", page.ShopID).Find(&products)
@@ -227,6 +244,8 @@ func (h *Handler) handleIncomingMessage(pageID string, event MessagingEvent) {
 				"message_url":       contentURL,
 				"catalog":           catalog,
 				"history":           history,
+				"global_rules":      globalRules,
+				"shop_rules":        shopRules,
 			},
 		}
 

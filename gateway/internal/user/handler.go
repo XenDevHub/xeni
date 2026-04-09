@@ -100,3 +100,13 @@ func (h *Handler) UploadAvatar(c *fiber.Ctx) error {
 	h.DB.Model(&models.User{}).Where("id = ?", uid).Update("avatar_url", avatarURL)
 	return response.Success(c, map[string]string{"avatar_url": avatarURL})
 }
+
+// GetGlobalAgentRules returns the platform-wide global AI rules (read-only for users).
+// This allows users to see what global constraints govern the AI bot on their shop.
+func (h *Handler) GetGlobalAgentRules(c *fiber.Ctx) error {
+	var rules []models.AgentRule
+	if err := h.DB.Where("scope = ? AND is_active = ?", models.RuleScopeGlobal, true).Order("priority ASC").Find(&rules).Error; err != nil {
+		return response.InternalError(c)
+	}
+	return response.Success(c, rules)
+}

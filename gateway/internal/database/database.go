@@ -67,6 +67,9 @@ func autoMigrate(db *gorm.DB) error {
 		&models.Review{},
 		&models.ReviewSettings{},
 		&models.PlatformMetricsCache{},
+		// Rules Engine
+		&models.SystemSetting{},
+		&models.AgentRule{},
 	)
 }
 
@@ -132,9 +135,9 @@ func Seed(db *gorm.DB) {
 	}
 
 	// Seed Review Settings
-	var settingCount int64
-	db.Model(&models.ReviewSettings{}).Count(&settingCount)
-	if settingCount == 0 {
+	var reviewSettingCount int64
+	db.Model(&models.ReviewSettings{}).Count(&reviewSettingCount)
+	if reviewSettingCount == 0 {
 		db.Create(&models.ReviewSettings{
 			ID:                  1,
 			AutoApprovePremium:  false,
@@ -142,5 +145,31 @@ func Seed(db *gorm.DB) {
 			MinStarToShow:       4,
 			MaxReviewsOnLanding: 6,
 		})
+	}
+
+	// Seed default Global Agent Rules (legacy text)
+	var systemSettingCount int64
+	db.Model(&models.SystemSetting{}).Where("setting_key = 'global_agent_rules'").Count(&systemSettingCount)
+	if systemSettingCount == 0 {
+		slog.Info("seeding default global_agent_rules...")
+		defaultRules := "1. If the customer has already provided their Delivery Address and Phone Number, do NOT ask for it again. Instead, politely confirm the order and tell them it will be processed shortly.\n2. Be respectful and use proper greetings.\n3. Always reply in the same language the customer uses (Bangla or English)."
+		description := "Global Master Prompt for all AI workers across the platform"
+		db.Create(&models.SystemSetting{
+			SettingKey:   "global_agent_rules",
+			SettingValue: &defaultRules,
+			Description:  &description,
+		})
+	}
+
+	// Seed default Global Agent Rules (structured)
+	var agentRuleCount int64
+	db.Model(&models.AgentRule{}).Where("scope = 'global'").Count(&agentRuleCount)
+	if agentRuleCount == 0 {
+		slog.Info("seeding default global agent rules...")
+		defaultRules := models.DefaultGlobalRules()
+		for _, rule := range defaultRules {
+			db.Create(&rule)
+		}
+		slog.Info("seeded global agent rules", "count", len(defaultRules))
 	}
 }

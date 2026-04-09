@@ -24,6 +24,7 @@ import (
 	"github.com/xeni-ai/gateway/internal/pages"
 	"github.com/xeni-ai/gateway/internal/products"
 	"github.com/xeni-ai/gateway/internal/rabbitmq"
+	"github.com/xeni-ai/gateway/internal/rules"
 	"github.com/xeni-ai/gateway/internal/shop"
 	"github.com/xeni-ai/gateway/internal/storage"
 	"github.com/xeni-ai/gateway/internal/user"
@@ -109,13 +110,23 @@ func Setup(
 	userGroup.Put("/me", userHandler.UpdateMe)
 	userGroup.Put("/me/password", userHandler.ChangePassword)
 	userGroup.Post("/me/avatar", userHandler.UploadAvatar)
+	userGroup.Get("/global-rules", userHandler.GetGlobalAgentRules)
 
 	// ── Shop Routes ──
 	shopHandler := shop.NewHandler(db)
+	rulesHandler := rules.NewHandler(db)
+
 	shopGroup := api.Group("/shops", middleware.AuthMiddleware(jwtManager, redis), apiRateLimit)
 	shopGroup.Post("", shopHandler.CreateShop)
 	shopGroup.Get("/me", shopHandler.GetMyShop)
 	shopGroup.Put("/me", shopHandler.UpdateMyShop)
+	
+	// Shop Custom Rules
+	shopGroup.Get("/rules", rulesHandler.ListShopRules)
+	shopGroup.Post("/rules", rulesHandler.CreateShopRule)
+	shopGroup.Put("/rules/:id", rulesHandler.UpdateShopRule)
+	shopGroup.Delete("/rules/:id", rulesHandler.DeleteShopRule)
+	shopGroup.Patch("/rules/:id/toggle", rulesHandler.ToggleShopRule)
 
 	// ── Facebook Pages Routes ──
 	pagesHandler := pages.NewHandler(db, cfg, jwtManager)
@@ -224,6 +235,16 @@ func Setup(
 	
 	adminGroup.Get("/plans/:id", adminHandler.GetPlan)
 	adminGroup.Put("/plans/:id", adminHandler.UpdatePlan)
+
+	adminGroup.Get("/settings/:key", adminHandler.GetSystemSetting)
+	adminGroup.Put("/settings/:key", adminHandler.UpdateSystemSetting)
+
+	// Admin Global Rules
+	adminGroup.Get("/rules", rulesHandler.ListGlobalRules)
+	adminGroup.Post("/rules", rulesHandler.CreateGlobalRule)
+	adminGroup.Put("/rules/:id", rulesHandler.UpdateGlobalRule)
+	adminGroup.Delete("/rules/:id", rulesHandler.DeleteGlobalRule)
+	adminGroup.Patch("/rules/:id/toggle", rulesHandler.ToggleGlobalRule)
 
 	// ── Admin Content Routes ──
 	adminContent := adminGroup.Group("/content")

@@ -22,6 +22,7 @@ const sidebarLinks = [
   { href: '/dashboard/conversations', label: 'Inbox', icon: MessageCircle },
   { href: '/dashboard/pages', label: 'FB Pages', icon: Globe2 },
   { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
+  { href: '/dashboard/rules', label: 'AI Rules Engine', icon: Sparkles },
   { href: '/dashboard/setup', label: 'Setup Guide', icon: HelpCircle },
 ];
 
