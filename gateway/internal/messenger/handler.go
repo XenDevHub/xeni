@@ -192,15 +192,34 @@ func (h *Handler) handleIncomingMessage(pageID string, event MessagingEvent) {
 
 		// Fetch product catalog to give accurate info to AI
 		var products []models.Product
-		h.DB.Where("shop_id = ? AND is_active = true", page.ShopID).Find(&products)
+		h.DB.Preload("Variants").Where("shop_id = ? AND is_active = true", page.ShopID).Find(&products)
 		
 		var catalog []map[string]interface{}
 		for _, p := range products {
-			catalog = append(catalog, map[string]interface{}{
-				"name": p.Name,
-				"price": p.Price,
-				"stock": p.CurrentStock,
-			})
+			item := map[string]interface{}{
+				"id":           p.ID.String(),
+				"name":         p.Name,
+				"price":        p.Price,
+				"has_variants": p.HasVariants,
+				"sku":          p.SKU,
+				"stock":        p.CurrentStock,
+			}
+
+			if p.HasVariants && len(p.Variants) > 0 {
+				vars := []map[string]interface{}{}
+				for _, v := range p.Variants {
+					vars = append(vars, map[string]interface{}{
+						"id":             v.ID.String(),
+						"sku":            v.SKU,
+						"color":          v.Color,
+						"size":           v.Size,
+						"stock":          v.Stock,
+						"price_modifier": v.PriceModifier,
+					})
+				}
+				item["variants"] = vars
+			}
+			catalog = append(catalog, item)
 		}
 
 		// Fetch conversation history (last 10 messages)

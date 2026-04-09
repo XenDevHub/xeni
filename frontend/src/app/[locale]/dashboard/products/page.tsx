@@ -17,6 +17,9 @@ interface Product {
   low_stock_threshold: number;
   is_active: boolean;
   is_out_of_stock: boolean;
+  has_variants: boolean;
+  total_sold: number;
+  variants?: { id: string; sku: string; color: string | null; size: string | null; stock: number; price_modifier: number }[];
   images: string[];
   created_at: string;
 }
@@ -27,7 +30,13 @@ export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: '', name_bn: '', price: 0, sku: '', initial_stock: 0, low_stock_threshold: 5, images: [] as string[] });
+  const [form, setForm] = useState({ 
+    name: '', name_bn: '', price: 0, sku: '', 
+    initial_stock: 0, low_stock_threshold: 5, 
+    has_variants: false,
+    variants: [] as { sku: string; color: string; size: string; stock: number; price_modifier: number }[],
+    images: [] as string[] 
+  });
   const [uploading, setUploading] = useState(false);
   
   // Facebook Post State
@@ -54,13 +63,25 @@ export default function ProductsPage() {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ name: '', name_bn: '', price: 0, sku: '', initial_stock: 0, low_stock_threshold: 5, images: [] });
+    setForm({ 
+      name: '', name_bn: '', price: 0, sku: '', 
+      initial_stock: 0, low_stock_threshold: 5, 
+      has_variants: false,
+      variants: [],
+      images: [] 
+    });
     setShowModal(true);
   };
 
   const openEdit = (p: Product) => {
     setEditing(p);
-    setForm({ name: p.name, name_bn: p.name_bn || '', price: p.price, sku: p.sku || '', initial_stock: p.current_stock, low_stock_threshold: p.low_stock_threshold, images: p.images || [] });
+    setForm({ 
+      name: p.name, name_bn: p.name_bn || '', price: p.price, sku: p.sku || '', 
+      initial_stock: p.current_stock, low_stock_threshold: p.low_stock_threshold, 
+      has_variants: p.has_variants,
+      variants: p.variants?.map(v => ({ sku: v.sku, color: v.color || '', size: v.size || '', stock: v.stock, price_modifier: v.price_modifier })) || [],
+      images: p.images || [] 
+    });
     setShowModal(true);
   };
 
@@ -88,10 +109,24 @@ export default function ProductsPage() {
     if (!form.name.trim()) { toast.error('Name is required'); return; }
     try {
       if (editing) {
-        await api.put(`/products/${editing.id}`, { name: form.name, name_bn: form.name_bn || null, price: form.price, sku: form.sku || null, current_stock: form.initial_stock, low_stock_threshold: form.low_stock_threshold, images: form.images });
+        await api.put(`/products/${editing.id}`, { 
+          name: form.name, 
+          name_bn: form.name_bn || null, 
+          price: form.price, 
+          sku: form.sku || null, 
+          current_stock: form.initial_stock, 
+          low_stock_threshold: form.low_stock_threshold, 
+          has_variants: form.has_variants,
+          variants: form.variants,
+          images: form.images 
+        });
         toast.success('Product updated');
       } else {
-        await api.post('/products', form);
+        await api.post('/products', {
+          ...form,
+          name_bn: form.name_bn || null,
+          sku: form.sku || null
+        });
         toast.success('Product created! 🎉');
       }
       setShowModal(false);
@@ -311,16 +346,22 @@ export default function ProductsPage() {
                         )}
                         <div>
                           <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{p.name}</p>
-                          {p.name_bn && <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{p.name_bn}</p>}
-                          {p.sku && <p className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>SKU: {p.sku}</p>}
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {p.name_bn && <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5" style={{ color: 'var(--text-muted)' }}>{p.name_bn}</span>}
+                            {p.sku && <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-mono">#{p.sku}</span>}
+                            {p.has_variants && <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400">{p.variants?.length} variants</span>}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 font-medium" style={{ color: 'var(--text-primary)' }}>৳{p.price.toLocaleString()}</td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <span style={{ color: 'var(--text-primary)' }}>{p.current_stock}</span>
-                        {p.current_stock <= p.low_stock_threshold && p.current_stock > 0 && <AlertTriangle className="w-4 h-4 text-amber-400" />}
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2">
+                          <span style={{ color: 'var(--text-primary)' }}>{p.current_stock}</span>
+                          {p.current_stock <= p.low_stock_threshold && p.current_stock > 0 && <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />}
+                        </div>
+                        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{p.total_sold} sold</span>
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -354,14 +395,62 @@ export default function ProductsPage() {
               </div>
               <input className="input-field" placeholder="Product name *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
               <input className="input-field" placeholder="নাম (বাংলা)" value={form.name_bn} onChange={e => setForm({ ...form, name_bn: e.target.value })} />
-              <div className="grid grid-cols-2 gap-3">
-                <input className="input-field" type="number" placeholder="Price (৳)" value={form.price || ''} onChange={e => setForm({ ...form, price: Number(e.target.value) })} />
-                <input className="input-field" placeholder="SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value })} />
+              <div className="grid grid-cols-2 gap-3 items-center">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
+                  <input type="checkbox" id="has_variants" checked={form.has_variants} onChange={e => setForm({ ...form, has_variants: e.target.checked })} className="w-4 h-4 accent-primary" />
+                  <label htmlFor="has_variants" className="text-sm cursor-pointer" style={{ color: 'var(--text-primary)' }}>Has Variations</label>
+                </div>
+                {!form.has_variants ? (
+                  <input className="input-field" placeholder="Base SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value.toUpperCase() })} />
+                ) : (
+                   <div className="text-[10px] text-right" style={{ color: 'var(--text-muted)' }}>Inventory tracked per variant</div>
+                )}
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <input className="input-field" type="number" placeholder="Stock" value={form.initial_stock || ''} onChange={e => setForm({ ...form, initial_stock: Number(e.target.value) })} />
-                <input className="input-field" type="number" placeholder="Low stock at" value={form.low_stock_threshold || ''} onChange={e => setForm({ ...form, low_stock_threshold: Number(e.target.value) })} />
-              </div>
+
+              {!form.has_variants ? (
+                <div className="grid grid-cols-2 gap-3">
+                  <input className="input-field" type="number" placeholder="Stock" value={form.initial_stock || ''} onChange={e => setForm({ ...form, initial_stock: Number(e.target.value) })} />
+                  <input className="input-field" type="number" placeholder="Low stock at" value={form.low_stock_threshold || ''} onChange={e => setForm({ ...form, low_stock_threshold: Number(e.target.value) })} />
+                </div>
+              ) : (
+                <div className="space-y-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center justify-between">
+                     <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Variations</span>
+                     <button onClick={() => {
+                       const nextSku = (form.sku || form.name.substring(0,3).toUpperCase()) + "-" + (form.variants.length + 1);
+                       setForm({ ...form, variants: [...form.variants, { sku: nextSku, color: '', size: '', stock: 0, price_modifier: 0 }] });
+                     }} className="text-[10px] text-primary hover:underline font-bold">+ Add Row</button>
+                  </div>
+                  
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                    {form.variants.map((v, idx) => (
+                      <div key={idx} className="grid grid-cols-5 gap-1.5 items-center bg-black/20 p-1.5 rounded-lg border border-white/5">
+                        <input className="bg-transparent text-[10px] outline-none border-b border-white/10 px-1 col-span-1" placeholder="Color" value={v.color} onChange={e => {
+                          const newVariants = [...form.variants];
+                          newVariants[idx].color = e.target.value;
+                          setForm({ ...form, variants: newVariants });
+                        }} />
+                        <input className="bg-transparent text-[10px] outline-none border-b border-white/10 px-1 col-span-1" placeholder="Size" value={v.size} onChange={e => {
+                          const newVariants = [...form.variants];
+                          newVariants[idx].size = e.target.value;
+                          setForm({ ...form, variants: newVariants });
+                        }} />
+                        <input className="bg-transparent text-[10px] outline-none border-b border-white/10 px-1 col-span-1" type="number" placeholder="Qty" value={v.stock || ''} onChange={e => {
+                          const newVariants = [...form.variants];
+                          newVariants[idx].stock = Number(e.target.value);
+                          setForm({ ...form, variants: newVariants });
+                        }} />
+                        <input className="bg-transparent text-[10px] font-mono outline-none border-b border-white/10 px-1 col-span-1" placeholder="SKU" value={v.sku} onChange={e => {
+                          const newVariants = [...form.variants];
+                           newVariants[idx].sku = e.target.value.toUpperCase();
+                           setForm({ ...form, variants: newVariants });
+                        }} />
+                        <button onClick={() => setForm({ ...form, variants: form.variants.filter((_, i) => i !== idx) })} className="text-danger opacity-50 hover:opacity-100 flex justify-center"><Trash2 className="w-3 h-3" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <label className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Product Images</label>
                 <div className="flex gap-2 flex-wrap mb-2">

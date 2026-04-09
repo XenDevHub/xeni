@@ -47,6 +47,14 @@ func Connect(cfg *config.DBConfig, env string) (*gorm.DB, error) {
 }
 
 func autoMigrate(db *gorm.DB) error {
+	db.Exec("CREATE TYPE task_status AS ENUM ('queued', 'processing', 'completed', 'failed')")
+	db.Exec("CREATE TYPE order_payment_method AS ENUM ('bkash', 'nagad', 'cod')")
+	db.Exec("CREATE TYPE order_payment_status AS ENUM ('pending', 'verified', 'failed', 'manual_required')")
+	db.Exec("CREATE TYPE order_delivery_status AS ENUM ('pending', 'booked', 'in_transit', 'delivered', 'returned')")
+	db.Exec("CREATE TYPE order_placed_by AS ENUM ('ai', 'human')")
+	db.Exec("CREATE TYPE stock_movement_type AS ENUM ('sale', 'restock', 'adjustment', 'return')")
+	db.Exec("CREATE TYPE conversation_handling_mode AS ENUM ('ai', 'human')")
+
 	modelsToMigrate := []interface{}{
 		&models.User{},
 		&models.RefreshToken{},
@@ -54,6 +62,8 @@ func autoMigrate(db *gorm.DB) error {
 		&models.Shop{},
 		&models.ConnectedPage{},
 		&models.Product{},
+		&models.ProductVariant{},
+		&models.InventoryLog{},
 		&models.Order{},
 		&models.Conversation{},
 		&models.Message{},

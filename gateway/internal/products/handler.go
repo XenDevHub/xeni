@@ -74,7 +74,15 @@ func (h *Handler) CreateProduct(c *fiber.Ctx) error {
 		SKU               *string  `json:"sku"`
 		InitialStock      int      `json:"initial_stock"`
 		LowStockThreshold int      `json:"low_stock_threshold"`
+		HasVariants       bool     `json:"has_variants"`
 		Images            []string `json:"images"`
+		Variants          []struct {
+			SKU           string  `json:"sku"`
+			Color         *string `json:"color"`
+			Size          *string `json:"size"`
+			Stock         int     `json:"stock"`
+			PriceModifier float64 `json:"price_modifier"`
+		} `json:"variants"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return response.BadRequest(c, "Invalid request body")
@@ -109,6 +117,42 @@ func (h *Handler) CreateProduct(c *fiber.Ctx) error {
 		return response.InternalError(c)
 	}
 
+	// Create variants if any
+	if req.HasVariants && len(req.Variants) > 0 {
+		for _, v := range req.Variants {
+			variant := models.ProductVariant{
+				ProductID:     product.ID,
+				SKU:           v.SKU,
+				Color:         v.Color,
+				Size:          v.Size,
+				Stock:         v.Stock,
+				PriceModifier: v.PriceModifier,
+			}
+			h.DB.Create(&variant)
+			
+			// Log initial stock for variant
+			h.DB.Create(&models.InventoryLog{
+				ProductID: product.ID,
+				VariantID: &variant.ID,
+				Type:      models.MovementRestock,
+				Quantity:  v.Stock,
+				OldStock:  0,
+				NewStock:  v.Stock,
+				Notes:     &[]string{"Initial stock"}[0],
+			})
+		}
+	} else if req.InitialStock > 0 {
+		// Log initial stock for simple product
+		h.DB.Create(&models.InventoryLog{
+			ProductID: product.ID,
+			Type:      models.MovementRestock,
+			Quantity:  req.InitialStock,
+			OldStock:  0,
+			NewStock:  req.InitialStock,
+			Notes:     &[]string{"Initial stock"}[0],
+		})
+	}
+
 	return response.Created(c, product)
 }
 
@@ -141,7 +185,7 @@ func (h *Handler) ListProducts(c *fiber.Ctx) error {
 	query.Model(&models.Product{}).Count(&total)
 
 	var products []models.Product
-	query.Order("created_at DESC").Offset((page - 1) * perPage).Limit(perPage).Find(&products)
+	query.Preload("Variants").Order("created_at DESC").Offset((page - 1) * perPage).Limit(perPage).Find(&products)
 
 	totalPages := int(total) / perPage
 	if int(total)%perPage > 0 {

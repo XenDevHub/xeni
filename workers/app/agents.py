@@ -43,7 +43,25 @@ class ConversationAgent(BaseWorker):
 
         catalog_text = "No products available at the moment."
         if catalog:
-            catalog_text = "\n".join([f"- {p.get('name')} (Price: ৳{p.get('price')}, Stock: {p.get('stock')})" for p in catalog])
+            items = []
+            for p in catalog:
+                info = f"- {p.get('name')}"
+                if p.get('sku'):
+                    info += f" (SKU: {p.get('sku')})"
+                
+                if p.get('variants'):
+                    vars_text = []
+                    for v in p.get('variants'):
+                        v_label = []
+                        if v.get('color'): v_label.append(f"Color: {v.get('color')}")
+                        if v.get('size'): v_label.append(f"Size: {v.get('size')}")
+                        v_info = f"  * Variant: {' / '.join(v_label)} (SKU: {v.get('sku')}, Stock: {v.get('stock')})"
+                        vars_text.append(v_info)
+                    info += "\n" + "\n".join(vars_text)
+                else:
+                    info += f" (Price: ৳{p.get('price')}, Stock: {p.get('stock')})"
+                items.append(info)
+            catalog_text = "\n".join(items)
 
         # Format history string
         history_text = "No prior history."
@@ -78,6 +96,8 @@ class ConversationAgent(BaseWorker):
 
         Instructions:
         - Maintain the context of the conversation. If a customer has already provided info, don't ask for it again.
+        - Variated Products: If a product has multiple colors or sizes (variants), you MUST ask the customer for their preference (e.g., "Which color do you want?") before summarizing the order.
+        - Product Codes: If a customer mentions a specific SKU, identify the exact product/variant immediately.
         - Language Tone: Use simple, casual, and respectful Bengali as spoken in daily chat. 
         - DO NOT use highly formal or Sanskrit-heavy words (e.g., avoid 'কৃপয়া', 'নিশ্চিত করুন', 'অপেক্ষা করুন').
         - Use everyday words: Instead of 'নিন', use 'নাও' (if very casual) or 'পাবেন', 'দিন', 'জানাবেন'.

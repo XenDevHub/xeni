@@ -81,11 +81,15 @@ type Product struct {
 	LowStockThreshold int       `gorm:"default:5;not null" json:"low_stock_threshold"`
 	IsActive          bool      `gorm:"default:true;not null" json:"is_active"`
 	IsOutOfStock      bool      `gorm:"default:false;not null" json:"is_out_of_stock"`
+	HasVariants       bool      `gorm:"default:false;not null" json:"has_variants"`
+	TotalSold         int       `gorm:"default:0;not null" json:"total_sold"`
 	Images            JSON      `gorm:"type:jsonb;default:'[]'" json:"images"`
 	CreatedAt         time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt         time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
-	Shop Shop `gorm:"foreignKey:ShopID;constraint:OnDelete:CASCADE" json:"-"`
+	Shop          Shop             `gorm:"foreignKey:ShopID;constraint:OnDelete:CASCADE" json:"-"`
+	Variants      []ProductVariant `gorm:"foreignKey:ProductID" json:"variants,omitempty"`
+	InventoryLogs []InventoryLog   `gorm:"foreignKey:ProductID" json:"inventory_logs,omitempty"`
 }
 
 func (p *Product) BeforeCreate(tx *gorm.DB) error {
