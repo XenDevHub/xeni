@@ -1,5 +1,4 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '@/store/auth';
 import toast from 'react-hot-toast';
 

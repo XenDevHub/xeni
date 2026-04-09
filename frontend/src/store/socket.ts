@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from './auth';
 
 export type SocketEvent =
@@ -9,87 +8,118 @@ export type SocketEvent =
   | 'order_updated'
   | 'stock_alert'
   | 'task_completed'
+  | 'task_failed'
   | 'escalation_needed'
   | 'subscription_updated'
   | 'admin.activity';
 
+interface WSPayload {
+  event: SocketEvent;
+  payload: any;
+  task_id?: string;
+}
+
 interface SocketState {
-  socket: Socket | null;
+  ws: WebSocket | null;
   isConnected: boolean;
   lastEvent: { event: SocketEvent; payload: unknown; timestamp: number } | null;
+  handlers: Map<string, Set<(payload: any) => void>>;
   connect: () => void;
   disconnect: () => void;
   on: (event: SocketEvent, handler: (payload: unknown) => void) => void;
   off: (event: SocketEvent, handler: (payload: unknown) => void) => void;
 }
 
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/ws';
+const getWsUrl = () => {
+  const envUrl = process.env.NEXT_PUBLIC_WS_URL;
+  if (envUrl) return envUrl;
+  
+  // Fallback / Detection
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    // If we're on the production domain, use the /ws endpoint on the same host
+    if (host.includes('xentroinfotech.com')) {
+      return `${protocol}//${host}/ws`;
+    }
+  }
+  return 'ws://localhost:8080/ws';
+};
 
 export const useSocketStore = create<SocketState>()((set, get) => ({
-  socket: null,
+  ws: null,
   isConnected: false,
   lastEvent: null,
+  handlers: new Map(),
 
   connect: () => {
-    const existing = get().socket;
-    if (existing?.connected) return;
+    const existing = get().ws;
+    if (existing && (existing.readyState === WebSocket.OPEN || existing.readyState === WebSocket.CONNECTING)) return;
 
     const { accessToken } = useAuthStore.getState();
     if (!accessToken) return;
 
-    const socket = io(WS_URL, {
-      auth: { token: accessToken },
-      transports: ['websocket'],
-      reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 2000,
-    });
+    const url = getWsUrl();
+    console.log(`[WS] Connecting to ${url}...`);
+    
+    const ws = new WebSocket(`${url}?token=${accessToken}`);
 
-    socket.on('connect', () => {
+    ws.onopen = () => {
+      console.log('[WS] Connected successfully');
       set({ isConnected: true });
-    });
+    };
 
-    socket.on('disconnect', () => {
-      set({ isConnected: false });
-    });
+    ws.onmessage = (event) => {
+      try {
+        const data: WSPayload = JSON.parse(event.data);
+        const { event: eventName, payload } = data;
+        
+        // Update last event
+        set({ lastEvent: { event: eventName, payload, timestamp: Date.now() } });
 
-    // Generic event listener for last event tracking
-    const trackedEvents: SocketEvent[] = [
-      'new_message',
-      'message_replied',
-      'order_created',
-      'order_updated',
-      'stock_alert',
-      'task_completed',
-      'escalation_needed',
-      'subscription_updated',
-      'admin.activity',
-    ];
+        // Trigger handlers
+        const handlers = get().handlers.get(eventName);
+        if (handlers) {
+          handlers.forEach(handler => handler(payload));
+        }
+      } catch (e) {
+        console.error('[WS] Message parse error:', e);
+      }
+    };
 
-    trackedEvents.forEach((event) => {
-      socket.on(event, (payload: unknown) => {
-        set({ lastEvent: { event, payload, timestamp: Date.now() } });
-      });
-    });
+    ws.onclose = (e) => {
+      set({ isConnected: false, ws: null });
+      if (e.code !== 1000) { // Not normal closure
+        console.log('[WS] Connection lost, reconnecting in 3s...');
+        setTimeout(() => get().connect(), 3000);
+      }
+    };
 
-    set({ socket });
+    ws.onerror = (err) => {
+      console.error('[WS] WebSocket Error:', err);
+    };
+
+    set({ ws });
   },
 
   disconnect: () => {
-    const { socket } = get();
-    if (socket) {
-      socket.disconnect();
-      set({ socket: null, isConnected: false });
+    const { ws } = get();
+    if (ws) {
+      ws.close(1000); // Normal closure
+      set({ ws: null, isConnected: false });
     }
   },
 
   on: (event, handler) => {
-    const { socket } = get();
-    socket?.on(event, handler);
+    const handlers = get().handlers;
+    if (!handlers.has(event)) {
+      handlers.set(event, new Set());
+    }
+    handlers.get(event)?.add(handler);
   },
 
   off: (event, handler) => {
-    const { socket } = get();
-    socket?.off(event, handler);
+    const handlers = get().handlers;
+    handlers.get(event)?.delete(handler);
   },
 }));
