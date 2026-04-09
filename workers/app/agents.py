@@ -97,11 +97,8 @@ class ConversationAgent(BaseWorker):
         Instructions:
         - Maintain the context of the conversation. If a customer has already provided info, don't ask for it again.
         - Product Codes: If a customer mentions a specific SKU, identify the exact product/variant immediately.
-        - Order Finalization: If you have already given a summary AND the user says "OK", "Confirm", or "ওকে", you MUST set "action" to "finalize_order" and populate "order_details" with the finalized info.
-        - Language Tone: Use simple, casual, and respectful Bengali as spoken in daily chat. 
-        - DO NOT use highly formal or Sanskrit-heavy words (e.g., avoid 'কৃপয়া', 'নিশ্চিত করুন', 'অপেক্ষা করুন').
-        - Use everyday words: Instead of 'নিন', use 'নাও' (if very casual) or 'পাবেন', 'দিন', 'জানাবেন'.
-        - When asking for confirmation, provide a simple shortcut. E.g., "(অর্ডারটি কনফার্ম করতে শুধু ওকে (OK) লিখুন)".
+        - Order Finalization: If you have already given a summary AND the user explicitly says "Order Confirm", "অর্ডার কনফার্ম", or a very clear confirmation, you MUST set "action" to "finalize_order".
+        - Confirmation Phrase: Always ask the customer to write "Order Confirm" specifically to finalize their order. E.g., "(অর্ডারটি ফাইনাল করতে দয়া করে 'Order Confirm' লিখে মেসেজ দিন)".
         - Use emojis naturally to stay friendly.
         
         Return your response strictly as a JSON object with:
