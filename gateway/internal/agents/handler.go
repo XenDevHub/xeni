@@ -10,8 +10,13 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
+	"bytes"
+	"fmt"
+	"net/http"
+
 	"github.com/xeni-ai/gateway/internal/auth"
 	"github.com/xeni-ai/gateway/internal/cache"
+	"github.com/xeni-ai/gateway/internal/config"
 	"github.com/xeni-ai/gateway/internal/models"
 	"github.com/xeni-ai/gateway/internal/rabbitmq"
 	"github.com/xeni-ai/gateway/internal/websocket"

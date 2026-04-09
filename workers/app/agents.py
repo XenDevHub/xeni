@@ -53,8 +53,10 @@ class ConversationAgent(BaseWorker):
                     vars_text = []
                     for v in p.get('variants'):
                         v_label = []
-                        if v.get('color'): v_label.append(f"Color: {v.get('color')}")
-                        if v.get('size'): v_label.append(f"Size: {v.get('size')}")
+                        if v.get('color'):
+                            v_label.append(f"Color: {v.get('color')}")
+                        if v.get('size'):
+                            v_label.append(f"Size: {v.get('size')}")
                         v_info = f"  * Variant: {' / '.join(v_label)} (SKU: {v.get('sku')}, Stock: {v.get('stock')})"
                         vars_text.append(v_info)
                     info += "\n" + "\n".join(vars_text)
