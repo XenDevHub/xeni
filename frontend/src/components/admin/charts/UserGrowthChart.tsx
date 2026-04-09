@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface ChartData {
@@ -8,6 +9,14 @@ interface ChartData {
 }
 
 export function UserGrowthChart({ data }: { data: ChartData[] }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return <div className="w-full h-[350px] bg-white/5 animate-pulse rounded-xl" />;
+
   return (
     <div className="w-full h-[350px]">
       <ResponsiveContainer width="100%" height="100%">

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 import { StatCard } from '@/components/admin/StatCard';
@@ -32,6 +33,12 @@ const MOCK_PLAN_DISTRIBUTION = [
 ];
 
 export default function AdminOverview() {
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { data: overview, isLoading } = useQuery({
     queryKey: ['admin-overview'],
     queryFn: async () => {
@@ -102,25 +109,29 @@ export default function AdminOverview() {
             <PieChart className="w-5 h-5 text-primary" /> Plan Distribution
           </h3>
           <div className="h-[250px] relative">
-            <ResponsiveContainer width="100%" height="100%">
-              <RechartsPie>
-                <Pie 
-                  data={overview?.plan_distribution || []} 
-                  dataKey="value" 
-                  nameKey="name" 
-                  cx="50%" 
-                  cy="50%" 
-                  innerRadius={60} 
-                  outerRadius={80} 
-                  paddingAngle={5}
-                >
-                  {(overview?.plan_distribution || []).map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={entry.color || (index === 0 ? '#06B6D4' : index === 1 ? '#7C3AED' : '#10B981')} stroke="rgba(255,255,255,0.1)" />
-                  ))}
-                </Pie>
-                <PieTooltip contentStyle={{ backgroundColor: '#0f0f23', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }} />
-              </RechartsPie>
-            </ResponsiveContainer>
+            {!mounted ? (
+              <div className="w-full h-full bg-white/5 animate-pulse rounded-full" />
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPie>
+                  <Pie 
+                    data={overview?.plan_distribution || []} 
+                    dataKey="value" 
+                    nameKey="name" 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius={60} 
+                    outerRadius={80} 
+                    paddingAngle={5}
+                  >
+                    {(overview?.plan_distribution || []).map((entry: any, index: number) => (
+                      <Cell key={`cell-${index}`} fill={entry.color || (index === 0 ? '#06B6D4' : index === 1 ? '#7C3AED' : '#10B981')} stroke="rgba(255,255,255,0.1)" />
+                    ))}
+                  </Pie>
+                  <PieTooltip contentStyle={{ backgroundColor: '#0f0f23', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }} />
+                </RechartsPie>
+              </ResponsiveContainer>
+            )}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-sm text-dark-500">Total Active</span>
               <span className="text-xl font-bold text-white">{overview?.plan_distribution?.reduce((acc: number, curr: any) => acc + curr.value, 0) || '0'}</span>

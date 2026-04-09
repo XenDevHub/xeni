@@ -7,6 +7,17 @@ import ThemeWrapper from '@/components/ThemeWrapper';
 import GoogleProvider from '@/components/GoogleProvider';
 import { UpgradeModalProvider } from '@/components/UpgradeModal';
 import Providers from '@/components/Providers';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Xeni AI - Your Intelligent E-commerce Assistant',
+  description: 'Automate your Facebook shop with Xeni AI agents.',
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
+};
 
 export default async function LocaleLayout({
   children,
