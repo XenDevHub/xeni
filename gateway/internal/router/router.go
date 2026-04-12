@@ -75,10 +75,16 @@ func Setup(
 
 	api := app.Group("/api")
 
-	// ── Messenger Webhook (no auth — called by Meta) ──
+	// ── Messenger & WhatsApp Webhooks (no auth — called by Meta) ──
 	messengerHandler := messenger.NewHandler(db, cfg, rmqClient)
+	
+	// Messenger
 	api.Get("/webhooks/messenger", messengerHandler.WebhookVerify)
 	api.Post("/webhooks/messenger", messengerHandler.WebhookReceive)
+	
+	// WhatsApp (Uses same verification logic as Messenger)
+	api.Get("/webhooks/whatsapp", messengerHandler.WebhookVerify)
+	api.Post("/webhooks/whatsapp", messengerHandler.WebhookReceive)
 
 	// ── Auth Routes ──
 	emailSvc := email.NewResendService(cfg.Email.ResendAPIKey, cfg.Email.FromEmail)

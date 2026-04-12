@@ -133,16 +133,22 @@ func main() {
 
 func errorHandler(c *fiber.Ctx, err error) error {
 	code := fiber.StatusInternalServerError
+	msg := "An internal error occurred"
+	
 	if e, ok := err.(*fiber.Error); ok {
 		code = e.Code
+		msg = e.Message
 	}
+	
 	slog.Error("unhandled error",
 		"path", c.Path(),
 		"method", c.Method(),
 		"error", err.Error(),
+		"status", code,
 	)
+
 	return c.Status(code).JSON(fiber.Map{
 		"success": false,
-		"error":   "An internal error occurred",
+		"error":   msg,
 	})
 }
