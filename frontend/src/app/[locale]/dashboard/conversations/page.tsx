@@ -11,6 +11,7 @@ import api from '@/lib/api';
 import toast from 'react-hot-toast';
 import { useXeniSocket } from '@/hooks/useXeniSocket';
 import { useTranslations } from 'next-intl';
+import CreateOrderModal from './CreateOrderModal';
 
 interface Conversation {
   id: string;
@@ -51,6 +52,7 @@ export default function ConversationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
+  const [isCreateOrderOpen, setIsCreateOrderOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -459,7 +461,7 @@ export default function ConversationsPage() {
 
                {/* Actions */}
                <div className="pt-4 space-y-2">
-                  <button className="w-full btn-primary py-2.5 text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+                  <button onClick={() => setIsCreateOrderOpen(true)} className="w-full btn-primary py-2.5 text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
                     <ShoppingBag className="w-4 h-4" /> Create New Order
                   </button>
                   <button className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all border border-white/10">
@@ -478,6 +480,20 @@ export default function ConversationsPage() {
           </div>
         )}
       </div>
+
+      <CreateOrderModal 
+        isOpen={isCreateOrderOpen}
+        onClose={() => setIsCreateOrderOpen(false)}
+        customerName={selected?.customer_name || ''}
+        customerPsid={selected?.customer_psid || ''}
+        onSuccess={() => {
+           if (selected) {
+              // Refresh orders list
+              api.get(`/orders`, { params: { psid: selected.customer_psid } })
+                 .then(res => setCustomerOrders(res.data.data || []));
+           }
+        }}
+      />
     </div>
   );
 }
