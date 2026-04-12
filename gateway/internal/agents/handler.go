@@ -391,6 +391,13 @@ func (h *Handler) createOrderFromAI(result rabbitmq.ResultMessage, details map[s
 				qty := 1
 				if q, ok := item["quantity"].(float64); ok { qty = int(q) }
 
+				// SECURITY ENSURANCE: Verify Product actually belongs to this Shop
+				var prod models.Product
+				if err := h.DB.Select("id").Where("id = ? AND shop_id = ?", pid, sid).First(&prod).Error; err != nil {
+					slog.Warn("Security alert: AI processed a product not belonging to this shop", "product_id", pid, "shop_id", sid)
+					continue // Block manipulation
+				}
+
 				if vidStr, ok := item["variant_id"].(string); ok && vidStr != "" {
 					vid, _ := uuid.Parse(vidStr)
 					tx.Model(&models.ProductVariant{}).Where("id = ?", vid).Update("stock", gorm.Expr("stock - ?", qty))
