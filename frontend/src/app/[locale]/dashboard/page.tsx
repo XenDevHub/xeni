@@ -287,7 +287,7 @@ export default function DashboardOverview() {
             </div>
             <div>
               <h4 className="text-white font-bold text-sm">Human Intervention Required</h4>
-              <p className="text-dark-300 text-xs mt-0.5">There are <strong className="text-white">{(stats?.conversations as any)?.human_intervention_needed}</strong> open chats that AI couldn't resolve or escalated.</p>
+              <p className="text-dark-300 text-xs mt-0.5">There are <strong className="text-white">{(stats?.conversations as any)?.human_intervention_needed}</strong> open chats that AI couldn&apos;t resolve or escalated.</p>
             </div>
           </div>
           <Link href="/dashboard/conversations" className="bg-danger text-white text-xs font-bold px-5 py-2.5 rounded-lg hover:bg-red-600 transition-colors shadow-lg">
