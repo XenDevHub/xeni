@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShoppingBag, Filter, Eye, ChevronDown, CheckCircle2, 
@@ -587,7 +588,9 @@ export default function OrdersPage() {
               >
                 <X className="w-5 h-5" />
               </button>
-              <img src={screenshotModal} alt="Payment Screenshot" className="w-full h-auto rounded-2xl border border-white/10" />
+              <div className="relative w-full aspect-[3/4] rounded-2xl border border-white/10 overflow-hidden">
+                <Image src={screenshotModal} alt="Payment Screenshot" fill className="object-contain" />
+              </div>
             </motion.div>
           </div>
         )}

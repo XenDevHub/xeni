@@ -468,7 +468,7 @@ export default function ProductsPage() {
                     ))}
                   </div>
                   {form.variants.length === 0 && (
-                    <div className="text-center py-4 text-[11px]" style={{ color: 'var(--text-muted)' }}>No variants added yet. Click "+ Add Variant"</div>
+                    <div className="text-center py-4 text-[11px]" style={{ color: 'var(--text-muted)' }}>No variants added yet. Click &quot;+ Add Variant&quot;</div>
                   )}
                 </div>
               )}
