@@ -73,6 +73,7 @@ type MetaConfig struct {
 	WebhookVerifyToken    string
 	APIVersion            string
 	WhatsAppPhoneNumberID string
+	WhatsAppBusinessID    string
 	WhatsAppAccessToken   string
 }
 
@@ -153,6 +154,7 @@ func Load() (*Config, error) {
 			WebhookVerifyToken:    getEnv("FACEBOOK_WEBHOOK_VERIFY_TOKEN", ""),
 			APIVersion:            getEnv("META_PAGE_API_VERSION", "v19.0"),
 			WhatsAppPhoneNumberID: getEnv("META_WHATSAPP_PHONE_NUMBER_ID", ""),
+			WhatsAppBusinessID:    getEnv("META_WHATSAPP_BUSINESS_ACCOUNT_ID", ""),
 			WhatsAppAccessToken:   getEnv("META_WHATSAPP_ACCESS_TOKEN", ""),
 		},
 		SSLCommerz: SSLCommerzConfig{
