@@ -41,7 +41,7 @@ export function ConversationMetricsChart({ aiMessages, humanMessages }: Conversa
               color: '#fff'
             }}
             itemStyle={{ color: '#fff' }}
-            formatter={(value: number) => {
+            formatter={(value: any) => {
               if (!hasData) return ['No messages', 'Status'];
               return [value, 'Messages'];
             }}
