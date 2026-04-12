@@ -75,8 +75,11 @@ class ConversationAgent(BaseWorker):
             history_text = "\n".join(formatted_history)
 
         # Format custom rule strings safely
-        global_rules_text = f"\n        ---\n        GLOBAL SYSTEM RULES (CRITICAL):\n        {global_rules}\n" if global_rules else ""
-        shop_rules_text = f"\n        ---\n        SHOP CUSTOM RULES:\n        {shop_rules}\n" if shop_rules else ""
+        # IMPORTANT: Escape any curly braces in rules to prevent f-string ParseErrors
+        safe_global_rules = global_rules.replace('{', '{{').replace('}', '}}') if global_rules else ""
+        safe_shop_rules = shop_rules.replace('{', '{{').replace('}', '}}') if shop_rules else ""
+        global_rules_text = f"\n        ---\n        GLOBAL SYSTEM RULES (CRITICAL):\n        {safe_global_rules}\n" if safe_global_rules else ""
+        shop_rules_text = f"\n        ---\n        SHOP CUSTOM RULES:\n        {safe_shop_rules}\n" if safe_shop_rules else ""
 
         prompt = f"""
         You are Xeni, a friendly and helpful local shop assistant for an F-commerce business in Bangladesh.
