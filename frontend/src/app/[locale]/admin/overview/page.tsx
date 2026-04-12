@@ -124,9 +124,10 @@ export default function AdminOverview() {
                     outerRadius={80} 
                     paddingAngle={5}
                   >
-                    {(overview?.plan_distribution || []).map((entry: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={entry.color || (index === 0 ? '#06B6D4' : index === 1 ? '#7C3AED' : '#10B981')} stroke="rgba(255,255,255,0.1)" />
-                    ))}
+                    {(overview?.plan_distribution || []).map((entry: any, index: number) => {
+                      const COLORS = ['#06B6D4', '#7C3AED', '#10B981', '#F59E0B', '#EF4444'];
+                      return <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(255,255,255,0.1)" />;
+                    })}
                   </Pie>
                   <PieTooltip contentStyle={{ backgroundColor: '#0f0f23', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }} />
                 </RechartsPie>
@@ -134,16 +135,19 @@ export default function AdminOverview() {
             )}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-sm text-dark-500">Total Active</span>
-              <span className="text-xl font-bold text-white">{overview?.plan_distribution?.reduce((acc: number, curr: any) => acc + curr.value, 0) || '0'}</span>
+              <span className="text-xl font-bold text-white">{overview?.plan_distribution?.reduce((acc: number, curr: any) => acc + (curr.value || curr.count || 0), 0) || '0'}</span>
             </div>
           </div>
-          <div className="flex justify-center gap-4 mt-4">
-            {(overview?.plan_distribution || []).map((plan: any) => (
-              <div key={plan.name} className="flex items-center gap-1.5 text-xs text-dark-500">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: plan.color }} />
-                {plan.name}
-              </div>
-            ))}
+          <div className="flex justify-center gap-4 mt-4 flex-wrap">
+            {(overview?.plan_distribution || []).map((plan: any, index: number) => {
+              const COLORS = ['#06B6D4', '#7C3AED', '#10B981', '#F59E0B', '#EF4444'];
+              return (
+                <div key={plan.name || plan.plan} className="flex items-center gap-1.5 text-xs text-dark-500">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+                  {plan.name || plan.plan} ({plan.value || plan.count || 0})
+                </div>
+              );
+            })}
           </div>
         </div>
 

@@ -238,6 +238,7 @@ func Setup(
 
 	adminGroup.Get("/settings/:key", adminHandler.GetSystemSetting)
 	adminGroup.Put("/settings/:key", adminHandler.UpdateSystemSetting)
+	adminGroup.Get("/activity", adminHandler.GetRecentActivity)
 
 	// Admin Global Rules
 	adminGroup.Get("/rules", rulesHandler.ListGlobalRules)

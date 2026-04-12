@@ -458,3 +458,18 @@ func (h *Handler) UpdateSystemSetting(c *fiber.Ctx) error {
 
 	return response.Success(c, fiber.Map{"message": "Setting updated successfully"})
 }
+
+// GetRecentActivity returns the most recent audit log entries for the Live Activity Feed.
+func (h *Handler) GetRecentActivity(c *fiber.Ctx) error {
+	limit := c.QueryInt("limit", 20)
+	if limit > 50 {
+		limit = 50
+	}
+
+	items, err := h.Service.Repo.GetRecentActivity(limit)
+	if err != nil {
+		return response.InternalError(c)
+	}
+
+	return response.Success(c, items)
+}

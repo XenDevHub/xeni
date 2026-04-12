@@ -172,7 +172,7 @@ func (r *Repository) GetUserGrowthChart(months int) ([]UserGrowthPoint, error) {
 	query := `
 		SELECT 
 			TO_CHAR(created_at, 'YYYY-MM') as month,
-			COUNT(*) as total_users
+			COUNT(*) as users
 		FROM users
 		WHERE created_at >= NOW() - INTERVAL '%d months' AND deleted_at IS NULL
 		GROUP BY TO_CHAR(created_at, 'YYYY-MM')
@@ -202,7 +202,9 @@ func (r *Repository) GetUserGrowthChart(months int) ([]UserGrowthPoint, error) {
 
 type PlanDistribution struct {
 	Plan       string  `json:"plan"`
+	Name       string  `json:"name"`
 	Count      int64   `json:"count"`
+	Value      int64   `json:"value"`
 	Percentage float64 `json:"percentage"`
 }
 
@@ -211,7 +213,9 @@ func (r *Repository) GetPlanDistribution() ([]PlanDistribution, error) {
 	query := `
 		SELECT 
 			pl.name as plan,
+			pl.name as name,
 			COUNT(*) as count,
+			COUNT(*) as value,
 			ROUND(COUNT(*) * 100.0 / NULLIF((SELECT COUNT(*) FROM subscriptions WHERE status = 'active'), 0), 1) as percentage
 		FROM subscriptions s
 		JOIN plans pl ON s.plan_id = pl.id
@@ -511,3 +515,53 @@ func (r *Repository) GetConversationsByUser(userID uuid.UUID, page, limit int) (
 
 	return conversations, total, err
 }
+
+// ── Live Activity Feed ──
+
+type ActivityItem struct {
+	ID        string    `json:"id"`
+	Action    string    `json:"action"`
+	Resource  *string   `json:"resource"`
+	UserName  string    `json:"user_name"`
+	IPAddress *string   `json:"ip_address"`
+	CreatedAt time.Time `json:"created_at"`
+	Type      string    `json:"type"` // derived from action
+}
+
+func (r *Repository) GetRecentActivity(limit int) ([]ActivityItem, error) {
+	var items []ActivityItem
+	query := `
+		SELECT 
+			al.id::text as id,
+			al.action,
+			al.resource,
+			COALESCE(u.full_name, 'System') as user_name,
+			al.ip_address,
+			al.created_at
+		FROM audit_logs al
+		LEFT JOIN users u ON al.user_id = u.id
+		ORDER BY al.created_at DESC
+		LIMIT ?
+	`
+	if err := r.DB.Raw(query, limit).Scan(&items).Error; err != nil {
+		return nil, err
+	}
+
+	// Derive type from action for frontend icon mapping
+	for i := range items {
+		action := items[i].Action
+		switch {
+		case len(action) > 4 && action[:4] == "user":
+			items[i].Type = "user"
+		case len(action) > 7 && action[:7] == "payment":
+			items[i].Type = "payment"
+		case len(action) > 4 && action[:4] == "plan":
+			items[i].Type = "payment"
+		default:
+			items[i].Type = "system"
+		}
+	}
+
+	return items, nil
+}
+

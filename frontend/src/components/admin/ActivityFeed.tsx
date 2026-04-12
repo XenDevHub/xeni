@@ -1,9 +1,10 @@
 'use client';
 
-import { useSocketStore, SocketEvent } from '@/store/socket';
-import { useEffect, useState } from 'react';
+import { useSocketStore } from '@/store/socket';
+import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, UserPlus, CreditCard, Bot, AlertCircle } from 'lucide-react';
+import { Activity, UserPlus, CreditCard, Bot, AlertCircle, RefreshCw } from 'lucide-react';
+import api from '@/lib/api';
 
 interface FeedItem {
   id: string;
@@ -12,22 +13,61 @@ interface FeedItem {
   type: 'user' | 'payment' | 'agent' | 'system' | 'escalation';
 }
 
+const ACTION_LABELS: Record<string, string> = {
+  'user.created': 'New user registered',
+  'user.status_changed': 'User status changed',
+  'user.role_changed': 'User role updated',
+  'user.deleted': 'User deleted',
+  'payment.created': 'Payment initiated',
+  'payment.success': 'Payment succeeded',
+  'plan.updated': 'Plan updated',
+  'admin.login': 'Admin logged in',
+};
+
+function actionToMessage(action: string, userName: string, resource?: string): string {
+  const label = ACTION_LABELS[action] || action.replace(/_/g, ' ');
+  return `${label}${userName !== 'System' ? ` by ${userName}` : ''}${resource ? ` (${resource})` : ''}`;
+}
+
 export function ActivityFeed() {
   const { lastEvent, isConnected } = useSocketStore();
   const [feed, setFeed] = useState<FeedItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  const fetchActivity = useCallback(async () => {
+    try {
+      const res = await api.get('/admin/activity?limit=20');
+      const items = (res.data.data || []).map((item: any) => ({
+        id: item.id,
+        message: actionToMessage(item.action, item.user_name, item.resource),
+        timestamp: new Date(item.created_at).getTime(),
+        type: item.type as FeedItem['type'],
+      }));
+      setFeed(items);
+    } catch (err) {
+      console.error('Failed to fetch activity', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Initial load + poll every 15s
+  useEffect(() => {
+    fetchActivity();
+    const interval = setInterval(fetchActivity, 15000);
+    return () => clearInterval(interval);
+  }, [fetchActivity]);
+
+  // Real-time WebSocket events
   useEffect(() => {
     if (lastEvent && lastEvent.event === 'admin.activity') {
       const payload = lastEvent.payload as any;
-      setFeed(prev => {
-        const newFeed = [{
-          id: Math.random().toString(),
-          message: payload?.message || 'Unknown activity',
-          timestamp: lastEvent.timestamp,
-          type: payload?.type || 'system'
-        }, ...prev].slice(0, 50);
-        return newFeed;
-      });
+      setFeed(prev => [{
+        id: Math.random().toString(),
+        message: payload?.message || 'Unknown activity',
+        timestamp: lastEvent.timestamp,
+        type: payload?.type || 'system'
+      }, ...prev].slice(0, 20));
     }
   }, [lastEvent]);
 
@@ -57,16 +97,21 @@ export function ActivityFeed() {
         <h3 className="font-heading font-semibold text-white flex items-center gap-2">
           <Activity className="w-5 h-5 text-primary" /> Live Activity
         </h3>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-dark-500">WebSocket {isConnected ? 'connected' : 'disconnected'}</span>
-          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-danger'}`} />
+        <div className="flex items-center gap-3">
+          <button onClick={fetchActivity} className="text-dark-500 hover:text-white transition-colors">
+            <RefreshCw className="w-3.5 h-3.5" />
+          </button>
+          <span className="text-xs text-dark-500">WS {isConnected ? 'live' : 'polling'}</span>
+          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-amber-500 animate-pulse'}`} />
         </div>
       </div>
       
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {feed.length === 0 ? (
+        {loading ? (
+          [1,2,3,4].map(i => <div key={i} className="skeleton h-10 w-full rounded-xl" />)
+        ) : feed.length === 0 ? (
           <div className="h-full flex items-center justify-center text-dark-500 text-sm">
-            Waiting for activity...
+            No recent activity found.
           </div>
         ) : (
           <AnimatePresence initial={false}>
@@ -82,7 +127,7 @@ export function ActivityFeed() {
                   <div className="absolute top-4 left-[3px] w-[2px] h-[30px] bg-white/5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-dark-600 group-hover:text-white transition-colors">
+                  <p className="text-sm text-dark-300 group-hover:text-white transition-colors">
                     {item.message}
                   </p>
                   <p className="text-xs text-dark-500 mt-1">
@@ -97,3 +142,4 @@ export function ActivityFeed() {
     </div>
   );
 }
+
