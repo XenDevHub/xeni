@@ -69,9 +69,11 @@ type FacebookOAuthConfig struct {
 }
 
 type MetaConfig struct {
-	AppSecret          string
-	WebhookVerifyToken string
-	APIVersion         string
+	AppSecret             string
+	WebhookVerifyToken    string
+	APIVersion            string
+	WhatsAppPhoneNumberID string
+	WhatsAppAccessToken   string
 }
 
 type SSLCommerzConfig struct {
@@ -147,9 +149,11 @@ func Load() (*Config, error) {
 			AppSecret: getEnv("FACEBOOK_APP_SECRET", ""),
 		},
 		Meta: MetaConfig{
-			AppSecret:          getEnv("META_APP_SECRET", ""),
-			WebhookVerifyToken: getEnv("FACEBOOK_WEBHOOK_VERIFY_TOKEN", ""),
-			APIVersion:         getEnv("META_PAGE_API_VERSION", "v19.0"),
+			AppSecret:             getEnv("META_APP_SECRET", ""),
+			WebhookVerifyToken:    getEnv("FACEBOOK_WEBHOOK_VERIFY_TOKEN", ""),
+			APIVersion:            getEnv("META_PAGE_API_VERSION", "v19.0"),
+			WhatsAppPhoneNumberID: getEnv("META_WHATSAPP_PHONE_NUMBER_ID", ""),
+			WhatsAppAccessToken:   getEnv("META_WHATSAPP_ACCESS_TOKEN", ""),
 		},
 		SSLCommerz: SSLCommerzConfig{
 			StoreID:       getEnv("SSLCOMMERZ_STORE_ID", ""),

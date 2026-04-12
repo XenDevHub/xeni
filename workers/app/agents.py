@@ -36,6 +36,8 @@ class ConversationAgent(BaseWorker):
         history = payload.get("history", [])
         global_rules = payload.get("global_rules", "")
         shop_rules = payload.get("shop_rules", "")
+        shop_settings = payload.get("shop_settings", {})
+        active_order = payload.get("active_order", None)
 
         # Send typing_on indicator instantly to FB
         if page_access_token:
@@ -99,10 +101,19 @@ class ConversationAgent(BaseWorker):
         {global_rules_text}
         {shop_rules_text}
 
+        ---
+        CURRENT ORDER STATE:
+        {json.dumps(active_order) if active_order else "No active pending order."}
+        
+        SHOP SETTINGS (PAYMENT INFO):
+        {json.dumps(shop_settings)}
+        ---
+
         Instructions:
         - Maintain the context of the conversation. If a customer has already provided info, don't ask for it again.
         - Product Codes: If a customer mentions a specific SKU, identify the exact product/variant immediately.
         - Order Finalization: If you have already given a summary AND the user explicitly says "Order Confirm", "অর্ডার কনফার্ম", or a very clear confirmation, you MUST set "action" to "finalize_order".
+        - Post-Order Guidance: If an "active_order" is present (status pending), your PRIMARY goal is to help the customer complete the payment. Provide the bKash/Nagad numbers from SHOP SETTINGS and ask for the Transaction ID. 
         - Confirmation Phrase: Always ask the customer to write "Order Confirm" specifically to finalize their order. E.g., "(অর্ডারটি ফাইনাল করতে দয়া করে 'Order Confirm' লিখে মেসেজ দিন)".
         - Use emojis naturally to stay friendly.
         

@@ -69,6 +69,9 @@ type OverviewStats struct {
 	MessagesRepliedToday int64  `json:"messagesRepliedToday"`
 	OrdersProcessedToday int64  `json:"ordersProcessedToday"`
 	TaskSuccessRate     float64 `json:"taskSuccessRate"`
+	TotalAIMessages     int64   `json:"totalAIMessages"`
+	TotalHumanMessages  int64   `json:"totalHumanMessages"`
+	EscalationRate      float64 `json:"escalationRate"`
 	// Change percentages (mocked logic or simple diff)
 	UserChange          float64 `json:"userChange"`
 	RevenueChange       float64 `json:"revenueChange"`
@@ -106,6 +109,12 @@ func (r *Repository) GetOverviewStats() (*OverviewStats, error) {
 	total := completed + failed
 	if total > 0 {
 		stats.TaskSuccessRate = float64(completed) / float64(total) * 100
+	}
+
+	r.DB.Model(&models.Message{}).Where("direction = 'outbound' AND sender_type = 'ai'").Count(&stats.TotalAIMessages)
+	r.DB.Model(&models.Message{}).Where("direction = 'outbound' AND sender_type = 'human'").Count(&stats.TotalHumanMessages)
+	if stats.TotalAIMessages+stats.TotalHumanMessages > 0 {
+		stats.EscalationRate = float64(stats.TotalHumanMessages) / float64(stats.TotalAIMessages+stats.TotalHumanMessages) * 100
 	}
 
 	// Mock some growth values for UI polish

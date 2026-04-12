@@ -110,6 +110,13 @@ func DefaultGlobalRules() []AgentRule {
 			Rule:  "সামারিতে প্রোডাক্টের নাম, পরিমাণ, মোট দাম এবং ডেলিভারি ঠিকানা স্পষ্টভাবে লিখুন যাতে কাস্টমার এক নজরে সব বুঝতে পারে।",
 		},
 
+		// ── Post-Order Guidance ──
+		{
+			Scope: RuleScopeGlobal, Category: RuleCategoryOrdering, Priority: 11, IsActive: true,
+			Title: "Payment & Next Steps",
+			Rule:  "অর্ডার কনফার্ম করার ঠিক পরেই কাস্টমারকে পেমেন্ট করার নিয়ম বুঝিয়ে দিন। যদি শপ-এর bKash বা Nagad নাম্বার থাকে, তবে তা উল্লেখ করুন এবং কাস্টমারকে পেমেন্ট করার পর ট্রানজেকশন আইডি (TrxID) দিতে বলুন। যদি ক্যাশ অন ডেলিভারি (COD) হয়, তবে জানান যে ডেলিভারি ম্যান পণ্য পৌঁছে দিলে দাম পরিশোধ করতে হবে। পেমেন্ট না পাওয়া পর্যন্ত বা পেমেন্ট মেথড নিশ্চিত না হওয়া পর্যন্ত অর্ডারটি 'পেন্ডিং' থাকবে তা বিনয়ের সাথে জানান।",
+		},
+
 		// ── Escalation ──
 		{
 			Scope: RuleScopeGlobal, Category: RuleCategoryEscalation, Priority: 11, IsActive: true,

@@ -6,6 +6,7 @@ import api from '@/lib/api';
 import { StatCard } from '@/components/admin/StatCard';
 import { RevenueChart } from '@/components/admin/charts/RevenueChart';
 import { UserGrowthChart } from '@/components/admin/charts/UserGrowthChart';
+import { ConversationMetricsChart } from '@/components/admin/charts/ConversationMetricsChart';
 import { ActivityFeed } from '@/components/admin/ActivityFeed';
 import { Users, DollarSign, CreditCard, Zap, PieChart } from 'lucide-react';
 import { PieChart as RechartsPie, Pie, Cell, ResponsiveContainer, Tooltip as PieTooltip } from 'recharts';
@@ -97,6 +98,33 @@ export default function AdminOverview() {
         <div className="glass-card p-6">
           <h3 className="text-lg font-heading font-semibold text-white mb-6">User Growth</h3>
           <UserGrowthChart data={overview?.user_growth_chart || []} />
+        </div>
+      </div>
+
+      {/* Analytics Insights Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="glass-card p-6 lg:col-span-1">
+          <h3 className="text-lg font-heading font-semibold text-white mb-6">Global AI Messages</h3>
+          <ConversationMetricsChart 
+            aiMessages={metrics?.totalAIMessages || 0} 
+            humanMessages={metrics?.totalHumanMessages || 0} 
+          />
+        </div>
+        <div className="glass-card p-6 lg:col-span-2 bg-gradient-to-br from-primary/10 to-transparent flex flex-col justify-center">
+            <h2 className="text-2xl font-black text-white mb-4">AI Escalation Alert</h2>
+            <p className="text-dark-300 mb-6 max-w-lg">
+                Currently, <span className="text-white font-bold">{metrics?.escalationRate?.toFixed(1) || 0}%</span> of conversations are escalated to humans across the platform. A high rate indicates that the AI prompts need refinement or shop catalogs are incomplete.
+            </p>
+            <div className="flex items-center gap-6">
+                <div className="p-4 bg-white/5 rounded-xl border border-white/10">
+                    <div className="text-xs text-dark-500 uppercase font-bold mb-1">Total Auto-Replied</div>
+                    <div className="text-xl font-black text-primary-400">{metrics?.totalAIMessages?.toLocaleString() || 0}</div>
+                </div>
+                <div className="p-4 bg-danger/10 rounded-xl border border-danger/20">
+                    <div className="text-xs text-danger uppercase font-bold mb-1">Human Fallback</div>
+                    <div className="text-xl font-black text-danger">{metrics?.totalHumanMessages?.toLocaleString() || 0}</div>
+                </div>
+            </div>
         </div>
       </div>
 

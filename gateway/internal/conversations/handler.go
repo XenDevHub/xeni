@@ -12,17 +12,19 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/xeni-ai/gateway/internal/models"
+	"github.com/xeni-ai/gateway/internal/notifications"
 	"github.com/xeni-ai/gateway/pkg/response"
 )
 
 // Handler holds conversation dependencies.
 type Handler struct {
-	DB *gorm.DB
+	DB       *gorm.DB
+	NotifSvc *notifications.Service
 }
 
 // NewHandler creates a new conversations handler.
-func NewHandler(db *gorm.DB) *Handler {
-	return &Handler{DB: db}
+func NewHandler(db *gorm.DB, notifSvc *notifications.Service) *Handler {
+	return &Handler{DB: db, NotifSvc: notifSvc}
 }
 
 func (h *Handler) getUserShop(userID string) (*models.Shop, error) {
@@ -221,6 +223,15 @@ func (h *Handler) UpdateMode(c *fiber.Ctx) error {
 
 	h.DB.Model(&conv).Update("handling_mode", req.Mode)
 
+	// If switched to human mode, trigger WhatsApp alert
+	if req.Mode == "human" && h.NotifSvc != nil {
+		customerName := "Customer"
+		if conv.CustomerName != nil {
+			customerName = *conv.CustomerName
+		}
+		h.NotifSvc.SendHumanFallbackAlert(conv.ShopID, customerName)
+	}
+
 	return response.Success(c, map[string]string{
 		"message": "Conversation mode updated to " + req.Mode,
 		"mode":    req.Mode,
@@ -239,20 +250,30 @@ func (h *Handler) GetConversationStats(c *fiber.Ctx) error {
 	h.DB.Model(&models.Conversation{}).Where("shop_id = ? AND status = 'open'", shop.ID).Count(&totalOpen)
 	h.DB.Model(&models.Conversation{}).Where("shop_id = ? AND status = 'resolved'", shop.ID).Count(&totalResolved)
 
+	var humanInterventionNeeded int64
+	h.DB.Model(&models.Conversation{}).Where("shop_id = ? AND status = 'open' AND handling_mode = 'human'", shop.ID).Count(&humanInterventionNeeded)
+
 	var unreadResult struct{ Sum int64 }
 	h.DB.Model(&models.Conversation{}).Where("shop_id = ? AND status = 'open'", shop.ID).Select("COALESCE(SUM(unread_count), 0) as sum").Scan(&unreadResult)
 	totalUnread = unreadResult.Sum
 
-	var messagesReplied int64
+	var messagesReplied, totalAIMessages int64
 	h.DB.Model(&models.Message{}).
 		Joins("JOIN conversations ON conversations.id = messages.conversation_id").
 		Where("conversations.shop_id = ? AND messages.direction = 'outbound'", shop.ID).
 		Count(&messagesReplied)
 
+	h.DB.Model(&models.Message{}).
+		Joins("JOIN conversations ON conversations.id = messages.conversation_id").
+		Where("conversations.shop_id = ? AND messages.direction = 'outbound' AND messages.sender_type = 'ai'", shop.ID).
+		Count(&totalAIMessages)
+
 	return response.Success(c, map[string]interface{}{
-		"open_conversations":     totalOpen,
-		"resolved_conversations": totalResolved,
-		"messages_replied":       messagesReplied,
-		"total_unread":           totalUnread,
+		"open_conversations":        totalOpen,
+		"resolved_conversations":    totalResolved,
+		"messages_replied":          messagesReplied,
+		"total_unread":              totalUnread,
+		"human_intervention_needed": humanInterventionNeeded,
+		"total_ai_messages":         totalAIMessages,
 	})
 }

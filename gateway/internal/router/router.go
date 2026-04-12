@@ -20,6 +20,7 @@ import (
 	"github.com/xeni-ai/gateway/internal/messenger"
 	"github.com/xeni-ai/gateway/internal/middleware"
 	"github.com/xeni-ai/gateway/internal/models"
+	"github.com/xeni-ai/gateway/internal/notifications"
 	"github.com/xeni-ai/gateway/internal/orders"
 	"github.com/xeni-ai/gateway/internal/pages"
 	"github.com/xeni-ai/gateway/internal/products"
@@ -46,6 +47,7 @@ func Setup(
 	agentHandler *agents.Handler,
 	rmqClient *rabbitmq.Client,
 	spacesClient *storage.SpacesClient,
+	notifSvc *notifications.Service,
 ) {
 	// ── Global Middleware ──
 	app.Use(recover.New())
@@ -160,7 +162,7 @@ func Setup(
 	ordersGroup.Put("/:id", ordersHandler.UpdateOrder)
 
 	// ── Conversation Routes ──
-	convHandler := conversations.NewHandler(db)
+	convHandler := conversations.NewHandler(db, notifSvc)
 	convGroup := api.Group("/conversations", middleware.AuthMiddleware(jwtManager, redis), apiRateLimit)
 	convGroup.Get("", convHandler.ListConversations)
 	convGroup.Get("/stats", convHandler.GetConversationStats)

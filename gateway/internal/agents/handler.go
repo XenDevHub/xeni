@@ -18,6 +18,7 @@ import (
 	"github.com/xeni-ai/gateway/internal/cache"
 	"github.com/xeni-ai/gateway/internal/config"
 	"github.com/xeni-ai/gateway/internal/models"
+	"github.com/xeni-ai/gateway/internal/notifications"
 	"github.com/xeni-ai/gateway/internal/rabbitmq"
 	"github.com/xeni-ai/gateway/internal/websocket"
 	"github.com/xeni-ai/gateway/pkg/response"
@@ -30,11 +31,12 @@ type Handler struct {
 	RabbitMQ *rabbitmq.Client
 	WSHub    *websocket.Hub
 	Config   *config.Config
+	NotifSvc *notifications.Service
 }
 
 // NewHandler creates a new agent handler.
-func NewHandler(db *gorm.DB, redis *cache.Client, rmq *rabbitmq.Client, wsHub *websocket.Hub, cfg *config.Config) *Handler {
-	return &Handler{DB: db, Redis: redis, RabbitMQ: rmq, WSHub: wsHub, Config: cfg}
+func NewHandler(db *gorm.DB, redis *cache.Client, rmq *rabbitmq.Client, wsHub *websocket.Hub, cfg *config.Config, notifSvc *notifications.Service) *Handler {
+	return &Handler{DB: db, Redis: redis, RabbitMQ: rmq, WSHub: wsHub, Config: cfg, NotifSvc: notifSvc}
 }
 
 // RunAgent handles POST /:agent-slug/run — submits a new task.
@@ -298,6 +300,11 @@ func (h *Handler) HandleResult(result rabbitmq.ResultMessage) error {
 
 	if result.Error != nil {
 		updates["error_message"] = *result.Error
+		
+		// If task failed and notification service is available, alert Super Admins
+		if result.Status == "failed" && h.NotifSvc != nil {
+			h.NotifSvc.SendSystemFailureAlert(result.AgentType, *result.Error)
+		}
 	}
 
 	now := time.Now()

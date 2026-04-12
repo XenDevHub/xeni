@@ -275,6 +275,27 @@ export default function DashboardOverview() {
       </div>
 
       {/* Real-time Stats Strip */}
+      {(stats?.conversations as any)?.human_intervention_needed > 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 p-4 rounded-xl bg-danger/20 border border-danger/50 flex items-center justify-between shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+        >
+          <div className="flex items-center gap-4">
+            <div className="p-2 bg-danger/20 rounded-lg">
+              <AlertTriangle className="w-6 h-6 text-danger animate-pulse" />
+            </div>
+            <div>
+              <h4 className="text-white font-bold text-sm">Human Intervention Required</h4>
+              <p className="text-dark-300 text-xs mt-0.5">There are <strong className="text-white">{(stats?.conversations as any)?.human_intervention_needed}</strong> open chats that AI couldn't resolve or escalated.</p>
+            </div>
+          </div>
+          <Link href="/dashboard/conversations" className="bg-danger text-white text-xs font-bold px-5 py-2.5 rounded-lg hover:bg-red-600 transition-colors shadow-lg">
+            Review Chats
+          </Link>
+        </motion.div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         {statCards.map((card, i) => (
           <motion.div

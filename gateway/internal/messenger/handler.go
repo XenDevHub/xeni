@@ -179,7 +179,16 @@ func (h *Handler) handleIncomingMessage(pageID string, event MessagingEvent) {
 		
 		h.DB.Where("scope = ? AND is_active = ?", models.RuleScopeGlobal, true).Order("priority ASC").Find(&adminRules)
 		h.DB.Where("scope = ? AND shop_id = ? AND is_active = ?", models.RuleScopeShop, page.ShopID, true).Order("priority ASC").Find(&storeRules)
-		
+
+		// Fetch the shop for payment settings
+		var shop models.Shop
+		h.DB.First(&shop, page.ShopID)
+
+		// Fetch most recent pending order for this customer
+		var pendingOrder models.Order
+		h.DB.Where("shop_id = ? AND customer_psid = ? AND payment_status = ?", 
+			page.ShopID, senderPSID, models.OrderPayPending).Order("created_at DESC").First(&pendingOrder)
+
 		globalRules := ""
 		for _, r := range adminRules {
 			globalRules += "- [" + r.Category + "] " + r.Title + ": " + r.Rule + "\n"
@@ -265,6 +274,22 @@ func (h *Handler) handleIncomingMessage(pageID string, event MessagingEvent) {
 				"history":           history,
 				"global_rules":      globalRules,
 				"shop_rules":        shopRules,
+				"shop_settings": map[string]interface{}{
+					"shop_name":             shop.ShopName,
+					"bkash_number":          shop.BkashMerchantNumber,
+					"nagad_number":          shop.NagadMerchantNumber,
+					"preferred_language":    shop.PreferredLanguage,
+				},
+				"active_order": func() interface{} {
+					if pendingOrder.ID == uuid.Nil {
+						return nil
+					}
+					return map[string]interface{}{
+						"order_id":       pendingOrder.ID.String(),
+						"total_amount":   pendingOrder.TotalAmount,
+						"payment_status": pendingOrder.PaymentStatus,
+					}
+				}(),
 			},
 		}
 

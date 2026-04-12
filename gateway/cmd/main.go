@@ -15,12 +15,14 @@ import (
 	"github.com/xeni-ai/gateway/internal/config"
 	"github.com/xeni-ai/gateway/internal/database"
 	"github.com/xeni-ai/gateway/internal/jobs"
+	"github.com/xeni-ai/gateway/internal/notifications"
 	"github.com/xeni-ai/gateway/internal/rabbitmq"
 	"github.com/xeni-ai/gateway/internal/router"
 	"github.com/xeni-ai/gateway/internal/storage"
 	"github.com/xeni-ai/gateway/internal/websocket"
 	jwtPkg "github.com/xeni-ai/gateway/pkg/jwt"
 	"github.com/xeni-ai/gateway/pkg/logger"
+	"github.com/xeni-ai/gateway/pkg/whatsapp"
 )
 
 func main() {
@@ -76,8 +78,18 @@ func main() {
 		slog.Warn("failed to connect to DO Spaces — file uploads disabled", "error", err)
 	}
 
+	// Initialize WhatsApp & Notification Service
+	var waClient *whatsapp.Client
+	if cfg.Meta.WhatsAppPhoneNumberID != "" && cfg.Meta.WhatsAppAccessToken != "" {
+		waClient = whatsapp.NewClient(cfg.Meta.WhatsAppAccessToken, cfg.Meta.WhatsAppPhoneNumberID, cfg.Meta.APIVersion)
+		slog.Info("WhatsApp system initialized", "phone_id", cfg.Meta.WhatsAppPhoneNumberID)
+	} else {
+		slog.Warn("WhatsApp configuration missing — notifications disabled")
+	}
+	notifSvc := notifications.NewService(db, waClient)
+
 	// Initialize agent handler
-	agentHandler := agents.NewHandler(db, redisClient, rmqClient, wsHub, cfg)
+	agentHandler := agents.NewHandler(db, redisClient, rmqClient, wsHub, cfg, notifSvc)
 
 	// Start consuming RabbitMQ results
 	if rmqClient != nil {
@@ -95,7 +107,7 @@ func main() {
 	})
 
 	// Setup routes
-	router.Setup(app, cfg, db, redisClient, jwtManager, wsHub, agentHandler, rmqClient, spacesClient)
+	router.Setup(app, cfg, db, redisClient, jwtManager, wsHub, agentHandler, rmqClient, spacesClient, notifSvc)
 
 	// Initialize and start background jobs
 	jobScheduler := jobs.NewScheduler(db, redisClient)
