@@ -20,6 +20,7 @@ import (
 	"github.com/xeni-ai/gateway/internal/models"
 	"github.com/xeni-ai/gateway/internal/notifications"
 	"github.com/xeni-ai/gateway/internal/rabbitmq"
+	"github.com/xeni-ai/gateway/internal/storage"
 	"github.com/xeni-ai/gateway/internal/websocket"
 	"github.com/xeni-ai/gateway/pkg/response"
 )
@@ -32,11 +33,12 @@ type Handler struct {
 	WSHub    *websocket.Hub
 	Config   *config.Config
 	NotifSvc *notifications.Service
+	Spaces   *storage.SpacesClient
 }
 
 // NewHandler creates a new agent handler.
-func NewHandler(db *gorm.DB, redis *cache.Client, rmq *rabbitmq.Client, wsHub *websocket.Hub, cfg *config.Config, notifSvc *notifications.Service) *Handler {
-	return &Handler{DB: db, Redis: redis, RabbitMQ: rmq, WSHub: wsHub, Config: cfg, NotifSvc: notifSvc}
+func NewHandler(db *gorm.DB, redis *cache.Client, rmq *rabbitmq.Client, wsHub *websocket.Hub, cfg *config.Config, notifSvc *notifications.Service, spaces *storage.SpacesClient) *Handler {
+	return &Handler{DB: db, Redis: redis, RabbitMQ: rmq, WSHub: wsHub, Config: cfg, NotifSvc: notifSvc, Spaces: spaces}
 }
 
 // RunAgent handles POST /:agent-slug/run — submits a new task.
@@ -296,6 +298,16 @@ func (h *Handler) HandleResult(result rabbitmq.ResultMessage) error {
 				h.createOrderFromAI(result, orderData)
 			}
 		}
+
+		// 3. Verify Payment via Screenshot (OCR)
+		if action == "verify_payment_screenshot" {
+			go h.handleVerifyPaymentScreenshot(result)
+		}
+
+		// 4. Verify Payment via TrxID (Manual/API)
+		if action == "verify_payment_trxid" {
+			go h.handleVerifyPaymentTrxID(result)
+		}
 	}
 
 	if result.Error != nil {
@@ -314,7 +326,10 @@ func (h *Handler) HandleResult(result rabbitmq.ResultMessage) error {
 
 	// If the AI Worker processed an order successfully, update the real Order table
 	if result.AgentType == "order" && result.Status == "completed" && result.Data != nil {
-		if orderIDStr, ok := result.Data["order_id"].(string); ok && orderIDStr != "" {
+		// Handle payment verification results
+		if verifyAction, ok := result.Data["verify_action"].(string); ok && verifyAction != "" {
+			h.handlePaymentVerificationResult(result)
+		} else if orderIDStr, ok := result.Data["order_id"].(string); ok && orderIDStr != "" {
 			if orderID, err := uuid.Parse(orderIDStr); err == nil {
 				orderUpdates := make(map[string]interface{})
 				if ps, ok := result.Data["payment_status"].(string); ok && ps != "" {
@@ -468,6 +483,229 @@ func (h *Handler) SubscriptionAccessMiddleware() fiber.Handler {
 	}
 }
 
+// ── Payment Verification Handlers ──
+
+// handleVerifyPaymentScreenshot uploads screenshot to S3 and dispatches OCR task to OrderAgent.
+func (h *Handler) handleVerifyPaymentScreenshot(result rabbitmq.ResultMessage) {
+	screenshotURL, _ := result.Data["screenshot_url"].(string)
+	customerPSID, _ := result.Data["customer_psid"].(string)
+	shopIDStr, _ := result.Data["shop_id"].(string)
+	pageID, _ := result.Data["page_id"].(string)
+	convIDStr, _ := result.Data["conversation_id"].(string)
+
+	if screenshotURL == "" {
+		slog.Warn("verify_payment_screenshot: no screenshot URL provided")
+		return
+	}
+
+	// Upload screenshot from Messenger CDN to permanent S3 storage
+	var s3URL string
+	if h.Spaces != nil {
+		destPath := fmt.Sprintf("payment-screenshots/%s/%d.jpg", shopIDStr, time.Now().UnixMilli())
+		ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+
+		uploaded, err := h.Spaces.UploadFromURL(ctx, screenshotURL, destPath)
+		if err != nil {
+			slog.Error("failed to upload screenshot to S3", "error", err)
+			s3URL = screenshotURL // Fallback to Messenger CDN URL
+		} else {
+			s3URL = uploaded
+		}
+	} else {
+		s3URL = screenshotURL
+	}
+
+	// Find the pending order for this customer
+	sid, _ := uuid.Parse(shopIDStr)
+	var pendingOrder models.Order
+	h.DB.Where("shop_id = ? AND customer_psid = ? AND payment_status = ?",
+		sid, customerPSID, models.OrderPayPending).Order("created_at DESC").First(&pendingOrder)
+
+	if pendingOrder.ID == uuid.Nil {
+		slog.Warn("verify_payment_screenshot: no pending order found", "psid", customerPSID)
+		return
+	}
+
+	// Save screenshot URL to the order immediately
+	h.DB.Model(&pendingOrder).Update("payment_screenshot_url", s3URL)
+
+	// Dispatch to OrderAgent for OCR verification
+	h.dispatchPaymentVerification(map[string]interface{}{
+		"verify_action":    "screenshot_ocr",
+		"screenshot_url":   s3URL,
+		"order_id":         pendingOrder.ID.String(),
+		"expected_amount":  pendingOrder.TotalAmount,
+		"customer_psid":    customerPSID,
+		"shop_id":          shopIDStr,
+		"page_id":          pageID,
+		"conversation_id":  convIDStr,
+	})
+}
+
+// handleVerifyPaymentTrxID dispatches TrxID verification task to OrderAgent.
+func (h *Handler) handleVerifyPaymentTrxID(result rabbitmq.ResultMessage) {
+	trxID, _ := result.Data["trx_id"].(string)
+	paymentMethod, _ := result.Data["payment_method"].(string)
+	customerPSID, _ := result.Data["customer_psid"].(string)
+	shopIDStr, _ := result.Data["shop_id"].(string)
+	pageID, _ := result.Data["page_id"].(string)
+	convIDStr, _ := result.Data["conversation_id"].(string)
+
+	if trxID == "" {
+		slog.Warn("verify_payment_trxid: no TrxID provided")
+		return
+	}
+
+	// Find the pending order for this customer
+	sid, _ := uuid.Parse(shopIDStr)
+	var pendingOrder models.Order
+	h.DB.Where("shop_id = ? AND customer_psid = ? AND payment_status = ?",
+		sid, customerPSID, models.OrderPayPending).Order("created_at DESC").First(&pendingOrder)
+
+	if pendingOrder.ID == uuid.Nil {
+		slog.Warn("verify_payment_trxid: no pending order found", "psid", customerPSID)
+		return
+	}
+
+	// Save TrxID to the order immediately
+	h.DB.Model(&pendingOrder).Update("payment_trx_id", trxID)
+
+	h.dispatchPaymentVerification(map[string]interface{}{
+		"verify_action":   "trxid_check",
+		"trx_id":          trxID,
+		"payment_method":  paymentMethod,
+		"order_id":        pendingOrder.ID.String(),
+		"expected_amount": pendingOrder.TotalAmount,
+		"customer_psid":   customerPSID,
+		"shop_id":         shopIDStr,
+		"page_id":         pageID,
+		"conversation_id": convIDStr,
+	})
+}
+
+// dispatchPaymentVerification sends a payment verification task to the OrderAgent via RabbitMQ.
+func (h *Handler) dispatchPaymentVerification(payload map[string]interface{}) {
+	if h.RabbitMQ == nil {
+		slog.Error("RabbitMQ nil — cannot dispatch payment verification")
+		return
+	}
+
+	taskID := uuid.New()
+	msg := &rabbitmq.TaskMessage{
+		TaskID:    taskID.String(),
+		UserID:    "",
+		AgentType: "order_tasks",
+		Priority:  10,
+		CreatedAt: time.Now().UTC().Format(time.RFC3339),
+		Payload:   payload,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := h.RabbitMQ.PublishTask(ctx, msg); err != nil {
+		slog.Error("failed to dispatch payment verification task", "error", err)
+	} else {
+		slog.Info("Payment verification task dispatched", "task_id", taskID, "action", payload["verify_action"])
+	}
+}
+
+// handlePaymentVerificationResult processes the OrderAgent's payment verification result.
+func (h *Handler) handlePaymentVerificationResult(result rabbitmq.ResultMessage) {
+	orderIDStr, _ := result.Data["order_id"].(string)
+	paymentStatus, _ := result.Data["payment_status"].(string)
+	trxID, _ := result.Data["extracted_trx_id"].(string)
+	customerPSID, _ := result.Data["customer_psid"].(string)
+	pageID, _ := result.Data["page_id"].(string)
+	convIDStr, _ := result.Data["conversation_id"].(string)
+	shopIDStr, _ := result.Data["shop_id"].(string)
+	verifiedBy, _ := result.Data["verified_by"].(string)
+
+	orderID, err := uuid.Parse(orderIDStr)
+	if err != nil {
+		slog.Error("invalid order_id in payment verification result", "order_id", orderIDStr)
+		return
+	}
+
+	now := time.Now()
+	orderUpdates := map[string]interface{}{
+		"payment_status": paymentStatus,
+	}
+
+	if trxID != "" {
+		orderUpdates["payment_trx_id"] = trxID
+	}
+	if verifiedBy != "" {
+		orderUpdates["verified_by"] = verifiedBy
+	}
+
+	// Determine Messenger reply and next steps
+	var messengerReply string
+
+	switch paymentStatus {
+	case "verified":
+		orderUpdates["verified_at"] = &now
+		messengerReply = fmt.Sprintf("✅ আপনার পেমেন্ট নিশ্চিত হয়েছে! অর্ডার #%s প্রসেস হচ্ছে। শীঘ্রই ডেলিভারি ব্যবস্থা করা হবে। 🚚", orderIDStr[:8])
+
+		// Trigger courier booking
+		go h.dispatchPaymentVerification(map[string]interface{}{
+			"verify_action": "",
+			"order_id":      orderIDStr,
+			"shop_id":       shopIDStr,
+		})
+
+	case "manual_required":
+		messengerReply = "ধন্যবাদ! স্ক্রিনশটটি দেখছি। আমরা যাচাই করে শীঘ্রই নিশ্চিত করব। সাধারণত ১৫ মিনিটের মধ্যে confirm হয়। 🙏"
+
+		// Send WebSocket alert to seller dashboard
+		sid, _ := uuid.Parse(shopIDStr)
+		var shop models.Shop
+		h.DB.First(&shop, sid)
+
+		var order models.Order
+		h.DB.First(&order, orderID)
+
+		h.WSHub.SendToUser(shop.UserID.String(), websocket.Event{
+			EventType: "payment.manual_review",
+			Payload: map[string]interface{}{
+				"order_id":      orderIDStr,
+				"trx_id":        trxID,
+				"customer_name": order.CustomerName,
+				"amount":        order.TotalAmount,
+				"screenshot_url": order.PaymentScreenshotURL,
+			},
+		})
+
+	case "failed":
+		messengerReply = "দুঃখিত, পেমেন্ট verify করা যায়নি। সঠিক Transaction ID বা screenshot পাঠান দয়া করে। 🙏"
+	}
+
+	// Update database
+	h.DB.Model(&models.Order{}).Where("id = ?", orderID).Updates(orderUpdates)
+	slog.Info("Payment verification result processed", "order_id", orderIDStr, "status", paymentStatus)
+
+	// Send Messenger reply
+	if messengerReply != "" && customerPSID != "" && pageID != "" {
+		var page models.ConnectedPage
+		if err := h.DB.Where("page_id = ?", pageID).First(&page).Error; err == nil {
+			h.sendMessengerMessage(customerPSID, messengerReply, page.PageAccessToken)
+
+			// Save outbound message to DB
+			if convID, err := uuid.Parse(convIDStr); err == nil {
+				h.DB.Create(&models.Message{
+					ConversationID: convID,
+					Direction:      models.DirectionOutbound,
+					SenderType:     models.SenderAI,
+					ContentType:    models.ContentText,
+					ContentText:    &messengerReply,
+					SentAt:         time.Now(),
+				})
+			}
+		}
+	}
+}
+
 // ── Helper for JSON response from MongoDB result ──
 
 type AgentResult struct {
@@ -480,3 +718,4 @@ type AgentResult struct {
 	CreatedAt   string          `json:"created_at"`
 	CompletedAt *string         `json:"completed_at"`
 }
+

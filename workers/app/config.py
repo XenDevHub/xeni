@@ -24,7 +24,17 @@ class Settings(BaseSettings):
 
     # MFS Verification
     BKASH_VERIFICATION_URL: str = ""
+    BKASH_APP_KEY: str = ""
+    BKASH_APP_SECRET: str = ""
     NAGAD_VERIFICATION_URL: str = ""
+    NAGAD_MERCHANT_ID: str = ""
+    NAGAD_MERCHANT_KEY: str = ""
+
+    # Google Cloud Vision (OCR for payment screenshots)
+    GOOGLE_CLOUD_VISION_KEY: str = ""
+
+    # DigitalOcean Spaces CDN
+    DO_SPACES_CDN_BASE: str = ""
 
     # Resend Email
     RESEND_API_KEY: str = ""

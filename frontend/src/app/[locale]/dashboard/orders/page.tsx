@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ShoppingBag, Filter, Eye, ChevronDown, CheckCircle2, 
   MapPin, Phone, CreditCard, Truck, Calendar, 
-  ArrowRight, Search, Zap, Clock, X, Printer, User, DollarSign
+  ArrowRight, Search, Zap, Clock, X, Printer, User, DollarSign,
+  AlertTriangle, Copy, Image as ImageIcon, Shield, XCircle
 } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -18,11 +19,15 @@ interface Order {
   total_amount: number;
   payment_method: string | null;
   payment_trx_id?: string | null;
-  payment_status: 'pending' | 'verified' | 'failed';
+  payment_screenshot_url?: string | null;
+  payment_status: 'pending' | 'verified' | 'failed' | 'manual_required';
   delivery_status: 'pending' | 'booked' | 'in_transit' | 'delivered' | 'returned';
   tracking_number?: string | null;
   courier_name?: string | null;
   placed_by: 'ai' | 'manual';
+  verified_by?: string | null;
+  verified_at?: string | null;
+  admin_note?: string | null;
   created_at: string;
 }
 
@@ -41,6 +46,12 @@ export default function OrdersPage() {
   const [deliveryFilter, setDeliveryFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [activeTab, setActiveTab] = useState<'all' | 'manual_review'>('all');
+  const [manualReviewOrders, setManualReviewOrders] = useState<Order[]>([]);
+  const [manualReviewCount, setManualReviewCount] = useState(0);
+  const [screenshotModal, setScreenshotModal] = useState<string | null>(null);
+  const [confirmNote, setConfirmNote] = useState('');
+  const [rejectReason, setRejectReason] = useState('');
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -55,7 +66,21 @@ export default function OrdersPage() {
     setLoading(false);
   }, [paymentFilter, deliveryFilter]);
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  const fetchManualReview = useCallback(async () => {
+    try {
+      const res = await api.get('/orders/manual-review');
+      const data = res.data.data || [];
+      setManualReviewOrders(data);
+      setManualReviewCount(data.length);
+    } catch {
+      setManualReviewOrders([]);
+    }
+  }, []);
+
+  useEffect(() => { 
+    fetchOrders(); 
+    fetchManualReview();
+  }, [fetchOrders, fetchManualReview]);
 
   const getCurrentStepIndex = (order: Order) => {
     if (order.delivery_status === 'delivered') return 4;
@@ -70,8 +95,36 @@ export default function OrdersPage() {
       await api.put(`/orders/${id}`, updates);
       toast.success('Order status updated');
       fetchOrders();
+      fetchManualReview();
       setSelectedOrder(null);
     } catch { toast.error('Failed to update'); }
+  };
+
+  const confirmPayment = async (id: string) => {
+    try {
+      await api.put(`/orders/${id}/confirm-payment`, { admin_note: confirmNote || undefined });
+      toast.success('✅ Payment confirmed!');
+      setConfirmNote('');
+      fetchOrders();
+      fetchManualReview();
+      setSelectedOrder(null);
+    } catch { toast.error('Failed to confirm payment'); }
+  };
+
+  const rejectPayment = async (id: string) => {
+    try {
+      await api.put(`/orders/${id}/reject-payment`, { reason: rejectReason || undefined });
+      toast.success('Payment rejected');
+      setRejectReason('');
+      fetchOrders();
+      fetchManualReview();
+      setSelectedOrder(null);
+    } catch { toast.error('Failed to reject payment'); }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied!');
   };
 
   const dispatchToCourier = async (order: Order) => {
@@ -93,10 +146,21 @@ export default function OrdersPage() {
     }
   };
 
-  const filteredOrders = orders.filter(o => 
+  const displayOrders = activeTab === 'manual_review' ? manualReviewOrders : orders;
+  const filteredOrders = displayOrders.filter(o => 
     o.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
     o.id.includes(searchQuery)
   );
+
+  const getPaymentStatusBadge = (status: string) => {
+    switch (status) {
+      case 'verified': return 'bg-success/10 text-success border-success/20';
+      case 'pending': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+      case 'manual_required': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+      case 'failed': return 'bg-danger/10 text-danger border-danger/20';
+      default: return 'bg-dark-500/10 text-dark-400 border-white/5';
+    }
+  };
 
   return (
     <div className="p-6 lg:p-10 max-w-[1400px] mx-auto min-h-screen">
@@ -111,45 +175,77 @@ export default function OrdersPage() {
            <button className="glass-card px-4 py-2 text-sm text-white flex items-center gap-2 hover:bg-white/10 transition-all">
              <Printer className="w-4 h-4 text-dark-500" /> Bulk Invoices
            </button>
-           <button onClick={fetchOrders} className="btn-primary flex items-center gap-2">
+           <button onClick={() => { fetchOrders(); fetchManualReview(); }} className="btn-primary flex items-center gap-2">
              <Zap className="w-4 h-4" /> Refresh Data
            </button>
         </div>
       </div>
 
-      {/* Filters & Search */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-8">
-        <div className="md:col-span-6 relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
-          <input 
-            type="text" 
-            placeholder="Search by ID or customer name..." 
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-all transition-all"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="md:col-span-3 relative">
-           <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
-           <select className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-8 text-sm text-white appearance-none focus:outline-none focus:border-primary/50" value={paymentFilter} onChange={e => setPaymentFilter(e.target.value)}>
-             <option value="">All Payments</option>
-             <option value="pending">Pending</option>
-             <option value="verified">Verified</option>
-             <option value="failed">Failed</option>
-           </select>
-           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500 pointer-events-none" />
-        </div>
-        <div className="md:col-span-3 relative">
-           <select className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 pr-8 text-sm text-white appearance-none focus:outline-none focus:border-primary/50" value={deliveryFilter} onChange={e => setDeliveryFilter(e.target.value)}>
-             <option value="">All Deliveries</option>
-             <option value="pending">Pending</option>
-             <option value="booked">Booked</option>
-             <option value="in_transit">In Transit</option>
-             <option value="delivered">Delivered</option>
-           </select>
-           <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500 pointer-events-none" />
-        </div>
+      {/* Tab Switcher */}
+      <div className="flex items-center gap-2 mb-6">
+        <button 
+          onClick={() => setActiveTab('all')}
+          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${
+            activeTab === 'all' 
+              ? 'bg-primary/20 text-primary border-primary/30 shadow-lg shadow-primary/10' 
+              : 'bg-white/5 text-dark-400 border-white/5 hover:bg-white/10'
+          }`}
+        >
+          All Orders
+        </button>
+        <button 
+          onClick={() => setActiveTab('manual_review')}
+          className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border flex items-center gap-2 ${
+            activeTab === 'manual_review' 
+              ? 'bg-orange-500/20 text-orange-400 border-orange-500/30 shadow-lg shadow-orange-500/10' 
+              : 'bg-white/5 text-dark-400 border-white/5 hover:bg-white/10'
+          }`}
+        >
+          <AlertTriangle className="w-4 h-4" /> Manual Review
+          {manualReviewCount > 0 && (
+            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500 text-white animate-pulse">
+              {manualReviewCount}
+            </span>
+          )}
+        </button>
       </div>
+
+      {/* Filters & Search */}
+      {activeTab === 'all' && (
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-8">
+          <div className="md:col-span-6 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+            <input 
+              type="text" 
+              placeholder="Search by ID or customer name..." 
+              className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-all"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="md:col-span-3 relative">
+             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+             <select className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-8 text-sm text-white appearance-none focus:outline-none focus:border-primary/50" value={paymentFilter} onChange={e => setPaymentFilter(e.target.value)}>
+               <option value="">All Payments</option>
+               <option value="pending">Pending</option>
+               <option value="verified">Verified</option>
+               <option value="manual_required">Manual Review</option>
+               <option value="failed">Failed</option>
+             </select>
+             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500 pointer-events-none" />
+          </div>
+          <div className="md:col-span-3 relative">
+             <select className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 pr-8 text-sm text-white appearance-none focus:outline-none focus:border-primary/50" value={deliveryFilter} onChange={e => setDeliveryFilter(e.target.value)}>
+               <option value="">All Deliveries</option>
+               <option value="pending">Pending</option>
+               <option value="booked">Booked</option>
+               <option value="in_transit">In Transit</option>
+               <option value="delivered">Delivered</option>
+             </select>
+             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500 pointer-events-none" />
+          </div>
+        </div>
+      )}
 
       {/* Orders Table */}
       <div className="glass-card overflow-hidden">
@@ -172,7 +268,9 @@ export default function OrdersPage() {
                   <tr key={i} className="border-b border-white/5"><td colSpan={7} className="px-6 py-4"><div className="skeleton h-10 w-full rounded-lg" /></td></tr>
                 ))
               ) : filteredOrders.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-20 text-dark-500 italic">No orders matching your criteria...</td></tr>
+                <tr><td colSpan={7} className="text-center py-20 text-dark-500 italic">
+                  {activeTab === 'manual_review' ? '🎉 No orders awaiting manual review!' : 'No orders matching your criteria...'}
+                </td></tr>
               ) : (
                 filteredOrders.map((o, i) => (
                   <motion.tr 
@@ -180,7 +278,9 @@ export default function OrdersPage() {
                     initial={{ opacity: 0, x: -10 }} 
                     animate={{ opacity: 1, x: 0 }} 
                     transition={{ delay: i * 0.02 }}
-                    className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors group"
+                    className={`border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors group ${
+                      o.payment_status === 'manual_required' ? 'bg-orange-500/[0.03]' : ''
+                    }`}
                   >
                     <td className="px-6 py-4 font-mono text-[11px] text-white">#XENI-{o.id.slice(0, 8)}</td>
                     <td className="px-6 py-4">
@@ -194,12 +294,8 @@ export default function OrdersPage() {
                     </td>
                     <td className="px-6 py-4 font-bold text-white">৳{o.total_amount.toLocaleString()}</td>
                     <td className="px-6 py-4">
-                       <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
-                         o.payment_status === 'verified' ? 'bg-success/10 text-success border-success/20' : 
-                         o.payment_status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
-                         'bg-danger/10 text-danger border-danger/20'
-                       }`}>
-                         {o.payment_status}
+                       <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getPaymentStatusBadge(o.payment_status)}`}>
+                         {o.payment_status === 'manual_required' ? '⚠ Review' : o.payment_status}
                        </span>
                     </td>
                     <td className="px-6 py-4">
@@ -247,8 +343,8 @@ export default function OrdersPage() {
             {/* Modal Header */}
             <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
                <div>
-                  <h2 className="text-xl font-heading font-bold text-white">Order Details</h2>
-                  <p className="text-[10px] text-dark-500 font-mono mt-1">#XENI-{selectedOrder.id}</p>
+                 <h2 className="text-xl font-heading font-bold text-white">Order Details</h2>
+                 <p className="text-[10px] text-dark-500 font-mono mt-1">#XENI-{selectedOrder.id}</p>
                </div>
                <button onClick={() => setSelectedOrder(null)} className="p-2 rounded-full hover:bg-white/10 text-dark-500 hover:text-white transition-all">
                  <X className="w-5 h-5" />
@@ -278,6 +374,25 @@ export default function OrdersPage() {
                      })}
                   </div>
                </div>
+
+               {/* Manual Review Alert */}
+               {selectedOrder.payment_status === 'manual_required' && (
+                 <motion.div 
+                   initial={{ opacity: 0, y: -10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   className="p-4 rounded-2xl bg-orange-500/10 border border-orange-500/20"
+                 >
+                   <div className="flex items-start gap-3">
+                     <AlertTriangle className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
+                     <div>
+                       <p className="text-sm font-bold text-orange-300">Payment Verification Required</p>
+                       <p className="text-xs text-orange-300/70 mt-1">
+                         This order requires manual payment verification. Review the screenshot/TrxID below and confirm or reject.
+                       </p>
+                     </div>
+                   </div>
+                 </motion.div>
+               )}
 
                {/* Two Column Info */}
                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -318,9 +433,17 @@ export default function OrdersPage() {
                         {selectedOrder.payment_trx_id && (
                           <div className="flex items-center gap-4">
                              <div className="p-2.5 rounded-xl bg-white/5 text-dark-500"><Zap className="w-4 h-4" /></div>
-                             <div>
+                             <div className="flex-1">
                                 <p className="text-[10px] text-dark-500 font-bold uppercase">Transaction ID</p>
-                                <p className="text-sm text-white font-mono">{selectedOrder.payment_trx_id}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm text-white font-mono">{selectedOrder.payment_trx_id}</p>
+                                  <button 
+                                    onClick={() => copyToClipboard(selectedOrder.payment_trx_id!)}
+                                    className="p-1 rounded-md hover:bg-white/10 transition-all"
+                                  >
+                                    <Copy className="w-3 h-3 text-dark-500" />
+                                  </button>
+                                </div>
                              </div>
                           </div>
                         )}
@@ -328,50 +451,147 @@ export default function OrdersPage() {
                   </div>
                </div>
 
-               {/* Items Placeholder */}
-               <div className="p-6 bg-white/5 border border-white/5 rounded-2xl">
-                  <h4 className="text-xs font-bold text-white mb-4">Ordered Items</h4>
-                  <div className="flex items-center justify-between py-2 border-b border-white/5 opacity-50">
-                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-pink-500/20" />
-                        <span className="text-sm">Premium Product (Sample)</span>
+               {/* Payment Screenshot */}
+               {selectedOrder.payment_screenshot_url && (
+                 <div className="space-y-3">
+                   <h3 className="text-xs font-bold text-dark-400 uppercase tracking-widest flex items-center gap-2">
+                     <ImageIcon className="w-4 h-4" /> Payment Screenshot
+                   </h3>
+                   <div 
+                     className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border border-white/10 cursor-pointer group hover:border-primary/30 transition-all"
+                     onClick={() => setScreenshotModal(selectedOrder.payment_screenshot_url!)}
+                   >
+                     <img 
+                       src={selectedOrder.payment_screenshot_url} 
+                       alt="Payment Screenshot" 
+                       className="w-full h-auto object-cover"
+                     />
+                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                       <Eye className="w-6 h-6 text-white" />
                      </div>
-                     <span className="text-sm font-bold text-white">৳{selectedOrder.total_amount}</span>
-                  </div>
-               </div>
+                   </div>
+                 </div>
+               )}
+
+               {/* Verified By Info */}
+               {selectedOrder.verified_by && (
+                 <div className="p-4 bg-success/5 border border-success/20 rounded-2xl flex items-center gap-3">
+                   <Shield className="w-5 h-5 text-success" />
+                   <div>
+                     <p className="text-xs font-bold text-success">
+                       Verified by: <span className="capitalize">{selectedOrder.verified_by}</span>
+                       {selectedOrder.verified_at && ` — ${new Date(selectedOrder.verified_at).toLocaleString()}`}
+                     </p>
+                     {selectedOrder.admin_note && (
+                       <p className="text-[10px] text-success/70 mt-1">Note: {selectedOrder.admin_note}</p>
+                     )}
+                   </div>
+                 </div>
+               )}
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="p-6 border-t border-white/5 bg-white/5 flex flex-col md:flex-row gap-4">
-               {selectedOrder.delivery_status === 'pending' ? (
-                 <button 
-                  onClick={() => dispatchToCourier(selectedOrder)}
-                  className="btn-primary flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2"
-                 >
-                   <Truck className="w-5 h-5" /> Dispatch via AI Agent
-                 </button>
-               ) : (
-                 <div className="flex-1 flex items-center gap-3 p-3 bg-success/5 border border-success/20 rounded-xl">
-                    <CheckCircle2 className="w-5 h-5 text-success" />
-                    <span className="text-xs text-success font-bold">Successfully Booked with {selectedOrder.courier_name}</span>
+            <div className="p-6 border-t border-white/5 bg-white/5 flex flex-col gap-4">
+               {/* Manual Review Actions */}
+               {selectedOrder.payment_status === 'manual_required' && (
+                 <div className="space-y-3">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                     <div>
+                       <input 
+                         type="text" 
+                         placeholder="Add a note (optional)..." 
+                         value={confirmNote}
+                         onChange={(e) => setConfirmNote(e.target.value)}
+                         className="w-full bg-white/5 border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-success/50"
+                       />
+                     </div>
+                     <div>
+                       <input 
+                         type="text" 
+                         placeholder="Rejection reason (optional)..." 
+                         value={rejectReason}
+                         onChange={(e) => setRejectReason(e.target.value)}
+                         className="w-full bg-white/5 border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-danger/50"
+                       />
+                     </div>
+                   </div>
+                   <div className="flex gap-3">
+                     <button 
+                       onClick={() => confirmPayment(selectedOrder.id)}
+                       className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 bg-success/20 text-success border border-success/30 hover:bg-success/30 transition-all"
+                     >
+                       <CheckCircle2 className="w-5 h-5" /> ✅ Confirm Payment
+                     </button>
+                     <button 
+                       onClick={() => rejectPayment(selectedOrder.id)}
+                       className="flex-1 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 bg-danger/20 text-danger border border-danger/30 hover:bg-danger/30 transition-all"
+                     >
+                       <XCircle className="w-5 h-5" /> ❌ Reject Payment
+                     </button>
+                   </div>
                  </div>
                )}
-               <div className="flex gap-2">
-                 {selectedOrder.payment_status === 'pending' && (
-                   <button onClick={() => updateOrder(selectedOrder.id, { payment_status: 'verified' })} className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all border border-white/10 flex items-center gap-2">
-                     <CreditCard className="w-4 h-4" /> Verify Manually
+
+               {/* Standard Actions */}
+               <div className="flex flex-col md:flex-row gap-4">
+                 {selectedOrder.delivery_status === 'pending' && selectedOrder.payment_status === 'verified' ? (
+                   <button 
+                    onClick={() => dispatchToCourier(selectedOrder)}
+                    className="btn-primary flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2"
+                   >
+                     <Truck className="w-5 h-5" /> Dispatch via AI Agent
                    </button>
-                 )}
-                 <button className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all border border-white/10">
-                   Print Invoice
-                 </button>
+                 ) : selectedOrder.delivery_status !== 'pending' ? (
+                   <div className="flex-1 flex items-center gap-3 p-3 bg-success/5 border border-success/20 rounded-xl">
+                      <CheckCircle2 className="w-5 h-5 text-success" />
+                      <span className="text-xs text-success font-bold">Successfully Booked with {selectedOrder.courier_name}</span>
+                   </div>
+                 ) : null}
+                 <div className="flex gap-2">
+                   {selectedOrder.payment_status === 'pending' && (
+                     <button onClick={() => updateOrder(selectedOrder.id, { payment_status: 'verified' })} className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all border border-white/10 flex items-center gap-2">
+                       <CreditCard className="w-4 h-4" /> Verify Manually
+                     </button>
+                   )}
+                   <button className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all border border-white/10">
+                     Print Invoice
+                   </button>
+                 </div>
                </div>
             </div>
           </motion.div>
         </div>
       )}
       </AnimatePresence>
+
+      {/* Screenshot Full View Modal */}
+      <AnimatePresence>
+        {screenshotModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-lg" 
+              onClick={() => setScreenshotModal(null)} 
+            />
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              className="relative z-10 max-w-lg w-full max-h-[85vh]"
+            >
+              <button
+                onClick={() => setScreenshotModal(null)}
+                className="absolute -top-12 right-0 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <img src={screenshotModal} alt="Payment Screenshot" className="w-full h-auto rounded-2xl border border-white/10" />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
-

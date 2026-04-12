@@ -2,6 +2,8 @@ package orders
 
 import (
 	"encoding/json"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -149,7 +151,7 @@ func (h *Handler) CreateOrder(c *fiber.Ctx) error {
 	// ── Decrement Stock ──
 	for _, item := range req.OrderItems {
 		pid, _ := uuid.Parse(item.ProductID)
-		
+
 		if item.VariantID != nil && *item.VariantID != "" {
 			vid, _ := uuid.Parse(*item.VariantID)
 			var variant models.ProductVariant
@@ -157,7 +159,7 @@ func (h *Handler) CreateOrder(c *fiber.Ctx) error {
 				oldStock := variant.Stock
 				newStock := oldStock - item.Quantity
 				tx.Model(&variant).Update("stock", newStock)
-				
+
 				// Update parent product total sold
 				tx.Model(&models.Product{}).Where("id = ?", pid).Update("total_sold", gorm.Expr("total_sold + ?", item.Quantity))
 
@@ -267,12 +269,13 @@ func (h *Handler) GetOrderStats(c *fiber.Ctx) error {
 		return response.Success(c, map[string]int64{})
 	}
 
-	var totalOrders, pendingPayment, pendingDelivery int64
+	var totalOrders, pendingPayment, pendingDelivery, manualReview int64
 	var totalRevenue float64
 
 	h.DB.Model(&models.Order{}).Where("shop_id = ?", shop.ID).Count(&totalOrders)
 	h.DB.Model(&models.Order{}).Where("shop_id = ? AND payment_status = 'pending'", shop.ID).Count(&pendingPayment)
 	h.DB.Model(&models.Order{}).Where("shop_id = ? AND delivery_status = 'pending'", shop.ID).Count(&pendingDelivery)
+	h.DB.Model(&models.Order{}).Where("shop_id = ? AND payment_status = 'manual_required'", shop.ID).Count(&manualReview)
 
 	var result struct{ Sum float64 }
 	h.DB.Model(&models.Order{}).Where("shop_id = ? AND payment_status = 'verified'", shop.ID).Select("COALESCE(SUM(total_amount), 0) as sum").Scan(&result)
@@ -282,6 +285,98 @@ func (h *Handler) GetOrderStats(c *fiber.Ctx) error {
 		"total_orders":     totalOrders,
 		"pending_payment":  pendingPayment,
 		"pending_delivery": pendingDelivery,
+		"manual_review":    manualReview,
 		"total_revenue":    totalRevenue,
 	})
+}
+
+// GetManualReviewOrders handles GET /api/orders/manual-review — orders awaiting manual payment verification.
+func (h *Handler) GetManualReviewOrders(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.Success(c, []models.Order{})
+	}
+
+	var orders []models.Order
+	h.DB.Where("shop_id = ? AND payment_status = ?", shop.ID, models.OrderPayManualReq).
+		Order("created_at DESC").Find(&orders)
+
+	return response.Success(c, orders)
+}
+
+// ConfirmPayment handles PUT /api/orders/:id/confirm-payment — seller manually confirms payment.
+func (h *Handler) ConfirmPayment(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.NotFound(c, "Shop not found")
+	}
+
+	oid, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.BadRequest(c, "Invalid order ID")
+	}
+
+	var order models.Order
+	if err := h.DB.Where("id = ? AND shop_id = ?", oid, shop.ID).First(&order).Error; err != nil {
+		return response.NotFound(c, "Order not found")
+	}
+
+	var req struct {
+		AdminNote *string `json:"admin_note"`
+	}
+	c.BodyParser(&req)
+
+	now := time.Now()
+	verifiedBy := "seller"
+	updates := map[string]interface{}{
+		"payment_status": models.OrderPayVerified,
+		"verified_by":    verifiedBy,
+		"verified_at":    &now,
+	}
+	if req.AdminNote != nil {
+		updates["admin_note"] = *req.AdminNote
+	}
+
+	h.DB.Model(&order).Updates(updates)
+	h.DB.First(&order, order.ID)
+
+	return response.Success(c, order)
+}
+
+// RejectPayment handles PUT /api/orders/:id/reject-payment — seller rejects invalid payment.
+func (h *Handler) RejectPayment(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	shop, err := h.getUserShop(userID)
+	if err != nil {
+		return response.NotFound(c, "Shop not found")
+	}
+
+	oid, err := uuid.Parse(c.Params("id"))
+	if err != nil {
+		return response.BadRequest(c, "Invalid order ID")
+	}
+
+	var order models.Order
+	if err := h.DB.Where("id = ? AND shop_id = ?", oid, shop.ID).First(&order).Error; err != nil {
+		return response.NotFound(c, "Order not found")
+	}
+
+	var req struct {
+		Reason *string `json:"reason"`
+	}
+	c.BodyParser(&req)
+
+	updates := map[string]interface{}{
+		"payment_status": models.OrderPayFailed,
+	}
+	if req.Reason != nil {
+		updates["admin_note"] = *req.Reason
+	}
+
+	h.DB.Model(&order).Updates(updates)
+	h.DB.First(&order, order.ID)
+
+	return response.Success(c, order)
 }

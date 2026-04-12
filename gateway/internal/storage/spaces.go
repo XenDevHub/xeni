@@ -1,9 +1,12 @@
 package storage
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"mime/multipart"
+	"net/http"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -74,3 +77,45 @@ func (s *SpacesClient) UploadFile(ctx context.Context, file *multipart.FileHeade
 	}
 	return fmt.Sprintf("%s/%s/%s", s.Config.Endpoint, s.Config.Bucket, path), nil
 }
+
+// UploadFromURL downloads an image from a source URL and uploads it to Spaces.
+// Used for saving Messenger payment screenshots to permanent storage.
+func (s *SpacesClient) UploadFromURL(ctx context.Context, sourceURL, destPath string) (string, error) {
+	// Download the image
+	resp, err := http.Get(sourceURL)
+	if err != nil {
+		return "", fmt.Errorf("failed to download from URL: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("download returned status %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	contentType := resp.Header.Get("Content-Type")
+	if contentType == "" {
+		contentType = "image/jpeg"
+	}
+
+	_, err = s.S3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(s.Config.Bucket),
+		Key:         aws.String(destPath),
+		Body:        bytes.NewReader(body),
+		ACL:         types.ObjectCannedACLPublicRead,
+		ContentType: aws.String(contentType),
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to upload to spaces: %w", err)
+	}
+
+	if s.Config.CDNBase != "" {
+		return fmt.Sprintf("%s/%s", s.Config.CDNBase, destPath), nil
+	}
+	return fmt.Sprintf("%s/%s/%s", s.Config.Endpoint, s.Config.Bucket, destPath), nil
+}
+

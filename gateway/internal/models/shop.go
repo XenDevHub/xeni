@@ -157,6 +157,9 @@ type Order struct {
 	MessengerThreadID      *uuid.UUID          `gorm:"type:uuid" json:"messenger_thread_id"`
 	PlacedBy               OrderPlacedBy       `gorm:"type:order_placed_by;default:'human';not null" json:"placed_by"`
 	Notes                  *string             `gorm:"type:text" json:"notes"`
+	VerifiedBy             *string             `gorm:"size:20" json:"verified_by"`
+	VerifiedAt             *time.Time          `json:"verified_at"`
+	AdminNote              *string             `gorm:"type:text" json:"admin_note"`
 	CreatedAt              time.Time           `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt              time.Time           `gorm:"autoUpdateTime" json:"updated_at"`
 

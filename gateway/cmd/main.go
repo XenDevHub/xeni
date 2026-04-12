@@ -89,7 +89,7 @@ func main() {
 	notifSvc := notifications.NewService(db, waClient)
 
 	// Initialize agent handler
-	agentHandler := agents.NewHandler(db, redisClient, rmqClient, wsHub, cfg, notifSvc)
+	agentHandler := agents.NewHandler(db, redisClient, rmqClient, wsHub, cfg, notifSvc, spacesClient)
 
 	// Start consuming RabbitMQ results
 	if rmqClient != nil {

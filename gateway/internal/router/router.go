@@ -166,6 +166,9 @@ func Setup(
 	ordersGroup.Get("/:id", ordersHandler.GetOrder)
 	ordersGroup.Post("", ordersHandler.CreateOrder)
 	ordersGroup.Put("/:id", ordersHandler.UpdateOrder)
+	ordersGroup.Get("/manual-review", ordersHandler.GetManualReviewOrders)
+	ordersGroup.Put("/:id/confirm-payment", ordersHandler.ConfirmPayment)
+	ordersGroup.Put("/:id/reject-payment", ordersHandler.RejectPayment)
 
 	// ── Conversation Routes ──
 	convHandler := conversations.NewHandler(db, notifSvc)

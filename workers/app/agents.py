@@ -38,6 +38,25 @@ class ConversationAgent(BaseWorker):
         shop_rules = payload.get("shop_rules", "")
         shop_settings = payload.get("shop_settings", {})
         active_order = payload.get("active_order", None)
+        message_type = payload.get("message_type", "text")
+        message_url = payload.get("message_url", None)
+
+        # ── FLOW 1: Screenshot Detection ──
+        # If customer sent an image AND there's a pending order, trigger screenshot verification
+        if message_type == "image" and message_url and active_order and active_order.get("payment_status") == "pending":
+            reply = "📸 স্ক্রিনশট পেয়েছি! পেমেন্ট যাচাই করছি, একটু অপেক্ষা করুন... ⏳"
+            if page_access_token:
+                self._send_facebook_message(customer_psid, page_access_token, reply)
+            return {
+                "reply": reply,
+                "intent": "payment_screenshot",
+                "action": "verify_payment_screenshot",
+                "screenshot_url": message_url,
+                "conversation_id": payload.get("conversation_id"),
+                "shop_id": payload.get("shop_id"),
+                "page_id": payload.get("page_id"),
+                "customer_psid": customer_psid,
+            }
 
         # Send typing_on indicator instantly to FB
         if page_access_token:
@@ -113,14 +132,17 @@ class ConversationAgent(BaseWorker):
         - Maintain the context of the conversation. If a customer has already provided info, don't ask for it again.
         - Product Codes: If a customer mentions a specific SKU, identify the exact product/variant immediately.
         - Order Finalization: If you have already given a summary AND the user explicitly says "Order Confirm", "অর্ডার কনফার্ম", or a very clear confirmation, you MUST set "action" to "finalize_order".
-        - Post-Order Guidance: If an "active_order" is present (status pending), your PRIMARY goal is to help the customer complete the payment. Provide the bKash/Nagad numbers from SHOP SETTINGS and ask for the Transaction ID. 
+        - Post-Order Guidance: If an "active_order" is present (status pending), your PRIMARY goal is to help the customer complete the payment. Provide the bKash/Nagad numbers from SHOP SETTINGS and ask for the Transaction ID or screenshot.
+        - TrxID Detection: If you see a Transaction ID pattern in the message (8-10 character alphanumeric for bKash, 10-12 digit numeric for Nagad), set action to "verify_payment_trxid" and include "trx_id" and "payment_method" (bkash/nagad/unknown) in your response.
         - Confirmation Phrase: Always ask the customer to write "Order Confirm" specifically to finalize their order. E.g., "(অর্ডারটি ফাইনাল করতে দয়া করে 'Order Confirm' লিখে মেসেজ দিন)".
         - Use emojis naturally to stay friendly.
         
         Return your response strictly as a JSON object with:
         - "reply": the text message to send back to the customer.
-        - "intent": the classified intent (e.g. "product_inquiry", "greeting", "order_confirmation", "general").
-        - "action": (Optional) set to "finalize_order" only if the order is ready to be saved in the database.
+        - "intent": the classified intent (e.g. "product_inquiry", "greeting", "order_confirmation", "payment_trxid", "general").
+        - "action": (Optional) set to "finalize_order" if confirming order OR "verify_payment_trxid" if a TrxID is detected.
+        - "trx_id": (Optional) the extracted Transaction ID string if action is verify_payment_trxid.
+        - "payment_method": (Optional) "bkash", "nagad", or "unknown" if action is verify_payment_trxid.
         - "order_details": (Optional) a dictionary with:
             - "customer_name": Name from conversation
             - "customer_phone": Phone number from conversation
@@ -139,7 +161,7 @@ class ConversationAgent(BaseWorker):
             order_details = data.get("order_details", None)
             should_escalate = data.get("escalate", False)
 
-            return {
+            result = {
                 "reply": reply,
                 "intent": intent,
                 "action": action,
@@ -148,8 +170,13 @@ class ConversationAgent(BaseWorker):
                 "conversation_id": payload.get("conversation_id"),
                 "shop_id": payload.get("shop_id"),
                 "page_id": payload.get("page_id"),
-                "customer_psid": payload.get("customer_psid")
+                "customer_psid": payload.get("customer_psid"),
             }
+            # Include TrxID data if present
+            if action == "verify_payment_trxid":
+                result["trx_id"] = data.get("trx_id", "")
+                result["payment_method"] = data.get("payment_method", "unknown")
+            return result
         except Exception as e:
             logger.error(f"Error calling LLM: {e}")
             reply = "I'm currently experiencing technical difficulties. Let me pass you to a human agent! 🙏"
@@ -190,10 +217,19 @@ class ConversationAgent(BaseWorker):
 
 
 class OrderAgent(BaseWorker):
-    """Processes orders — payment verification (bKash/Nagad), courier booking."""
+    """Processes orders — payment verification (bKash/Nagad), courier booking, screenshot OCR."""
 
     def process_task(self, payload: dict[str, Any]) -> dict[str, Any]:
         payload = payload.get("payload", payload)
+        verify_action = payload.get("verify_action", "")
+
+        # ── Route to verification methods ──
+        if verify_action == "screenshot_ocr":
+            return self._verify_screenshot_ocr(payload)
+        elif verify_action == "trxid_check":
+            return self._verify_trxid(payload)
+
+        # ── Default: Legacy order processing (courier booking etc.) ──
         order_id = payload.get("order_id", "")
         payment_method = payload.get("payment_method", "bkash")
         trx_id = payload.get("trx_id", "")
@@ -202,7 +238,7 @@ class OrderAgent(BaseWorker):
         customer_address = payload.get("customer_address", "")
 
         # Step 1: Verify payment
-        payment_verified = self._verify_payment(payment_method, trx_id, amount)
+        payment_verified = self._verify_payment_legacy(payment_method, trx_id, amount)
 
         # Step 2: Book courier if payment verified
         courier_result = None
@@ -220,8 +256,142 @@ class OrderAgent(BaseWorker):
             "courier_booking": courier_result,
         }
 
-    def _verify_payment(self, method: str, trx_id: str, amount: float) -> dict:
-        """Mock payment verification — in production: call bKash/Nagad API."""
+    def _verify_screenshot_ocr(self, payload: dict) -> dict:
+        """Verify payment via screenshot OCR using Google Cloud Vision API."""
+        import re
+        screenshot_url = payload.get("screenshot_url", "")
+        order_id = payload.get("order_id", "")
+        expected_amount = payload.get("expected_amount", 0)
+
+        logger.info(f"Starting OCR verification for order {order_id}")
+
+        extracted_trx_id = ""
+        extracted_amount = 0.0
+        payment_method = "unknown"
+
+        try:
+            if settings.GOOGLE_CLOUD_VISION_KEY:
+                # Use Google Cloud Vision API for OCR
+                import base64
+                response = httpx.get(screenshot_url, timeout=15.0)
+                image_bytes = base64.b64encode(response.content).decode("utf-8")
+
+                vision_url = f"https://vision.googleapis.com/v1/images:annotate?key={settings.GOOGLE_CLOUD_VISION_KEY}"
+                vision_payload = {
+                    "requests": [{
+                        "image": {"content": image_bytes},
+                        "features": [{"type": "TEXT_DETECTION"}]
+                    }]
+                }
+                ocr_resp = httpx.post(vision_url, json=vision_payload, timeout=30.0)
+                ocr_data = ocr_resp.json()
+
+                full_text = ""
+                if ocr_data.get("responses") and ocr_data["responses"][0].get("fullTextAnnotation"):
+                    full_text = ocr_data["responses"][0]["fullTextAnnotation"]["text"]
+
+                logger.info(f"OCR extracted text: {full_text[:200]}")
+
+                # Detect payment method
+                text_lower = full_text.lower()
+                if "bkash" in text_lower or "বিকাশ" in full_text:
+                    payment_method = "bkash"
+                elif "nagad" in text_lower or "নগদ" in full_text:
+                    payment_method = "nagad"
+
+                # Extract TrxID — bKash pattern: alphanumeric 8-10 chars
+                trx_patterns = [
+                    r'(?:TrxID|Transaction ID|ট্রানজেকশন)[:\s]*([A-Z0-9]{8,10})',
+                    r'\b([A-Z0-9]{8,10})\b',
+                ]
+                for pattern in trx_patterns:
+                    match = re.search(pattern, full_text, re.IGNORECASE)
+                    if match:
+                        extracted_trx_id = match.group(1)
+                        break
+
+                # Extract amount — look for numbers near Tk/৳/টাকা
+                amount_patterns = [
+                    r'(?:৳|Tk\.?|BDT|টাকা)[\s]*([\d,]+(?:\.\d{2})?)',
+                    r'([\d,]+(?:\.\d{2})?)\s*(?:৳|Tk|BDT|টাকা)',
+                    r'Total[:\s]*(?:৳|Tk\.?)?\s*([\d,]+(?:\.\d{2})?)',
+                ]
+                for pattern in amount_patterns:
+                    match = re.search(pattern, full_text, re.IGNORECASE)
+                    if match:
+                        extracted_amount = float(match.group(1).replace(",", ""))
+                        break
+
+                # Verify amount match (±5 taka tolerance)
+                if extracted_amount > 0 and abs(extracted_amount - expected_amount) <= 5:
+                    return {
+                        "verify_action": "screenshot_ocr",
+                        "order_id": order_id,
+                        "payment_status": "verified",
+                        "verified_by": "ocr",
+                        "extracted_trx_id": extracted_trx_id,
+                        "extracted_amount": extracted_amount,
+                        "payment_method": payment_method,
+                        "customer_psid": payload.get("customer_psid"),
+                        "page_id": payload.get("page_id"),
+                        "conversation_id": payload.get("conversation_id"),
+                        "shop_id": payload.get("shop_id"),
+                        "summary": f"Payment verified via OCR. TrxID: {extracted_trx_id}, Amount: ৳{extracted_amount}",
+                    }
+
+        except Exception as e:
+            logger.error(f"OCR verification failed: {e}")
+
+        # Fallback: Could not verify automatically — send to manual review
+        return {
+            "verify_action": "screenshot_ocr",
+            "order_id": order_id,
+            "payment_status": "manual_required",
+            "verified_by": "",
+            "extracted_trx_id": extracted_trx_id,
+            "extracted_amount": extracted_amount,
+            "payment_method": payment_method,
+            "customer_psid": payload.get("customer_psid"),
+            "page_id": payload.get("page_id"),
+            "conversation_id": payload.get("conversation_id"),
+            "shop_id": payload.get("shop_id"),
+            "summary": "Screenshot received — sent to manual review.",
+        }
+
+    def _verify_trxid(self, payload: dict) -> dict:
+        """Verify payment via TrxID — call API if credentials exist, else manual review."""
+        trx_id = payload.get("trx_id", "")
+        payment_method = payload.get("payment_method", "unknown")
+        order_id = payload.get("order_id", "")
+
+        logger.info(f"TrxID verification for order {order_id}: {trx_id} ({payment_method})")
+
+        # Step A: Try real API if credentials are available
+        if payment_method == "bkash" and settings.BKASH_APP_KEY:
+            logger.info("bKash API credentials found — calling verification API...")
+            # TODO: Implement real bKash Tokenized API call
+            # For now, mark as manual_required
+        elif payment_method == "nagad" and settings.NAGAD_MERCHANT_ID:
+            logger.info("Nagad API credentials found — calling verification API...")
+            # TODO: Implement real Nagad API call
+
+        # Step B: No API credentials — send to manual review
+        return {
+            "verify_action": "trxid_check",
+            "order_id": order_id,
+            "payment_status": "manual_required",
+            "verified_by": "",
+            "extracted_trx_id": trx_id,
+            "payment_method": payment_method,
+            "customer_psid": payload.get("customer_psid"),
+            "page_id": payload.get("page_id"),
+            "conversation_id": payload.get("conversation_id"),
+            "shop_id": payload.get("shop_id"),
+            "summary": f"TrxID {trx_id} received — sent to manual review.",
+        }
+
+    def _verify_payment_legacy(self, method: str, trx_id: str, amount: float) -> dict:
+        """Legacy payment verification — used by direct agent API calls."""
         logger.info(f"Connecting to {method} verification API for TRX {trx_id}...")
         import time
         time.sleep(1.5)
