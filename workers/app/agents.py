@@ -114,7 +114,7 @@ class ConversationAgent(BaseWorker):
             - "customer_name": Name from conversation
             - "customer_phone": Phone number from conversation
             - "customer_address": Delivery address from conversation
-            - "items": [{ "product_id": "...", "variant_id": "...", "quantity": 1, "price": 500 }]
+            - "items": list of objects, each with product_id, variant_id, quantity, and price
             - "total": Calculated sum
         - "escalate": boolean (true if complaint or complex issue requiring a human, false otherwise).
         """
