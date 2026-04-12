@@ -32,6 +32,8 @@ CREATE TYPE message_content_type AS ENUM ('text', 'image', 'audio');
 CREATE TYPE conversation_handling_mode AS ENUM ('ai', 'human');
 CREATE TYPE conversation_status AS ENUM ('open', 'resolved');
 CREATE TYPE order_placed_by AS ENUM ('ai', 'human');
+CREATE TYPE stock_movement_type AS ENUM ('sale', 'restock', 'adjustment', 'return');
+CREATE TYPE review_status AS ENUM ('pending', 'approved', 'rejected');
 
 -- ──────────────────────────────────────────────────────────
 -- 1. USERS
@@ -53,6 +55,11 @@ CREATE TABLE users (
     two_fa_secret       VARCHAR(255),                              -- encrypted TOTP secret
     preferred_language  VARCHAR(5) NOT NULL DEFAULT 'en',          -- "en" | "bn"
     last_login_at       TIMESTAMPTZ,
+    suspended_reason    TEXT,
+    whatsapp_number     VARCHAR(20),
+    suspended_at        TIMESTAMPTZ,
+    deleted_at          TIMESTAMPTZ,
+    admin_note          TEXT,
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -160,6 +167,8 @@ CREATE TABLE products (
     low_stock_threshold INTEGER NOT NULL DEFAULT 5,
     is_active           BOOLEAN NOT NULL DEFAULT TRUE,
     is_out_of_stock     BOOLEAN NOT NULL DEFAULT FALSE,
+    has_variants        BOOLEAN NOT NULL DEFAULT FALSE,
+    total_sold          INTEGER NOT NULL DEFAULT 0,
     images              JSONB DEFAULT '[]'::JSONB,                 -- array of S3 URLs
     created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -169,6 +178,47 @@ CREATE INDEX idx_products_shop_id ON products(shop_id);
 CREATE INDEX idx_products_sku ON products(shop_id, sku) WHERE sku IS NOT NULL;
 CREATE INDEX idx_products_active ON products(shop_id, is_active);
 CREATE INDEX idx_products_stock ON products(shop_id, is_out_of_stock);
+
+-- ──────────────────────────────────────────────────────────
+-- 6a. PRODUCT VARIANTS
+-- ──────────────────────────────────────────────────────────
+
+CREATE TABLE product_variants (
+    id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    product_id    UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    sku           VARCHAR(100) NOT NULL,
+    color         VARCHAR(50),
+    size          VARCHAR(50),
+    price_modifier DECIMAL(12, 2) DEFAULT 0,
+    stock         INTEGER NOT NULL DEFAULT 0,
+    is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX idx_product_variants_sku ON product_variants(sku);
+CREATE INDEX idx_product_variants_product_id ON product_variants(product_id);
+
+-- ──────────────────────────────────────────────────────────
+-- 6b. INVENTORY LOGS
+-- ──────────────────────────────────────────────────────────
+
+CREATE TABLE inventory_logs (
+    id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    product_id   UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    variant_id   UUID REFERENCES product_variants(id) ON DELETE SET NULL,
+    type         stock_movement_type NOT NULL,
+    quantity     INTEGER NOT NULL,
+    old_stock    INTEGER NOT NULL,
+    new_stock    INTEGER NOT NULL,
+    reference_id VARCHAR(255),
+    notes        TEXT,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_inventory_logs_product_id ON inventory_logs(product_id);
+CREATE INDEX idx_inventory_logs_variant_id ON inventory_logs(variant_id);
+CREATE INDEX idx_inventory_logs_created_at ON inventory_logs(created_at DESC);
 
 -- ──────────────────────────────────────────────────────────
 -- 7. ORDERS
@@ -263,6 +313,12 @@ CREATE TABLE plans (
     price_monthly_bdt DECIMAL(12, 2) NOT NULL DEFAULT 0,           -- BDT per month
     features        JSONB NOT NULL DEFAULT '{}',
     is_active       BOOLEAN NOT NULL DEFAULT TRUE,
+    tagline         VARCHAR(100),
+    tagline_bn      VARCHAR(200),
+    cta_text        VARCHAR(50) DEFAULT 'Get Started',
+    cta_text_bn     VARCHAR(100) DEFAULT 'শুরু করুন',
+    is_most_popular  BOOLEAN DEFAULT FALSE,
+    display_order   INTEGER DEFAULT 0,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -358,6 +414,111 @@ CREATE INDEX idx_audit_logs_action ON audit_logs(action);
 CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC);
 
 -- ──────────────────────────────────────────────────────────
+-- 15. CONTENT SECTIONS
+-- ──────────────────────────────────────────────────────────
+
+CREATE TABLE content_sections (
+    id         UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    section_key VARCHAR(50) NOT NULL UNIQUE,
+    content_en JSONB NOT NULL DEFAULT '{}',
+    content_bn JSONB NOT NULL DEFAULT '{}',
+    is_active  BOOLEAN DEFAULT TRUE,
+    updated_by UUID REFERENCES users(id) ON DELETE SET NULL,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_content_sections_key ON content_sections(section_key);
+
+-- ──────────────────────────────────────────────────────────
+-- 16. REVIEWS
+-- ──────────────────────────────────────────────────────────
+
+CREATE TABLE reviews (
+    id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id           UUID REFERENCES users(id) ON DELETE SET NULL,
+    reviewer_name     VARCHAR(100) NOT NULL,
+    reviewer_avatar_url TEXT,
+    plan_at_review     VARCHAR(50),
+    star_rating       SMALLINT NOT NULL,
+    review_text       TEXT NOT NULL,
+    status           review_status NOT NULL DEFAULT 'pending',
+    display_order     INTEGER DEFAULT 0,
+    moderated_by      UUID REFERENCES users(id) ON DELETE SET NULL,
+    moderated_at      TIMESTAMPTZ,
+    admin_note        TEXT,
+    show_on_landing    BOOLEAN DEFAULT FALSE,
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ──────────────────────────────────────────────────────────
+-- 17. REVIEW SETTINGS
+-- ──────────────────────────────────────────────────────────
+
+CREATE TABLE review_settings (
+    id                  INTEGER PRIMARY KEY DEFAULT 1,
+    auto_approve_premium  BOOLEAN DEFAULT FALSE,
+    show_star_rating      BOOLEAN DEFAULT TRUE,
+    min_star_to_show       SMALLINT DEFAULT 4,
+    max_reviews_on_landing INTEGER DEFAULT 6,
+    updated_at           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ──────────────────────────────────────────────────────────
+-- 18. PLATFORM METRICS CACHE
+-- ──────────────────────────────────────────────────────────
+
+CREATE TABLE platform_metrics_cache (
+    id                   UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    metric_date           DATE NOT NULL UNIQUE,
+    total_users           INTEGER DEFAULT 0,
+    new_users_today        INTEGER DEFAULT 0,
+    active_subscriptions  INTEGER DEFAULT 0,
+    revenue_today         DECIMAL(12, 2) DEFAULT 0,
+    revenue_month         DECIMAL(12, 2) DEFAULT 0,
+    ai_tasks_today         INTEGER DEFAULT 0,
+    messages_replied_today INTEGER DEFAULT 0,
+    orders_processed_today INTEGER DEFAULT 0,
+    task_success_rate      DECIMAL(5, 2) DEFAULT 0,
+    computed_at           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ──────────────────────────────────────────────────────────
+-- 19. SYSTEM SETTINGS
+-- ──────────────────────────────────────────────────────────
+
+CREATE TABLE system_settings (
+    id           UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    setting_key   VARCHAR(255) NOT NULL UNIQUE,
+    setting_value TEXT,
+    description   TEXT,
+    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_by    UUID REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- ──────────────────────────────────────────────────────────
+-- 20. AGENT RULES
+-- ──────────────────────────────────────────────────────────
+
+CREATE TABLE agent_rules (
+    id        UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    scope     VARCHAR(20) NOT NULL,
+    shop_id   UUID REFERENCES shops(id) ON DELETE CASCADE,
+    category  VARCHAR(50) NOT NULL,
+    title     VARCHAR(255) NOT NULL,
+    rule      TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    priority  INTEGER DEFAULT 5,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_by UUID REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX idx_agent_rules_scope ON agent_rules(scope);
+CREATE INDEX idx_agent_rules_shop_id ON agent_rules(shop_id);
+
+-- ──────────────────────────────────────────────────────────
 -- UPDATED_AT TRIGGERS
 -- ──────────────────────────────────────────────────────────
 
@@ -403,6 +564,22 @@ CREATE TRIGGER set_subscriptions_updated_at
 
 CREATE TRIGGER set_payments_updated_at
     BEFORE UPDATE ON payments
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER set_product_variants_updated_at
+    BEFORE UPDATE ON product_variants
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER set_content_sections_updated_at
+    BEFORE UPDATE ON content_sections
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER set_reviews_updated_at
+    BEFORE UPDATE ON reviews
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER set_agent_rules_updated_at
+    BEFORE UPDATE ON agent_rules
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ──────────────────────────────────────────────────────────

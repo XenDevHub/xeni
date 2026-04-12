@@ -106,6 +106,7 @@ func (h *Handler) CreateProduct(c *fiber.Ctx) error {
 		CurrentStock:      req.InitialStock,
 		LowStockThreshold: req.LowStockThreshold,
 		IsOutOfStock:      req.InitialStock == 0,
+		HasVariants:       req.HasVariants,
 	}
 
 	if req.Images != nil {

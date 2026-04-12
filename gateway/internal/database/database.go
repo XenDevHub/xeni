@@ -47,13 +47,25 @@ func Connect(cfg *config.DBConfig, env string) (*gorm.DB, error) {
 }
 
 func autoMigrate(db *gorm.DB) error {
-	db.Exec("CREATE TYPE task_status AS ENUM ('queued', 'processing', 'completed', 'failed')")
-	db.Exec("CREATE TYPE order_payment_method AS ENUM ('bkash', 'nagad', 'cod')")
-	db.Exec("CREATE TYPE order_payment_status AS ENUM ('pending', 'verified', 'failed', 'manual_required')")
-	db.Exec("CREATE TYPE order_delivery_status AS ENUM ('pending', 'booked', 'in_transit', 'delivered', 'returned')")
-	db.Exec("CREATE TYPE order_placed_by AS ENUM ('ai', 'human')")
-	db.Exec("CREATE TYPE stock_movement_type AS ENUM ('sale', 'restock', 'adjustment', 'return')")
-	db.Exec("CREATE TYPE conversation_handling_mode AS ENUM ('ai', 'human')")
+	// Create Custom Types safely
+	types := map[string]string{
+		"task_status":                "CREATE TYPE task_status AS ENUM ('queued', 'processing', 'completed', 'failed')",
+		"order_payment_method":       "CREATE TYPE order_payment_method AS ENUM ('bkash', 'nagad', 'cod')",
+		"order_payment_status":       "CREATE TYPE order_payment_status AS ENUM ('pending', 'verified', 'failed', 'manual_required')",
+		"order_delivery_status":      "CREATE TYPE order_delivery_status AS ENUM ('pending', 'booked', 'in_transit', 'delivered', 'returned')",
+		"order_placed_by":            "CREATE TYPE order_placed_by AS ENUM ('ai', 'human')",
+		"stock_movement_type":        "CREATE TYPE stock_movement_type AS ENUM ('sale', 'restock', 'adjustment', 'return')",
+		"conversation_handling_mode": "CREATE TYPE conversation_handling_mode AS ENUM ('ai', 'human')",
+		"review_status":              "CREATE TYPE review_status AS ENUM ('pending', 'approved', 'rejected')",
+	}
+
+	for typeName, createStmt := range types {
+		// Use a DO block to safely create types only if they don't exist
+		checkStmt := "DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '" + typeName + "') THEN " + createStmt + "; END IF; END $$;"
+		if err := db.Exec(checkStmt).Error; err != nil {
+			slog.Warn("could not ensure custom type exists", "type", typeName, "error", err)
+		}
+	}
 
 	modelsToMigrate := []interface{}{
 		&models.User{},
@@ -84,8 +96,8 @@ func autoMigrate(db *gorm.DB) error {
 
 	for _, m := range modelsToMigrate {
 		if err := db.AutoMigrate(m); err != nil {
-			slog.Error("failed to migrate model", "error", err)
-			// Continue to next model regardless of failure
+			slog.Error("failed to migrate model", "model", m, "error", err)
+			return err // Return error for model migrations
 		}
 	}
 	return nil
