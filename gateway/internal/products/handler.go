@@ -109,6 +109,17 @@ func (h *Handler) CreateProduct(c *fiber.Ctx) error {
 		HasVariants:       req.HasVariants,
 	}
 
+	// Calculate total stock if variants are present
+	if req.HasVariants && len(req.Variants) > 0 {
+		totalStock := 0
+		for _, v := range req.Variants {
+			totalStock += v.Stock
+		}
+		product.InitialStock = totalStock
+		product.CurrentStock = totalStock
+		product.IsOutOfStock = totalStock == 0
+	}
+
 	if req.Images != nil {
 		b, _ := json.Marshal(req.Images)
 		product.Images = b
@@ -250,6 +261,14 @@ func (h *Handler) UpdateProduct(c *fiber.Ctx) error {
 		CurrentStock      *int     `json:"current_stock"`
 		LowStockThreshold *int     `json:"low_stock_threshold"`
 		IsActive          *bool    `json:"is_active"`
+		HasVariants       *bool    `json:"has_variants"`
+		Variants          []struct {
+			SKU           string  `json:"sku"`
+			Color         *string `json:"color"`
+			Size          *string `json:"size"`
+			Stock         int     `json:"stock"`
+			PriceModifier float64 `json:"price_modifier"`
+		} `json:"variants"`
 		Images            []string `json:"images"`
 	}
 	if err := c.BodyParser(&req); err != nil {
@@ -290,8 +309,50 @@ func (h *Handler) UpdateProduct(c *fiber.Ctx) error {
 		updates["images"] = b
 	}
 
+	if req.HasVariants != nil {
+		updates["has_variants"] = *req.HasVariants
+	}
+
 	if len(updates) > 0 {
 		h.DB.Model(&product).Updates(updates)
+	}
+
+	// Handle variants update if provided
+	if req.HasVariants != nil || req.Variants != nil {
+		hasVariants := product.HasVariants
+		if req.HasVariants != nil {
+			hasVariants = *req.HasVariants
+		}
+
+		if hasVariants && req.Variants != nil {
+			// For simplicity in this update, we clear and recreate variants
+			// and then recalculate the product's total stock
+			h.DB.Where("product_id = ?", product.ID).Delete(&models.ProductVariant{})
+			
+			totalStock := 0
+			for _, v := range req.Variants {
+				variant := models.ProductVariant{
+					ProductID:     product.ID,
+					SKU:           v.SKU,
+					Color:         v.Color,
+					Size:          v.Size,
+					Stock:         v.Stock,
+					PriceModifier: v.PriceModifier,
+				}
+				h.DB.Create(&variant)
+				totalStock += v.Stock
+			}
+
+			// Update product's total stock
+			h.DB.Model(&product).Updates(map[string]interface{}{
+				"initial_stock":   totalStock,
+				"current_stock":   totalStock,
+				"is_out_of_stock": totalStock == 0,
+			})
+		} else if !hasVariants {
+			// If variants are turned off, delete existing variants
+			h.DB.Where("product_id = ?", product.ID).Delete(&models.ProductVariant{})
+		}
 	}
 
 	h.DB.First(&product, product.ID)

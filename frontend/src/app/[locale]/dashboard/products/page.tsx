@@ -393,8 +393,12 @@ export default function ProductsPage() {
                 <h2 className="text-lg font-heading font-bold" style={{ color: 'var(--text-primary)' }}>{editing ? 'Edit Product' : 'New Product'}</h2>
                 <button onClick={() => setShowModal(false)}><X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} /></button>
               </div>
-              <input className="input-field" placeholder="Product name *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+              <div className="grid grid-cols-2 gap-3">
+                <input className="input-field" placeholder="Product name *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
+                <input className="input-field" type="number" placeholder="Price (৳) *" value={form.price || ''} onChange={e => setForm({ ...form, price: Number(e.target.value) })} />
+              </div>
               <input className="input-field" placeholder="নাম (বাংলা)" value={form.name_bn} onChange={e => setForm({ ...form, name_bn: e.target.value })} />
+              
               <div className="grid grid-cols-2 gap-3 items-center">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
                   <input type="checkbox" id="has_variants" checked={form.has_variants} onChange={e => setForm({ ...form, has_variants: e.target.checked })} className="w-4 h-4 accent-primary" />
@@ -403,52 +407,69 @@ export default function ProductsPage() {
                 {!form.has_variants ? (
                   <input className="input-field" placeholder="Base SKU" value={form.sku} onChange={e => setForm({ ...form, sku: e.target.value.toUpperCase() })} />
                 ) : (
-                   <div className="text-[10px] text-right" style={{ color: 'var(--text-muted)' }}>Inventory tracked per variant</div>
+                   <div className="text-[10px] text-right" style={{ color: 'var(--text-muted)' }}>Stock tracked per variant</div>
                 )}
               </div>
 
               {!form.has_variants ? (
                 <div className="grid grid-cols-2 gap-3">
-                  <input className="input-field" type="number" placeholder="Stock" value={form.initial_stock || ''} onChange={e => setForm({ ...form, initial_stock: Number(e.target.value) })} />
+                  <input className="input-field" type="number" placeholder="Initial Stock" value={form.initial_stock || ''} onChange={e => setForm({ ...form, initial_stock: Number(e.target.value) })} />
                   <input className="input-field" type="number" placeholder="Low stock at" value={form.low_stock_threshold || ''} onChange={e => setForm({ ...form, low_stock_threshold: Number(e.target.value) })} />
                 </div>
               ) : (
-                <div className="space-y-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                  <div className="flex items-center justify-between">
-                     <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Variations</span>
+                <div className="space-y-3 p-4 rounded-xl bg-white/5 border border-white/10 shadow-inner">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                     <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Variations</span>
                      <button onClick={() => {
                        const nextSku = (form.sku || form.name.substring(0,3).toUpperCase()) + "-" + (form.variants.length + 1);
                        setForm({ ...form, variants: [...form.variants, { sku: nextSku, color: '', size: '', stock: 0, price_modifier: 0 }] });
-                     }} className="text-[10px] text-primary hover:underline font-bold">+ Add Row</button>
+                     }} className="btn-secondary py-1 px-3 text-[10px] font-bold">+ Add Variant</button>
                   </div>
                   
-                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                  <div className="space-y-3 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
                     {form.variants.map((v, idx) => (
-                      <div key={idx} className="grid grid-cols-5 gap-1.5 items-center bg-black/20 p-1.5 rounded-lg border border-white/5">
-                        <input className="bg-transparent text-[10px] outline-none border-b border-white/10 px-1 col-span-1" placeholder="Color" value={v.color} onChange={e => {
-                          const newVariants = [...form.variants];
-                          newVariants[idx].color = e.target.value;
-                          setForm({ ...form, variants: newVariants });
-                        }} />
-                        <input className="bg-transparent text-[10px] outline-none border-b border-white/10 px-1 col-span-1" placeholder="Size" value={v.size} onChange={e => {
-                          const newVariants = [...form.variants];
-                          newVariants[idx].size = e.target.value;
-                          setForm({ ...form, variants: newVariants });
-                        }} />
-                        <input className="bg-transparent text-[10px] outline-none border-b border-white/10 px-1 col-span-1" type="number" placeholder="Qty" value={v.stock || ''} onChange={e => {
-                          const newVariants = [...form.variants];
-                          newVariants[idx].stock = Number(e.target.value);
-                          setForm({ ...form, variants: newVariants });
-                        }} />
-                        <input className="bg-transparent text-[10px] font-mono outline-none border-b border-white/10 px-1 col-span-1" placeholder="SKU" value={v.sku} onChange={e => {
-                          const newVariants = [...form.variants];
-                           newVariants[idx].sku = e.target.value.toUpperCase();
-                           setForm({ ...form, variants: newVariants });
-                        }} />
-                        <button onClick={() => setForm({ ...form, variants: form.variants.filter((_, i) => i !== idx) })} className="text-danger opacity-50 hover:opacity-100 flex justify-center"><Trash2 className="w-3 h-3" /></button>
+                      <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-black/40 p-2.5 rounded-lg border border-white/10 group">
+                        <div className="col-span-3">
+                          <label className="text-[9px] uppercase font-bold text-muted block mb-1">Color</label>
+                          <input className="w-full bg-white/5 text-xs outline-none border border-white/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" placeholder="e.g. Red" value={v.color} onChange={e => {
+                            const newVariants = [...form.variants];
+                            newVariants[idx].color = e.target.value;
+                            setForm({ ...form, variants: newVariants });
+                          }} />
+                        </div>
+                        <div className="col-span-3">
+                          <label className="text-[9px] uppercase font-bold text-muted block mb-1">Size</label>
+                          <input className="w-full bg-white/5 text-xs outline-none border border-white/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" placeholder="e.g. XL" value={v.size} onChange={e => {
+                            const newVariants = [...form.variants];
+                            newVariants[idx].size = e.target.value;
+                            setForm({ ...form, variants: newVariants });
+                          }} />
+                        </div>
+                        <div className="col-span-2">
+                          <label className="text-[9px] uppercase font-bold text-muted block mb-1">Stock</label>
+                          <input className="w-full bg-white/5 text-xs outline-none border border-white/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" type="number" placeholder="0" value={v.stock || ''} onChange={e => {
+                            const newVariants = [...form.variants];
+                            newVariants[idx].stock = Number(e.target.value);
+                            setForm({ ...form, variants: newVariants });
+                          }} />
+                        </div>
+                        <div className="col-span-3">
+                          <label className="text-[9px] uppercase font-bold text-muted block mb-1">SKU</label>
+                          <input className="w-full bg-white/5 text-[10px] font-mono outline-none border border-white/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" placeholder="SKU" value={v.sku} onChange={e => {
+                            const newVariants = [...form.variants];
+                             newVariants[idx].sku = e.target.value.toUpperCase();
+                             setForm({ ...form, variants: newVariants });
+                          }} />
+                        </div>
+                        <div className="col-span-1 pt-4">
+                          <button onClick={() => setForm({ ...form, variants: form.variants.filter((_, i) => i !== idx) })} className="text-danger opacity-40 hover:opacity-100 transition-opacity flex justify-center w-full"><Trash2 className="w-3.5 h-3.5" /></button>
+                        </div>
                       </div>
                     ))}
                   </div>
+                  {form.variants.length === 0 && (
+                    <div className="text-center py-4 text-[11px]" style={{ color: 'var(--text-muted)' }}>No variants added yet. Click "+ Add Variant"</div>
+                  )}
                 </div>
               )}
               <div className="space-y-2">
