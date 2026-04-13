@@ -30,7 +30,7 @@ export default function AgentUsagePage() {
   return (
     <div className="p-8 space-y-8 max-w-[1600px] mx-auto pb-24 overflow-y-auto">
       <div>
-        <h1 className="text-3xl font-heading font-bold text-white mb-2">Agent Performance</h1>
+        <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">Agent Performance</h1>
         <p className="text-dark-500">Monitor utilization, success rates, and errors across the 5 specialized agents.</p>
       </div>
 
@@ -62,7 +62,7 @@ export default function AgentUsagePage() {
           <h3 className="text-lg font-heading font-semibold text-danger flex items-center gap-2">
              Dead-Letter Queue (Failed Tasks)
           </h3>
-          <button className="btn-secondary py-1.5 text-xs text-white border-white/20">Bulk Retry All</button>
+          <button className="btn-secondary py-1.5 text-xs dark:text-white text-gray-900 dark:border-white/20 border-black/20">Bulk Retry All</button>
         </div>
         
         <DataTable 
@@ -71,7 +71,7 @@ export default function AgentUsagePage() {
             { header: 'Agent', accessorKey: 'agent_type', cell: (info: any) => <span className="badge bg-white/10 uppercase text-[10px]">{info.getValue()}</span> },
             { header: 'Error Log', accessorKey: 'error_message', cell: (info: any) => <span className="text-danger/80 text-xs font-mono">{info.getValue() || 'Unknown Error'}</span> },
             { header: 'Time', accessorKey: 'created_at', cell: (info: any) => <span className="text-dark-500 text-xs">{new Date(info.getValue()).toLocaleString()}</span> },
-            { header: '', id: 'actions', cell: () => <button className="text-primary-400 hover:text-white text-xs">Retry Task</button> }
+            { header: '', id: 'actions', cell: () => <button className="text-primary-400 hover:dark:text-white text-gray-900 text-xs">Retry Task</button> }
           ]} 
           data={failedTasks || []} 
           isLoading={tasksLoading}

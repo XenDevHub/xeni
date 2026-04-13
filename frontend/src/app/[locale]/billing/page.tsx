@@ -137,7 +137,7 @@ export default function BillingPage() {
     <div className="px-6 py-12" style={{ background: 'var(--bg-primary)', minHeight: '100vh' }}>
       <div className="max-w-6xl mx-auto">
         {/* Back to Dashboard */}
-        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 mb-8 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:bg-white/10" style={{ color: 'var(--text-muted)' }}>
+        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 mb-8 px-4 py-2 rounded-xl text-sm font-medium transition-all hover:dark:bg-white/10 bg-black/10" style={{ color: 'var(--text-muted)' }}>
           <ArrowLeft className="w-4 h-4" /> Back to Dashboard
         </button>
         <div className="text-center mb-12">

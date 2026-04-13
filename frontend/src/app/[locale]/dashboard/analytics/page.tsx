@@ -199,7 +199,7 @@ export default function AnalyticsPage() {
         ].map((card, i) => (
           <motion.div key={card.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }} className="glass-card p-5">
             <div className={`w-10 h-10 rounded-xl bg-gradient-to-r ${card.color} flex items-center justify-center mb-3`}>
-              <card.icon className="w-5 h-5 text-white" />
+              <card.icon className="w-5 h-5 dark:text-white text-gray-900" />
             </div>
             <p className="text-2xl font-heading font-bold" style={{ color: 'var(--text-primary)' }}>
               {loading ? <span className="skeleton w-20 h-7 block" /> : card.value}
@@ -283,7 +283,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} className="lg:col-span-2 glass-card p-8 relative overflow-hidden bg-gradient-to-br from-primary/5 to-transparent">
            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-heading font-black text-white flex items-center gap-3">
+              <h3 className="text-xl font-heading font-black dark:text-white text-gray-900 flex items-center gap-3">
                  <Brain className="w-6 h-6 text-primary" /> Customer Sentiment Pulse
               </h3>
               <span className="text-[10px] font-black uppercase bg-primary/10 text-primary px-2 py-1 rounded">AI Analyzed</span>
@@ -297,7 +297,7 @@ export default function AnalyticsPage() {
               ].map((s, i) => (
                 <div key={s.label} className="flex flex-col items-center text-center group">
                    <div className="text-4xl mb-4 group-hover:scale-125 transition-transform duration-500">{s.emoji}</div>
-                   <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden mb-3 relative">
+                   <div className="w-full h-3 dark:bg-white/5 bg-black/5 rounded-full overflow-hidden mb-3 relative">
                       <motion.div 
                         initial={{ width: 0 }} 
                         animate={{ width: `${s.value}%` }} 
@@ -305,22 +305,22 @@ export default function AnalyticsPage() {
                         className={`h-full ${s.color} ${s.glow} rounded-full`} 
                       />
                    </div>
-                   <span className="text-lg font-black text-white">{s.value}%</span>
+                   <span className="text-lg font-black dark:text-white text-gray-900">{s.value}%</span>
                    <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest">{s.label}</span>
                 </div>
               ))}
            </div>
 
-           <div className="mt-10 p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-4">
+           <div className="mt-10 p-4 rounded-2xl dark:bg-white/5 bg-black/5 border dark:border-white/5 border-black/5 flex items-center gap-4">
               <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               <p className="text-xs text-dark-300">
-                <span className="font-bold text-white">Coach Insight:</span> &ldquo;Most frustrations revolve around **Delivery Speed**. Automating your courier sync could improve satisfaction by 15%.&rdquo;
+                <span className="font-bold dark:text-white text-gray-900">Coach Insight:</span> &ldquo;Most frustrations revolve around **Delivery Speed**. Automating your courier sync could improve satisfaction by 15%.&rdquo;
               </p>
            </div>
         </motion.div>
 
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }} className="lg:col-span-1 glass-card p-8 flex flex-col">
-           <h3 className="text-lg font-heading font-black text-white mb-6">Trending Topics</h3>
+           <h3 className="text-lg font-heading font-black dark:text-white text-gray-900 mb-6">Trending Topics</h3>
            <div className="flex flex-wrap gap-2">
               {['Price Inquiry', 'Size Guide', 'Shipping Cost', 'Restock?', 'Order Status', 'Quality Check', 'Discount Code', 'Shop Location'].map((tag, i) => (
                 <motion.span 
@@ -349,7 +349,7 @@ export default function AnalyticsPage() {
         </h3>
         <div className="space-y-3">
           {recommendations.map((r, i) => (
-            <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 + i * 0.08 }} className="flex items-start gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors">
+            <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 + i * 0.08 }} className="flex items-start gap-3 p-3 rounded-xl hover:dark:bg-white/5 bg-black/5 transition-colors">
               <span className="text-xl shrink-0">{r.icon}</span>
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{r.text}</p>
             </motion.div>

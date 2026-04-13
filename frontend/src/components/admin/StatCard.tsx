@@ -22,12 +22,12 @@ export function StatCard({ label, value, icon: Icon, color, change, delay = 0 }:
     >
       <div className="flex items-center justify-between mb-4">
         <span className="text-dark-500 text-sm font-medium">{label}</span>
-        <div className={`p-2 rounded-xl bg-white/5 ${color} shadow-glow`}>
+        <div className={`p-2 rounded-xl dark:bg-white/5 bg-black/5 ${color} shadow-glow`}>
           <Icon className="w-5 h-5" />
         </div>
       </div>
       <div className="flex items-end justify-between">
-        <p className="text-3xl font-heading font-bold text-white">{value}</p>
+        <p className="text-3xl font-heading font-bold dark:text-white text-gray-900">{value}</p>
         {change && (
           <span className={`text-sm font-medium ${change.isPositive ? 'text-success' : 'text-danger'}`}>
             {change.isPositive ? '+' : '-'}{change.value}

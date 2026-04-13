@@ -158,7 +158,7 @@ export default function CreativePage() {
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
       <div className="mb-8 text-center">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 mb-4 shadow-lg shadow-pink-500/20">
-          <Sparkles className="w-8 h-8 text-white" />
+          <Sparkles className="w-8 h-8 dark:text-white text-gray-900" />
         </div>
         <h1 className="text-3xl font-heading font-bold" style={{ color: 'var(--text-primary)' }}>Creative Studio</h1>
         <p className="text-sm mt-2 max-w-lg mx-auto" style={{ color: 'var(--text-muted)' }}>

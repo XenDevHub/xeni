@@ -55,10 +55,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-violet-950">
       {/* Sidebar */}
       <aside
-        className={`${collapsed ? 'w-[68px]' : 'w-[240px]'} flex flex-col border-r border-white/10 bg-black/40 backdrop-blur-xl transition-all duration-300 shrink-0`}
+        className={`${collapsed ? 'w-[68px]' : 'w-[240px]'} flex flex-col border-r dark:border-white/10 border-black/10 bg-black/40 backdrop-blur-xl transition-all duration-300 shrink-0`}
       >
         {/* Logo */}
-        <div className="flex items-center gap-2 px-4 py-5 border-b border-white/10">
+        <div className="flex items-center gap-2 px-4 py-5 border-b dark:border-white/10 border-black/10">
           <Sparkles className="w-7 h-7 text-primary shrink-0" />
           {!collapsed && <span className="text-xl font-heading font-bold gradient-text tracking-wider">XENI</span>}
         </div>
@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
                   isActive
                     ? 'bg-primary/20 text-white shadow-glow border border-primary/30'
-                    : 'text-dark-500 hover:text-white hover:bg-white/5'
+                    : 'text-dark-500 hover:dark:text-white text-gray-900 hover:dark:bg-white/5 bg-black/5'
                 }`}
                 title={collapsed ? link.label : undefined}
               >
@@ -86,9 +86,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Bottom Section */}
-        <div className="border-t border-white/10 px-2 py-3 space-y-1">
+        <div className="border-t dark:border-white/10 border-black/10 px-2 py-3 space-y-1">
           {user?.role === 'super_admin' && (
-            <Link href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-dark-500 hover:text-white hover:bg-white/5 transition-all" title={collapsed ? 'Admin' : undefined}>
+            <Link href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-dark-500 hover:dark:text-white text-gray-900 hover:dark:bg-white/5 bg-black/5 transition-all" title={collapsed ? 'Admin' : undefined}>
               <Shield className="w-5 h-5 shrink-0" />
               {!collapsed && <span>Admin</span>}
             </Link>
@@ -113,7 +113,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Collapse Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm w-full text-dark-500 hover:text-white hover:bg-white/5 transition-all"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm w-full text-dark-500 hover:dark:text-white text-gray-900 hover:dark:bg-white/5 bg-black/5 transition-all"
           >
             {collapsed ? <ChevronRight className="w-5 h-5 shrink-0" /> : <ChevronLeft className="w-5 h-5 shrink-0" />}
             {!collapsed && <span>Collapse</span>}
@@ -121,22 +121,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* User Section */}
-        <div className="border-t border-white/10 px-3 py-3 flex items-center gap-3 bg-black/20">
+        <div className="border-t dark:border-white/10 border-black/10 px-3 py-3 flex items-center gap-3 bg-black/20">
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-glow">
             {user?.full_name?.charAt(0) || 'X'}
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-white">{user?.full_name}</p>
+              <p className="text-sm font-medium truncate dark:text-white text-gray-900">{user?.full_name}</p>
               <p className="text-xs truncate text-primary-300">{user?.email}</p>
             </div>
           )}
           {!collapsed && (
             <div className="flex items-center gap-1">
-              <Link href={pathname} locale={locale === 'en' ? 'bn' : 'en'} title="Switch Language" className="p-1.5 rounded-lg hover:bg-white/10 transition-all text-xs font-bold text-primary flex items-center justify-center min-w-[28px]">
+              <Link href={pathname} locale={locale === 'en' ? 'bn' : 'en'} title="Switch Language" className="p-1.5 rounded-lg hover:dark:bg-white/10 bg-black/10 transition-all text-xs font-bold text-primary flex items-center justify-center min-w-[28px]">
                 {locale === 'en' ? 'বাং' : 'EN'}
               </Link>
-              <button onClick={toggleTheme} title="Toggle Theme" className="p-1.5 rounded-lg hover:bg-white/10 transition-all text-dark-500 hover:text-white">
+              <button onClick={toggleTheme} title="Toggle Theme" className="p-1.5 rounded-lg hover:dark:bg-white/10 bg-black/10 transition-all text-dark-500 hover:dark:text-white text-gray-900">
                 {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-cyan-400" />}
               </button>
               <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-danger/20 transition-all text-danger/70 hover:text-danger">

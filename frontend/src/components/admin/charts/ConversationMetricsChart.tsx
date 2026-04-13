@@ -15,7 +15,7 @@ export function ConversationMetricsChart({ aiMessages, humanMessages }: Conversa
     setMounted(true);
   }, []);
 
-  if (!mounted) return <div className="w-full h-[350px] bg-white/5 animate-pulse rounded-xl" />;
+  if (!mounted) return <div className="w-full h-[350px] dark:bg-white/5 bg-black/5 animate-pulse rounded-xl" />;
 
   const data = [
     { name: 'AI Handled', value: aiMessages, color: '#7C3AED' }, // Brand Purple
@@ -66,10 +66,10 @@ export function ConversationMetricsChart({ aiMessages, humanMessages }: Conversa
       
       {/* Center Label */}
       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-[36px]">
-        <span className="text-3xl font-bold text-white tracking-tight">
+        <span className="text-3xl font-bold dark:text-white text-gray-900 tracking-tight">
           {hasData ? Math.round((aiMessages / (aiMessages + humanMessages)) * 100) : 0}%
         </span>
-        <span className="text-xs text-white/50 font-medium">AI Success</span>
+        <span className="text-xs dark:text-white text-gray-900/50 font-medium">AI Success</span>
       </div>
     </div>
   );

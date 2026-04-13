@@ -228,7 +228,7 @@ export default function ShopPage() {
                 <Brain className="w-8 h-8 text-primary" />
               </div>
               <div className="flex-1">
-                <h2 className="text-xl font-heading font-bold text-white mb-2">
+                <h2 className="text-xl font-heading font-bold dark:text-white text-gray-900 mb-2">
                   AI Rules Engine
                 </h2>
                 <p className="text-sm text-dark-300 mb-4">

@@ -21,7 +21,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
     setMounted(true);
   }, []);
 
-  if (!mounted) return <div className="w-full h-[350px] bg-white/5 animate-pulse rounded-xl" />;
+  if (!mounted) return <div className="w-full h-[350px] dark:bg-white/5 bg-black/5 animate-pulse rounded-xl" />;
 
   return (
     <div className="w-full h-[350px]">

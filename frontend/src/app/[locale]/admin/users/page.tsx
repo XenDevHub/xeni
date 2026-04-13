@@ -41,7 +41,7 @@ export default function UserManagementPage() {
             {(info.getValue() || info.row.original.email).charAt(0)}
           </div>
           <div className="min-w-0">
-            <div className="font-medium text-white truncate">{info.getValue() || 'No Name'}</div>
+            <div className="font-medium dark:text-white text-gray-900 truncate">{info.getValue() || 'No Name'}</div>
             <div className="text-xs text-dark-500 truncate">{info.row.original.email}</div>
           </div>
         </div>
@@ -61,7 +61,7 @@ export default function UserManagementPage() {
       accessorKey: 'plan_tier',
       cell: (info: any) => {
         const val = info.getValue()?.toLowerCase() || 'none';
-        let colors = 'bg-white/10 text-dark-400';
+        let colors = 'dark:bg-white/10 bg-black/10 text-dark-400';
         if (val === 'starter') colors = 'bg-cyan-500/20 text-cyan-400';
         if (val === 'professional') colors = 'bg-violet-500/20 text-violet-400';
         if (val === 'premium') colors = 'bg-emerald-500/20 text-emerald-400';
@@ -83,7 +83,7 @@ export default function UserManagementPage() {
     {
       header: 'Spend (Total)',
       accessorKey: 'total_spent',
-      cell: (info: any) => <div className="font-mono text-xs text-white">৳{(info.getValue() || 0).toLocaleString()}</div>
+      cell: (info: any) => <div className="font-mono text-xs dark:text-white text-gray-900">৳{(info.getValue() || 0).toLocaleString()}</div>
     },
     {
       header: '',
@@ -92,7 +92,7 @@ export default function UserManagementPage() {
         <div className="flex justify-end">
           <button 
             onClick={() => setSelectedUserId(info.row.original.id)}
-            className="p-2 hover:bg-white/10 rounded-lg text-dark-500 hover:text-white transition-colors"
+            className="p-2 hover:dark:bg-white/10 bg-black/10 rounded-lg text-dark-500 hover:dark:text-white text-gray-900 transition-colors"
           >
             <MoreVertical className="w-4 h-4" />
           </button>
@@ -104,11 +104,11 @@ export default function UserManagementPage() {
   return (
     <div className="p-8 space-y-6 max-w-[1600px] mx-auto pb-24 h-full flex flex-col">
       <div>
-        <h1 className="text-3xl font-heading font-bold text-white mb-2">User Management</h1>
+        <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">User Management</h1>
         <p className="text-dark-500">Manage platform users, roles, and view detailed agent usage.</p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-black/20 p-4 rounded-2xl border border-white/5">
+      <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-black/20 p-4 rounded-2xl border dark:border-white/5 border-black/5">
         <div className="relative w-full md:w-96">
           <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-dark-500" />
           <input 
@@ -116,7 +116,7 @@ export default function UserManagementPage() {
             placeholder="Search users by name or email..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-dark border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-[var(--text-muted)] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+            className="w-full bg-dark border dark:border-white/10 border-black/10 rounded-xl pl-10 pr-4 py-2.5 text-sm dark:text-white text-gray-900 placeholder-[var(--text-muted)] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
           />
         </div>
         

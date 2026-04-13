@@ -50,11 +50,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex h-screen overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-violet-950">
       {/* Sidebar */}
-      <aside className="w-[260px] flex flex-col border-r border-white/10 shrink-0 bg-black/40 backdrop-blur-xl z-10 transition-all duration-300">
+      <aside className="w-[260px] flex flex-col border-r dark:border-white/10 border-black/10 shrink-0 bg-black/40 backdrop-blur-xl z-10 transition-all duration-300">
         {/* Logo */}
-        <div className="flex items-center gap-2 px-6 py-6 border-b border-white/10">
+        <div className="flex items-center gap-2 px-6 py-6 border-b dark:border-white/10 border-black/10">
           <Sparkles className="w-6 h-6 text-primary shrink-0" />
-          <span className="text-xl font-heading font-bold text-white tracking-widest">XENI Admin</span>
+          <span className="text-xl font-heading font-bold dark:text-white text-gray-900 tracking-widest">XENI Admin</span>
         </div>
 
         {/* Main Nav */}
@@ -68,7 +68,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
                   isActive
                     ? 'bg-primary/20 text-white shadow-glow border border-primary/30'
-                    : 'text-dark-600 hover:text-white hover:bg-white/5'
+                    : 'text-dark-600 hover:dark:text-white text-gray-900 hover:dark:bg-white/5 bg-black/5'
                 }`}
               >
                 <link.icon className={`w-5 h-5 shrink-0 ${isActive ? 'text-primary-300' : 'group-hover:text-primary-300'} transition-colors`} />
@@ -79,24 +79,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Bottom Section */}
-        <div className="border-t border-white/10 p-4 space-y-2">
-          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-dark-500 hover:text-white hover:bg-white/5 transition-all">
+        <div className="border-t dark:border-white/10 border-black/10 p-4 space-y-2">
+          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-dark-500 hover:dark:text-white text-gray-900 hover:dark:bg-white/5 bg-black/5 transition-all">
             <ArrowLeft className="w-5 h-5 shrink-0" />
             <span>Back to App</span>
           </Link>
         </div>
 
         {/* User Section */}
-        <div className="border-t border-white/10 px-4 py-4 flex items-center gap-3 bg-black/20">
+        <div className="border-t dark:border-white/10 border-black/10 px-4 py-4 flex items-center gap-3 bg-black/20">
           <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white font-bold shrink-0 shadow-glow">
             {user?.full_name?.charAt(0) || 'A'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white truncate">{user?.full_name}</p>
+            <p className="text-sm font-semibold dark:text-white text-gray-900 truncate">{user?.full_name}</p>
             <p className="text-xs text-primary-300 truncate">{user?.role === 'super_admin' ? 'Super Admin' : 'Admin'}</p>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={toggleTheme} title="Toggle Theme" className="p-2 rounded-lg hover:bg-white/10 transition-all text-dark-500 hover:text-white">
+            <button onClick={toggleTheme} title="Toggle Theme" className="p-2 rounded-lg hover:dark:bg-white/10 bg-black/10 transition-all text-dark-500 hover:dark:text-white text-gray-900">
               {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-cyan-400" />}
             </button>
             <button onClick={handleLogout} title="Logout" className="p-2 rounded-lg hover:bg-danger/20 transition-all text-danger/70 hover:text-danger">

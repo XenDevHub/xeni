@@ -13,7 +13,7 @@ export default function LoadingSpinner({ size = 'md', text }: LoadingSpinnerProp
   return (
     <div className="flex flex-col items-center justify-center gap-4">
       <motion.div
-        className={`${sizeMap[size]} rounded-full border-2 border-white/10 border-t-primary`}
+        className={`${sizeMap[size]} rounded-full border-2 dark:border-white/10 border-black/10 border-t-primary`}
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
       />

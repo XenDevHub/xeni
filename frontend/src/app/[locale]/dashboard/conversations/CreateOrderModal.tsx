@@ -114,15 +114,15 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-2xl bg-zinc-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+          className="w-full max-w-2xl bg-zinc-900 border dark:border-white/10 border-black/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col"
           style={{ maxHeight: '90vh' }}
         >
           {/* Header */}
-          <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <div className="px-6 py-4 border-b dark:border-white/5 border-black/5 flex items-center justify-between">
+            <h2 className="text-lg font-bold dark:text-white text-gray-900 flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-primary" /> Create Manual Order
             </h2>
-            <button onClick={onClose} className="p-2 text-dark-400 hover:text-white transition-colors bg-white/5 rounded-xl hover:bg-white/10">
+            <button onClick={onClose} className="p-2 text-dark-400 hover:dark:text-white text-gray-900 transition-colors dark:bg-white/5 bg-black/5 rounded-xl hover:dark:bg-white/10 bg-black/10">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -133,7 +133,7 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
               
               {/* Customer Details */}
               <div>
-                <h3 className="text-sm font-bold text-white mb-4 uppercase tracking-wider">Customer Details</h3>
+                <h3 className="text-sm font-bold dark:text-white text-gray-900 mb-4 uppercase tracking-wider">Customer Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-none">
                   <div>
                     <label className="text-xs font-bold text-dark-300 mb-1 block">Full Name</label>
@@ -153,7 +153,7 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
               {/* Order Items */}
               <div>
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Order Items</h3>
+                  <h3 className="text-sm font-bold dark:text-white text-gray-900 uppercase tracking-wider">Order Items</h3>
                   <button type="button" onClick={addItem} className="text-xs font-bold text-primary hover:text-white transition-colors flex items-center gap-1 bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20">
                     <Plus className="w-3.5 h-3.5" /> Add Product
                   </button>
@@ -162,14 +162,14 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
                 {loading ? (
                   <p className="text-xs text-dark-500 italic">Loading catalog...</p>
                 ) : items.length === 0 ? (
-                  <div className="p-6 text-center border border-dashed border-white/10 rounded-xl bg-white/5">
+                  <div className="p-6 text-center border border-dashed dark:border-white/10 border-black/10 rounded-xl dark:bg-white/5 bg-black/5">
                     <ShoppingBag className="w-8 h-8 text-dark-500 mx-auto mb-2" />
                     <p className="text-xs text-dark-400">No items added to this order.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
                     {items.map((item, idx) => (
-                      <div key={idx} className="flex flex-col sm:flex-row items-center gap-3 p-3 bg-white/5 border border-white/5 rounded-xl">
+                      <div key={idx} className="flex flex-col sm:flex-row items-center gap-3 p-3 dark:bg-white/5 bg-black/5 border dark:border-white/5 border-black/5 rounded-xl">
                         <div className="flex-1 w-full">
                           <select required className="input-field" value={item.product_id} onChange={e => updateItem(idx, 'product_id', e.target.value)}>
                             <option value="">Select a Product</option>
@@ -182,9 +182,9 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
                           <input required type="number" min="1" className="input-field text-center" value={item.quantity} onChange={e => updateItem(idx, 'quantity', parseInt(e.target.value))} placeholder="Qty" />
                         </div>
                         <div className="w-full md:w-28 text-right px-2">
-                          <span className="text-sm font-bold text-white">৳{item.price * item.quantity}</span>
+                          <span className="text-sm font-bold dark:text-white text-gray-900">৳{item.price * item.quantity}</span>
                         </div>
-                        <button type="button" onClick={() => removeItem(idx)} className="p-2 text-rose-500 bg-rose-500/10 rounded-lg hover:bg-rose-500 hover:text-white transition-all w-full md:w-auto flex justify-center">
+                        <button type="button" onClick={() => removeItem(idx)} className="p-2 text-rose-500 bg-rose-500/10 rounded-lg hover:bg-rose-500 hover:dark:text-white text-gray-900 transition-all w-full md:w-auto flex justify-center">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -194,7 +194,7 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
               </div>
 
               {/* Summary & Meta */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-white/5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t dark:border-white/5 border-black/5">
                 <div>
                     <label className="text-xs font-bold text-dark-300 mb-1 block">Payment Method</label>
                     <select className="input-field" value={form.payment_method} onChange={e => setForm({...form, payment_method: e.target.value})}>
@@ -206,7 +206,7 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
                     <label className="text-xs font-bold text-dark-300 mt-4 mb-1 block">Internal Notes (Optional)</label>
                     <input type="text" className="input-field" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} placeholder="Notes for admin..." />
                 </div>
-                <div className="bg-white/5 border border-white/5 p-4 rounded-xl flex flex-col justify-center">
+                <div className="dark:bg-white/5 bg-black/5 border dark:border-white/5 border-black/5 p-4 rounded-xl flex flex-col justify-center">
                    <div className="flex justify-between text-sm mb-2 text-dark-300">
                      <span>Subtotal:</span>
                      <span>৳{totalAmount}</span>
@@ -215,7 +215,7 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
                      <span>Delivery Charge:</span>
                      <span>To be calculated</span>
                    </div>
-                   <div className="flex justify-between text-lg font-bold text-primary pt-3 border-t border-white/10">
+                   <div className="flex justify-between text-lg font-bold text-primary pt-3 border-t dark:border-white/10 border-black/10">
                      <span>Grand Total:</span>
                      <span>৳{totalAmount}</span>
                    </div>
@@ -225,8 +225,8 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-white/5 flex justify-end gap-3 bg-white/5">
-            <button type="button" onClick={onClose} className="px-5 py-2 text-xs font-bold text-white hover:bg-white/10 rounded-xl transition-colors">
+          <div className="px-6 py-4 border-t dark:border-white/5 border-black/5 flex justify-end gap-3 dark:bg-white/5 bg-black/5">
+            <button type="button" onClick={onClose} className="px-5 py-2 text-xs font-bold dark:text-white text-gray-900 hover:dark:bg-white/10 bg-black/10 rounded-xl transition-colors">
               Cancel
             </button>
             <button form="orderForm" type="submit" disabled={submitting || items.length === 0} className="btn-primary px-6 py-2 text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2">

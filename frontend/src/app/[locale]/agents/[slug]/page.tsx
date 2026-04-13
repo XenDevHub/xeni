@@ -71,11 +71,11 @@ export default function AgentPage() {
   return (
     <div className="min-h-screen bg-dark px-6 py-8">
       <div className="max-w-4xl mx-auto">
-        <Link href="/dashboard" className="flex items-center gap-2 text-dark-500 hover:text-white transition-colors mb-6 text-sm">
+        <Link href="/dashboard" className="flex items-center gap-2 text-dark-500 hover:dark:text-white text-gray-900 transition-colors mb-6 text-sm">
           <ArrowLeft className="w-4 h-4" /> {t('common.back')}
         </Link>
 
-        <h1 className="text-3xl font-heading font-bold text-white mb-2">{t(`agents.${agentKey}.name`)}</h1>
+        <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">{t(`agents.${agentKey}.name`)}</h1>
         <p className="text-dark-500 mb-8">{t(`agents.${agentKey}.description`)}</p>
 
         {/* Input Form */}
@@ -96,7 +96,7 @@ export default function AgentPage() {
             <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="glass-card p-6 mb-6 border-primary/30">
               <div className="flex items-center gap-3">
                 <div className="w-3 h-3 bg-primary rounded-full animate-pulse" />
-                <span className="text-white font-medium">{t('status.processing')}</span>
+                <span className="dark:text-white text-gray-900 font-medium">{t('status.processing')}</span>
               </div>
               <div className="mt-3 space-y-2">
                 {[1, 2, 3].map(i => <div key={i} className="skeleton h-4 w-full" style={{ width: `${100 - i * 15}%` }} />)}
@@ -106,7 +106,7 @@ export default function AgentPage() {
         </AnimatePresence>
 
         {/* Task History */}
-        <h2 className="text-xl font-heading font-semibold text-white mb-4">History</h2>
+        <h2 className="text-xl font-heading font-semibold dark:text-white text-gray-900 mb-4">History</h2>
         <div className="space-y-3">
           {tasks.length === 0 ? (
             <p className="text-dark-500 text-center py-8">{t('common.no_results')}</p>
@@ -115,7 +115,7 @@ export default function AgentPage() {
               <div className="flex items-center gap-3">
                 {statusIcon(task.status)}
                 <div>
-                  <p className="text-white text-sm font-medium">{task.task_id.slice(0, 8)}...</p>
+                  <p className="dark:text-white text-gray-900 text-sm font-medium">{task.task_id.slice(0, 8)}...</p>
                   <p className="text-dark-500 text-xs">{new Date(task.created_at).toLocaleString()}</p>
                 </div>
               </div>

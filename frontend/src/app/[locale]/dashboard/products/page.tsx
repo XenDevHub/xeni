@@ -334,7 +334,7 @@ export default function ProductsPage() {
                 <tr><td colSpan={5} className="text-center py-12" style={{ color: 'var(--text-muted)' }}>No products yet. Add your first product!</td></tr>
               ) : (
                 products.map((p, i) => (
-                  <motion.tr key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="border-b last:border-0 hover:bg-white/5 transition-colors" style={{ borderColor: 'var(--border-color)' }}>
+                  <motion.tr key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="border-b last:border-0 hover:dark:bg-white/5 bg-black/5 transition-colors" style={{ borderColor: 'var(--border-color)' }}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {p.images && p.images.length > 0 ? (
@@ -347,7 +347,7 @@ export default function ProductsPage() {
                         <div>
                           <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{p.name}</p>
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {p.name_bn && <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5" style={{ color: 'var(--text-muted)' }}>{p.name_bn}</span>}
+                            {p.name_bn && <span className="text-[10px] px-1.5 py-0.5 rounded dark:bg-white/5 bg-black/5" style={{ color: 'var(--text-muted)' }}>{p.name_bn}</span>}
                             {p.sku && <span className="text-[10px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-mono">#{p.sku}</span>}
                             {p.has_variants && <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400">{p.variants?.length} variants</span>}
                           </div>
@@ -372,7 +372,7 @@ export default function ProductsPage() {
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => openFBModal(p)} className="p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-blue-400/60 hover:text-blue-400" title="Generate FB Post"><Facebook className="w-4 h-4" /></button>
-                        <button onClick={() => openEdit(p)} className="p-2 rounded-lg hover:bg-white/10 transition-colors"><Edit className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /></button>
+                        <button onClick={() => openEdit(p)} className="p-2 rounded-lg hover:dark:bg-white/10 bg-black/10 transition-colors"><Edit className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /></button>
                         <button onClick={() => handleDelete(p.id)} className="p-2 rounded-lg hover:bg-danger/10 transition-colors text-danger/60 hover:text-danger"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
@@ -400,7 +400,7 @@ export default function ProductsPage() {
               <input className="input-field" placeholder="নাম (বাংলা)" value={form.name_bn} onChange={e => setForm({ ...form, name_bn: e.target.value })} />
               
               <div className="grid grid-cols-2 gap-3 items-center">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10">
                   <input type="checkbox" id="has_variants" checked={form.has_variants} onChange={e => setForm({ ...form, has_variants: e.target.checked })} className="w-4 h-4 accent-primary" />
                   <label htmlFor="has_variants" className="text-sm cursor-pointer" style={{ color: 'var(--text-primary)' }}>Has Variations</label>
                 </div>
@@ -417,8 +417,8 @@ export default function ProductsPage() {
                   <input className="input-field" type="number" placeholder="Low stock at" value={form.low_stock_threshold || ''} onChange={e => setForm({ ...form, low_stock_threshold: Number(e.target.value) })} />
                 </div>
               ) : (
-                <div className="space-y-3 p-4 rounded-xl bg-white/5 border border-white/10 shadow-inner">
-                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                <div className="space-y-3 p-4 rounded-xl dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10 shadow-inner">
+                  <div className="flex items-center justify-between border-b dark:border-white/5 border-black/5 pb-2">
                      <span className="text-xs font-bold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>Variations</span>
                      <button onClick={() => {
                        const nextSku = (form.sku || form.name.substring(0,3).toUpperCase()) + "-" + (form.variants.length + 1);
@@ -428,10 +428,10 @@ export default function ProductsPage() {
                   
                   <div className="space-y-3 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
                     {form.variants.map((v, idx) => (
-                      <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-black/40 p-2.5 rounded-lg border border-white/10 group">
+                      <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-black/40 p-2.5 rounded-lg border dark:border-white/10 border-black/10 group">
                         <div className="col-span-3">
                           <label className="text-[9px] uppercase font-bold text-muted block mb-1">Color</label>
-                          <input className="w-full bg-white/5 text-xs outline-none border border-white/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" placeholder="e.g. Red" value={v.color} onChange={e => {
+                          <input className="w-full dark:bg-white/5 bg-black/5 text-xs outline-none border dark:border-white/10 border-black/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" placeholder="e.g. Red" value={v.color} onChange={e => {
                             const newVariants = [...form.variants];
                             newVariants[idx].color = e.target.value;
                             setForm({ ...form, variants: newVariants });
@@ -439,7 +439,7 @@ export default function ProductsPage() {
                         </div>
                         <div className="col-span-3">
                           <label className="text-[9px] uppercase font-bold text-muted block mb-1">Size</label>
-                          <input className="w-full bg-white/5 text-xs outline-none border border-white/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" placeholder="e.g. XL" value={v.size} onChange={e => {
+                          <input className="w-full dark:bg-white/5 bg-black/5 text-xs outline-none border dark:border-white/10 border-black/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" placeholder="e.g. XL" value={v.size} onChange={e => {
                             const newVariants = [...form.variants];
                             newVariants[idx].size = e.target.value;
                             setForm({ ...form, variants: newVariants });
@@ -447,7 +447,7 @@ export default function ProductsPage() {
                         </div>
                         <div className="col-span-2">
                           <label className="text-[9px] uppercase font-bold text-muted block mb-1">Stock</label>
-                          <input className="w-full bg-white/5 text-xs outline-none border border-white/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" type="number" placeholder="0" value={v.stock || ''} onChange={e => {
+                          <input className="w-full dark:bg-white/5 bg-black/5 text-xs outline-none border dark:border-white/10 border-black/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" type="number" placeholder="0" value={v.stock || ''} onChange={e => {
                             const newVariants = [...form.variants];
                             newVariants[idx].stock = Number(e.target.value);
                             setForm({ ...form, variants: newVariants });
@@ -455,7 +455,7 @@ export default function ProductsPage() {
                         </div>
                         <div className="col-span-3">
                           <label className="text-[9px] uppercase font-bold text-muted block mb-1">SKU</label>
-                          <input className="w-full bg-white/5 text-[10px] font-mono outline-none border border-white/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" placeholder="SKU" value={v.sku} onChange={e => {
+                          <input className="w-full dark:bg-white/5 bg-black/5 text-[10px] font-mono outline-none border dark:border-white/10 border-black/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" placeholder="SKU" value={v.sku} onChange={e => {
                             const newVariants = [...form.variants];
                              newVariants[idx].sku = e.target.value.toUpperCase();
                              setForm({ ...form, variants: newVariants });
@@ -519,7 +519,7 @@ export default function ProductsPage() {
                     <h2 className="text-xl font-heading font-bold" style={{ color: 'var(--text-primary)' }}>Generate AI Post</h2>
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Creating a post for <span className="font-medium text-primary">{fbProduct.name}</span></p>
                   </div>
-                  <button onClick={() => setShowFBModal(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors"><X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} /></button>
+                  <button onClick={() => setShowFBModal(false)} className="p-2 hover:dark:bg-white/5 bg-black/5 rounded-full transition-colors"><X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} /></button>
                 </div>
 
                 {/* Page Selection */}
@@ -569,7 +569,7 @@ export default function ProductsPage() {
                     <button 
                       onClick={() => generateFBPost(fbProduct, refinement)} 
                       disabled={generatingPost || !refinement.trim()}
-                      className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-primary transition-colors disabled:opacity-50"
+                      className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 bg-black/10 text-primary transition-colors disabled:opacity-50"
                     >
                       <RefreshCw className={`w-5 h-5 ${generatingPost ? 'animate-spin' : ''}`} />
                     </button>
@@ -578,7 +578,7 @@ export default function ProductsPage() {
 
                 {/* Footer Buttons */}
                 <div className="flex gap-3 pt-2">
-                  <button onClick={() => setShowFBModal(false)} className="btn-secondary flex-1 py-3 border-0 bg-white/5 hover:bg-white/10">Discard</button>
+                  <button onClick={() => setShowFBModal(false)} className="btn-secondary flex-1 py-3 border-0 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 bg-black/10">Discard</button>
                   <button 
                     onClick={publishToFB} 
                     disabled={publishing || !generatedPost || !selectedPage}

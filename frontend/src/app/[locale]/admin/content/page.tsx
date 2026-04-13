@@ -18,7 +18,7 @@ export default function ContentControlPage() {
     <div className="p-8 space-y-6 max-w-[1600px] mx-auto pb-24 h-full flex flex-col">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-white mb-2">Content Control (CMS)</h1>
+          <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">Content Control (CMS)</h1>
           <p className="text-dark-500">Changes made here are instantly reflected on the public landing page via ISR.</p>
         </div>
         <button onClick={handleSave} className="btn-primary py-2.5 flex items-center gap-2">
@@ -26,7 +26,7 @@ export default function ContentControlPage() {
         </button>
       </div>
 
-      <div className="flex gap-2 border-b border-white/10 pb-4">
+      <div className="flex gap-2 border-b dark:border-white/10 border-black/10 pb-4">
         {[
           { id: 'hero', label: 'Hero Section', icon: Type },
           { id: 'pricing', label: 'Pricing Editor', icon: List },
@@ -119,7 +119,7 @@ function HeroEditor() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
       <div className="glass-card p-6 space-y-6 overflow-y-auto min-h-[400px]">
         <div className="flex justify-between items-center">
-          <h3 className="font-heading font-bold text-white">Hero Configuration</h3>
+          <h3 className="font-heading font-bold dark:text-white text-gray-900">Hero Configuration</h3>
           <button 
             onClick={() => updateMutation.mutate(heroForm)}
             disabled={updateMutation.isPending}
@@ -139,7 +139,7 @@ function HeroEditor() {
           />
         </div>
         <div className="space-y-4">
-          <h4 className="text-sm font-bold text-white uppercase tracking-wider">English Content</h4>
+          <h4 className="text-sm font-bold dark:text-white text-gray-900 uppercase tracking-wider">English Content</h4>
           <div>
             <label className="text-sm font-medium text-dark-500 block mb-2">Headline (EN)</label>
             <textarea 
@@ -158,7 +158,7 @@ function HeroEditor() {
           </div>
         </div>
         <div className="space-y-4">
-          <h4 className="text-sm font-bold text-white uppercase tracking-wider text-primary-400">Bangla Content</h4>
+          <h4 className="text-sm font-bold dark:text-white text-gray-900 uppercase tracking-wider text-primary-400">Bangla Content</h4>
           <div>
             <label className="text-sm font-medium text-dark-500 block mb-2">Headline (BN)</label>
             <textarea 
@@ -175,7 +175,7 @@ function HeroEditor() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-50" />
         <div className="text-center z-10 relative">
           <p className="badge bg-primary/20 text-primary mb-6">{heroForm.badge}</p>
-          <h1 className="text-4xl font-heading font-bold text-white mb-4 leading-tight">
+          <h1 className="text-4xl font-heading font-bold dark:text-white text-gray-900 mb-4 leading-tight">
             {heroForm.headline_en || 'Your Shop Headline'}
           </h1>
           <p className="text-dark-400 text-sm max-w-md mx-auto mb-8 whitespace-pre-wrap">{heroForm.subheadline_en}</p>
@@ -214,10 +214,10 @@ function PricingEditor() {
     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 h-full">
       <div className="lg:col-span-3 space-y-6 overflow-y-auto max-h-[70vh] scrollbar-hide pr-2">
         {plans?.map((plan: any) => (
-          <div key={plan.id} className={`glass-card p-6 border transition-all ${editingPlan?.id === plan.id ? 'border-primary ring-1 ring-primary/50' : 'border-white/5'}`}>
+          <div key={plan.id} className={`glass-card p-6 border transition-all ${editingPlan?.id === plan.id ? 'border-primary ring-1 ring-primary/50' : 'dark:border-white/5 border-black/5'}`}>
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-3">
-                <h3 className="font-heading font-bold text-white">{plan.name}</h3>
+                <h3 className="font-heading font-bold dark:text-white text-gray-900">{plan.name}</h3>
                 <span className="badge bg-primary/20 text-primary text-[10px] uppercase tracking-wider">{plan.tier}</span>
               </div>
               <div className="flex items-center gap-3">
@@ -232,7 +232,7 @@ function PricingEditor() {
                     type="checkbox" 
                     checked={plan.is_active} 
                     onChange={e => updateMutation.mutate({...plan, is_active: e.target.checked})}
-                    className="rounded border-white/10 bg-dark w-4 h-4 text-primary" 
+                    className="rounded dark:border-white/10 border-black/10 bg-dark w-4 h-4 text-primary" 
                   />
                   <span className="text-xs text-dark-500">Active</span>
                 </label>
@@ -300,10 +300,10 @@ function PricingEditor() {
       {/* Preview Section */}
       <div className="lg:col-span-2 glass-card p-8 bg-dark/80 relative flex flex-col justify-center">
         <div className="absolute top-4 right-4 badge bg-primary text-white text-xs">Live Preview</div>
-        <div className="border border-white/10 rounded-2xl p-8 bg-white/5 backdrop-blur-xl shadow-2xl">
-          <h4 className="text-2xl font-bold font-heading text-white">{editingPlan?.name || 'Starter'}</h4>
+        <div className="border dark:border-white/10 border-black/10 rounded-2xl p-8 dark:bg-white/5 bg-black/5 backdrop-blur-xl shadow-2xl">
+          <h4 className="text-2xl font-bold font-heading dark:text-white text-gray-900">{editingPlan?.name || 'Starter'}</h4>
           <p className="text-sm text-dark-500 mb-4">{editingPlan?.tagline || 'Select a plan to preview'}</p>
-          <div className="text-4xl font-bold text-white mb-8">
+          <div className="text-4xl font-bold dark:text-white text-gray-900 mb-8">
             ৳{(editingPlan?.price_monthly_bdt || 0).toLocaleString()}
             <span className="text-sm text-dark-500 font-normal ml-1">/mo</span>
           </div>
@@ -364,25 +364,25 @@ function ReviewsEditor() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
       <div className="glass-card p-6 flex flex-col min-h-0 max-h-[70vh]">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="font-heading font-bold text-white">Pending Approval ({pending.length})</h3>
+          <h3 className="font-heading font-bold dark:text-white text-gray-900">Pending Approval ({pending.length})</h3>
           <span className="text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">Moderation Required</span>
         </div>
         <div className="space-y-4 overflow-y-auto pr-2 scrollbar-hide">
           {pending.map((r: any) => (
-            <div key={r.id} className="p-5 bg-white/5 rounded-2xl border border-white/5 hover:border-white/10 transition-all">
+            <div key={r.id} className="p-5 dark:bg-white/5 bg-black/5 rounded-2xl border dark:border-white/5 border-black/5 hover:dark:border-white/10 border-black/10 transition-all">
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
                     {r.reviewer_name?.charAt(0)}
                   </div>
                   <div>
-                    <div className="font-medium text-white text-sm">{r.reviewer_name}</div>
+                    <div className="font-medium dark:text-white text-gray-900 text-sm">{r.reviewer_name}</div>
                     <div className="text-[10px] text-dark-500">{new Date(r.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
                 <div className="flex text-amber-400 gap-0.5">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className={`w-3 h-3 ${i < r.star_rating ? 'fill-amber-400' : 'text-white/10'}`} />
+                    <Star key={i} className={`w-3 h-3 ${i < r.star_rating ? 'fill-amber-400' : 'dark:text-white text-gray-900/10'}`} />
                   ))}
                 </div>
               </div>
@@ -419,15 +419,15 @@ function ReviewsEditor() {
 
       <div className="glass-card p-6 flex flex-col min-h-0 max-h-[70vh]">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="font-heading font-bold text-white">Live on Landing Page ({live.length}/8)</h3>
-          <button className="text-[10px] text-dark-500 hover:text-white transition-colors">Manage Priority</button>
+          <h3 className="font-heading font-bold dark:text-white text-gray-900">Live on Landing Page ({live.length}/8)</h3>
+          <button className="text-[10px] text-dark-500 hover:dark:text-white text-gray-900 transition-colors">Manage Priority</button>
         </div>
         <div className="space-y-3 overflow-y-auto pr-2 scrollbar-hide">
           {live.map((r: any) => (
-             <div key={r.id} className="flex items-center gap-4 p-4 bg-black/20 rounded-2xl border border-white/5 hover:border-white/10 transition-colors group">
+             <div key={r.id} className="flex items-center gap-4 p-4 bg-black/20 rounded-2xl border dark:border-white/5 border-black/5 hover:dark:border-white/10 border-black/10 transition-colors group">
                <GripVertical className="w-4 h-4 text-dark-700 cursor-move" />
                <div className="flex-1 min-w-0">
-                 <div className="text-sm text-white font-medium truncate">{r.reviewer_name}</div>
+                 <div className="text-sm dark:text-white text-gray-900 font-medium truncate">{r.reviewer_name}</div>
                  <div className="text-[10px] text-dark-500 truncate italic">&quot;{r.review_text}&quot;</div>
                </div>
                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -441,7 +441,7 @@ function ReviewsEditor() {
              </div>
           ))}
           {live.length === 0 && (
-            <div className="text-center py-20 text-dark-600 border border-dashed border-white/5 rounded-2xl">
+            <div className="text-center py-20 text-dark-600 border border-dashed dark:border-white/5 border-black/5 rounded-2xl">
               <Star className="w-10 h-10 mx-auto mb-3 opacity-20" />
               <p className="text-sm italic font-heading">No reviews showing yet.</p>
             </div>
@@ -499,7 +499,7 @@ function FAQEditor() {
   return (
     <div className="glass-card p-6 h-full max-w-4xl flex flex-col min-h-0 max-h-[70vh]">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="font-heading font-bold text-white">Frequently Asked Questions</h3>
+        <h3 className="font-heading font-bold dark:text-white text-gray-900">Frequently Asked Questions</h3>
         <button 
           onClick={() => updateMutation.mutate(items)}
           disabled={updateMutation.isPending}
@@ -518,7 +518,7 @@ function FAQEditor() {
 
       <div className="space-y-4 overflow-y-auto pr-2 scrollbar-hide flex-1">
         {items.map((item, i) => (
-          <div key={i} className="p-5 bg-white/5 rounded-2xl border border-white/5 flex gap-4 items-start group">
+          <div key={i} className="p-5 dark:bg-white/5 bg-black/5 rounded-2xl border dark:border-white/5 border-black/5 flex gap-4 items-start group">
             <div className="flex-1 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -572,7 +572,7 @@ function FAQEditor() {
           </div>
         ))}
         {items.length === 0 && (
-          <div className="text-center py-20 text-dark-600 border border-dashed border-white/5 rounded-2xl">
+          <div className="text-center py-20 text-dark-600 border border-dashed dark:border-white/5 border-black/5 rounded-2xl">
             <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-20" />
             <p className="text-sm italic">No FAQ items yet. Click add to start.</p>
           </div>
@@ -626,7 +626,7 @@ function BannerEditor() {
   return (
     <div className="glass-card p-8 h-full max-w-3xl space-y-8">
       <div className="flex justify-between items-center mb-2">
-        <h3 className="font-heading font-bold text-white text-lg">Announcement Banner</h3>
+        <h3 className="font-heading font-bold dark:text-white text-gray-900 text-lg">Announcement Banner</h3>
         <button 
           onClick={() => updateMutation.mutate(bannerForm)}
           disabled={updateMutation.isPending}
@@ -636,9 +636,9 @@ function BannerEditor() {
         </button>
       </div>
 
-      <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+      <div className="flex items-center justify-between p-4 dark:bg-white/5 bg-black/5 rounded-2xl border dark:border-white/5 border-black/5">
         <div className="space-y-1">
-          <label className="text-white font-medium block">Active Status</label>
+          <label className="dark:text-white text-gray-900 font-medium block">Active Status</label>
           <p className="text-xs text-dark-500">Banner will be visible globally when active.</p>
         </div>
         <button 
@@ -701,7 +701,7 @@ function BannerEditor() {
       {/* Visual Preview */}
       <div className="pt-6">
         <label className="text-xs font-bold text-dark-500 uppercase block mb-4">Desktop Preview</label>
-        <div className="w-full h-12 rounded-xl flex items-center justify-center text-sm font-bold text-white shadow-lg overflow-hidden animate-pulse" style={{ backgroundColor: bannerForm.color }}>
+        <div className="w-full h-12 rounded-xl flex items-center justify-center text-sm font-bold dark:text-white text-gray-900 shadow-lg overflow-hidden animate-pulse" style={{ backgroundColor: bannerForm.color }}>
           {bannerForm.text_en || 'Your Banner Message'}
         </div>
       </div>

@@ -159,7 +159,7 @@ export default function OrdersPage() {
       case 'pending': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
       case 'manual_required': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
       case 'failed': return 'bg-danger/10 text-danger border-danger/20';
-      default: return 'bg-dark-500/10 text-dark-400 border-white/5';
+      default: return 'bg-dark-500/10 text-dark-400 dark:border-white/5 border-black/5';
     }
   };
 
@@ -167,13 +167,13 @@ export default function OrdersPage() {
     <div className="p-6 lg:p-10 max-w-[1400px] mx-auto min-h-screen">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-white mb-1 flex items-center gap-3">
+          <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-1 flex items-center gap-3">
              <ShoppingBag className="w-8 h-8 text-primary" /> Order Management
           </h1>
           <p className="text-dark-500 text-sm">{orders.length} total orders processed</p>
         </div>
         <div className="flex items-center gap-3">
-           <button className="glass-card px-4 py-2 text-sm text-white flex items-center gap-2 hover:bg-white/10 transition-all">
+           <button className="glass-card px-4 py-2 text-sm dark:text-white text-gray-900 flex items-center gap-2 hover:dark:bg-white/10 bg-black/10 transition-all">
              <Printer className="w-4 h-4 text-dark-500" /> Bulk Invoices
            </button>
            <button onClick={() => { fetchOrders(); fetchManualReview(); }} className="btn-primary flex items-center gap-2">
@@ -189,7 +189,7 @@ export default function OrdersPage() {
           className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${
             activeTab === 'all' 
               ? 'bg-primary/20 text-primary border-primary/30 shadow-lg shadow-primary/10' 
-              : 'bg-white/5 text-dark-400 border-white/5 hover:bg-white/10'
+              : 'dark:bg-white/5 bg-black/5 text-dark-400 dark:border-white/5 border-black/5 hover:dark:bg-white/10 bg-black/10'
           }`}
         >
           All Orders
@@ -199,12 +199,12 @@ export default function OrdersPage() {
           className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border flex items-center gap-2 ${
             activeTab === 'manual_review' 
               ? 'bg-orange-500/20 text-orange-400 border-orange-500/30 shadow-lg shadow-orange-500/10' 
-              : 'bg-white/5 text-dark-400 border-white/5 hover:bg-white/10'
+              : 'dark:bg-white/5 bg-black/5 text-dark-400 dark:border-white/5 border-black/5 hover:dark:bg-white/10 bg-black/10'
           }`}
         >
           <AlertTriangle className="w-4 h-4" /> Manual Review
           {manualReviewCount > 0 && (
-            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500 text-white animate-pulse">
+            <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-orange-500 dark:text-white text-gray-900 animate-pulse">
               {manualReviewCount}
             </span>
           )}
@@ -219,14 +219,14 @@ export default function OrdersPage() {
             <input 
               type="text" 
               placeholder="Search by ID or customer name..." 
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-primary/50 transition-all"
+              className="w-full dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10 rounded-xl py-2.5 pl-10 pr-4 text-sm dark:text-white text-gray-900 focus:outline-none focus:border-primary/50 transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <div className="md:col-span-3 relative">
              <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
-             <select className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-8 text-sm text-white appearance-none focus:outline-none focus:border-primary/50" value={paymentFilter} onChange={e => setPaymentFilter(e.target.value)}>
+             <select className="w-full dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10 rounded-xl py-2.5 pl-10 pr-8 text-sm dark:text-white text-gray-900 appearance-none focus:outline-none focus:border-primary/50" value={paymentFilter} onChange={e => setPaymentFilter(e.target.value)}>
                <option value="">All Payments</option>
                <option value="pending">Pending</option>
                <option value="verified">Verified</option>
@@ -236,7 +236,7 @@ export default function OrdersPage() {
              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500 pointer-events-none" />
           </div>
           <div className="md:col-span-3 relative">
-             <select className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 px-4 pr-8 text-sm text-white appearance-none focus:outline-none focus:border-primary/50" value={deliveryFilter} onChange={e => setDeliveryFilter(e.target.value)}>
+             <select className="w-full dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10 rounded-xl py-2.5 px-4 pr-8 text-sm dark:text-white text-gray-900 appearance-none focus:outline-none focus:border-primary/50" value={deliveryFilter} onChange={e => setDeliveryFilter(e.target.value)}>
                <option value="">All Deliveries</option>
                <option value="pending">Pending</option>
                <option value="booked">Booked</option>
@@ -252,7 +252,7 @@ export default function OrdersPage() {
       <div className="glass-card overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
-            <thead className="border-b border-white/5 bg-white/5">
+            <thead className="border-b dark:border-white/5 border-black/5 dark:bg-white/5 bg-black/5">
               <tr>
                 <th className="px-6 py-4 font-bold text-dark-400 uppercase tracking-wider text-[10px]">Order ID</th>
                 <th className="px-6 py-4 font-bold text-dark-400 uppercase tracking-wider text-[10px]">Customer</th>
@@ -266,7 +266,7 @@ export default function OrdersPage() {
             <tbody>
               {loading ? (
                 Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={i} className="border-b border-white/5"><td colSpan={7} className="px-6 py-4"><div className="skeleton h-10 w-full rounded-lg" /></td></tr>
+                  <tr key={i} className="border-b dark:border-white/5 border-black/5"><td colSpan={7} className="px-6 py-4"><div className="skeleton h-10 w-full rounded-lg" /></td></tr>
                 ))
               ) : filteredOrders.length === 0 ? (
                 <tr><td colSpan={7} className="text-center py-20 text-dark-500 italic">
@@ -279,21 +279,21 @@ export default function OrdersPage() {
                     initial={{ opacity: 0, x: -10 }} 
                     animate={{ opacity: 1, x: 0 }} 
                     transition={{ delay: i * 0.02 }}
-                    className={`border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors group ${
+                    className={`border-b dark:border-white/5 border-black/5 last:border-0 hover:dark:bg-white/5 bg-black/5 transition-colors group ${
                       o.payment_status === 'manual_required' ? 'bg-orange-500/[0.03]' : ''
                     }`}
                   >
-                    <td className="px-6 py-4 font-mono text-[11px] text-white">#XENI-{o.id.slice(0, 8)}</td>
+                    <td className="px-6 py-4 font-mono text-[11px] dark:text-white text-gray-900">#XENI-{o.id.slice(0, 8)}</td>
                     <td className="px-6 py-4">
                        <div className="flex items-center gap-3">
                          <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">{(o.customer_name || 'C').charAt(0)}</div>
                          <div>
-                            <p className="text-white font-medium">{o.customer_name || 'Guest'}</p>
+                            <p className="dark:text-white text-gray-900 font-medium">{o.customer_name || 'Guest'}</p>
                             <p className="text-[10px] text-dark-500">{o.customer_phone}</p>
                          </div>
                        </div>
                     </td>
-                    <td className="px-6 py-4 font-bold text-white">৳{o.total_amount.toLocaleString()}</td>
+                    <td className="px-6 py-4 font-bold dark:text-white text-gray-900">৳{o.total_amount.toLocaleString()}</td>
                     <td className="px-6 py-4">
                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${getPaymentStatusBadge(o.payment_status)}`}>
                          {o.payment_status === 'manual_required' ? '⚠ Review' : o.payment_status}
@@ -302,7 +302,7 @@ export default function OrdersPage() {
                     <td className="px-6 py-4">
                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
                          o.delivery_status === 'delivered' ? 'bg-success/10 text-success border-success/20' : 
-                         o.delivery_status === 'pending' ? 'bg-dark-500/10 text-dark-400 border-white/5' : 
+                         o.delivery_status === 'pending' ? 'bg-dark-500/10 text-dark-400 dark:border-white/5 border-black/5' : 
                          'bg-primary/10 text-primary border-primary/20'
                        }`}>
                          {o.delivery_status.replace('_', ' ')}
@@ -342,12 +342,12 @@ export default function OrdersPage() {
             className="glass-card w-full max-w-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]"
           >
             {/* Modal Header */}
-            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+            <div className="p-6 border-b dark:border-white/5 border-black/5 flex items-center justify-between dark:bg-white/5 bg-black/5">
                <div>
-                 <h2 className="text-xl font-heading font-bold text-white">Order Details</h2>
+                 <h2 className="text-xl font-heading font-bold dark:text-white text-gray-900">Order Details</h2>
                  <p className="text-[10px] text-dark-500 font-mono mt-1">#XENI-{selectedOrder.id}</p>
                </div>
-               <button onClick={() => setSelectedOrder(null)} className="p-2 rounded-full hover:bg-white/10 text-dark-500 hover:text-white transition-all">
+               <button onClick={() => setSelectedOrder(null)} className="p-2 rounded-full hover:dark:bg-white/10 bg-black/10 text-dark-500 hover:dark:text-white text-gray-900 transition-all">
                  <X className="w-5 h-5" />
                </button>
             </div>
@@ -355,7 +355,7 @@ export default function OrdersPage() {
             <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
                {/* Visual Stepper */}
                <div className="relative pt-4 pb-8">
-                  <div className="absolute top-[38px] left-[10%] right-[10%] h-0.5 bg-white/5" />
+                  <div className="absolute top-[38px] left-[10%] right-[10%] h-0.5 dark:bg-white/5 bg-black/5" />
                   <div className="absolute top-[38px] left-[10%] h-0.5 bg-primary transition-all duration-1000" 
                        style={{ width: `${(getCurrentStepIndex(selectedOrder) / 4) * 80}%` }} />
                   
@@ -369,7 +369,7 @@ export default function OrdersPage() {
                             }`}>
                                <step.icon className="w-5 h-5" />
                             </div>
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'text-white' : 'text-dark-500'}`}>{step.label}</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'dark:text-white text-gray-900' : 'text-dark-500'}`}>{step.label}</span>
                          </div>
                        );
                      })}
@@ -403,17 +403,17 @@ export default function OrdersPage() {
                      </h3>
                      <div className="space-y-4">
                         <div className="flex items-center gap-4">
-                           <div className="p-2.5 rounded-xl bg-white/5 text-dark-500"><Phone className="w-4 h-4" /></div>
+                           <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-dark-500"><Phone className="w-4 h-4" /></div>
                            <div>
                               <p className="text-[10px] text-dark-500 font-bold uppercase">Phone Number</p>
-                              <p className="text-sm text-white">{selectedOrder.customer_phone}</p>
+                              <p className="text-sm dark:text-white text-gray-900">{selectedOrder.customer_phone}</p>
                            </div>
                         </div>
                         <div className="flex items-center gap-4">
-                           <div className="p-2.5 rounded-xl bg-white/5 text-dark-500"><MapPin className="w-4 h-4" /></div>
+                           <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-dark-500"><MapPin className="w-4 h-4" /></div>
                            <div>
                               <p className="text-[10px] text-dark-500 font-bold uppercase">Shipping Address</p>
-                              <p className="text-sm text-white">{selectedOrder.customer_address || 'Not provided'}</p>
+                              <p className="text-sm dark:text-white text-gray-900">{selectedOrder.customer_address || 'Not provided'}</p>
                            </div>
                         </div>
                      </div>
@@ -425,22 +425,22 @@ export default function OrdersPage() {
                      </h3>
                      <div className="space-y-4">
                         <div className="flex items-center gap-4">
-                           <div className="p-2.5 rounded-xl bg-white/5 text-dark-500"><CreditCard className="w-4 h-4" /></div>
+                           <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-dark-500"><CreditCard className="w-4 h-4" /></div>
                            <div>
                               <p className="text-[10px] text-dark-500 font-bold uppercase">Method & Amount</p>
-                              <p className="text-sm text-white"><span className="uppercase">{selectedOrder.payment_method}</span> — <span className="font-bold">৳{selectedOrder.total_amount.toLocaleString()}</span></p>
+                              <p className="text-sm dark:text-white text-gray-900"><span className="uppercase">{selectedOrder.payment_method}</span> — <span className="font-bold">৳{selectedOrder.total_amount.toLocaleString()}</span></p>
                            </div>
                         </div>
                         {selectedOrder.payment_trx_id && (
                           <div className="flex items-center gap-4">
-                             <div className="p-2.5 rounded-xl bg-white/5 text-dark-500"><Zap className="w-4 h-4" /></div>
+                             <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-dark-500"><Zap className="w-4 h-4" /></div>
                              <div className="flex-1">
                                 <p className="text-[10px] text-dark-500 font-bold uppercase">Transaction ID</p>
                                 <div className="flex items-center gap-2">
-                                  <p className="text-sm text-white font-mono">{selectedOrder.payment_trx_id}</p>
+                                  <p className="text-sm dark:text-white text-gray-900 font-mono">{selectedOrder.payment_trx_id}</p>
                                   <button 
                                     onClick={() => copyToClipboard(selectedOrder.payment_trx_id!)}
-                                    className="p-1 rounded-md hover:bg-white/10 transition-all"
+                                    className="p-1 rounded-md hover:dark:bg-white/10 bg-black/10 transition-all"
                                   >
                                     <Copy className="w-3 h-3 text-dark-500" />
                                   </button>
@@ -459,7 +459,7 @@ export default function OrdersPage() {
                      <ImageIcon className="w-4 h-4" /> Payment Screenshot
                    </h3>
                    <div 
-                     className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border border-white/10 cursor-pointer group hover:border-primary/30 transition-all"
+                     className="relative w-full max-w-[300px] rounded-2xl overflow-hidden border dark:border-white/10 border-black/10 cursor-pointer group hover:border-primary/30 transition-all"
                      onClick={() => setScreenshotModal(selectedOrder.payment_screenshot_url!)}
                    >
                      <img 
@@ -468,7 +468,7 @@ export default function OrdersPage() {
                        className="w-full h-auto object-cover"
                      />
                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                       <Eye className="w-6 h-6 text-white" />
+                       <Eye className="w-6 h-6 dark:text-white text-gray-900" />
                      </div>
                    </div>
                  </div>
@@ -492,7 +492,7 @@ export default function OrdersPage() {
             </div>
 
             {/* Modal Footer Actions */}
-            <div className="p-6 border-t border-white/5 bg-white/5 flex flex-col gap-4">
+            <div className="p-6 border-t dark:border-white/5 border-black/5 dark:bg-white/5 bg-black/5 flex flex-col gap-4">
                {/* Manual Review Actions */}
                {selectedOrder.payment_status === 'manual_required' && (
                  <div className="space-y-3">
@@ -503,7 +503,7 @@ export default function OrdersPage() {
                          placeholder="Add a note (optional)..." 
                          value={confirmNote}
                          onChange={(e) => setConfirmNote(e.target.value)}
-                         className="w-full bg-white/5 border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-success/50"
+                         className="w-full dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10 rounded-xl py-2 px-3 text-xs dark:text-white text-gray-900 focus:outline-none focus:border-success/50"
                        />
                      </div>
                      <div>
@@ -512,7 +512,7 @@ export default function OrdersPage() {
                          placeholder="Rejection reason (optional)..." 
                          value={rejectReason}
                          onChange={(e) => setRejectReason(e.target.value)}
-                         className="w-full bg-white/5 border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-danger/50"
+                         className="w-full dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10 rounded-xl py-2 px-3 text-xs dark:text-white text-gray-900 focus:outline-none focus:border-danger/50"
                        />
                      </div>
                    </div>
@@ -550,11 +550,11 @@ export default function OrdersPage() {
                  ) : null}
                  <div className="flex gap-2">
                    {selectedOrder.payment_status === 'pending' && (
-                     <button onClick={() => updateOrder(selectedOrder.id, { payment_status: 'verified' })} className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all border border-white/10 flex items-center gap-2">
+                     <button onClick={() => updateOrder(selectedOrder.id, { payment_status: 'verified' })} className="px-6 py-3 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10 flex items-center gap-2">
                        <CreditCard className="w-4 h-4" /> Verify Manually
                      </button>
                    )}
-                   <button className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl text-xs font-bold transition-all border border-white/10">
+                   <button className="px-6 py-3 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10">
                      Print Invoice
                    </button>
                  </div>
@@ -584,11 +584,11 @@ export default function OrdersPage() {
             >
               <button
                 onClick={() => setScreenshotModal(null)}
-                className="absolute -top-12 right-0 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-all"
+                className="absolute -top-12 right-0 p-2 rounded-full dark:bg-white/10 bg-black/10 dark:text-white text-gray-900 hover:dark:bg-white/20 bg-black/20 transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
-              <div className="relative w-full aspect-[3/4] rounded-2xl border border-white/10 overflow-hidden">
+              <div className="relative w-full aspect-[3/4] rounded-2xl border dark:border-white/10 border-black/10 overflow-hidden">
                 <Image src={screenshotModal} alt="Payment Screenshot" fill className="object-contain" />
               </div>
             </motion.div>

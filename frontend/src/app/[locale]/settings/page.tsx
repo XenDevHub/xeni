@@ -49,7 +49,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-dark px-6 py-12">
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-heading font-bold text-white mb-8 flex items-center gap-3">
+        <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-8 flex items-center gap-3">
           <Settings className="w-8 h-8 text-primary" /> {t('settings.title')}
         </h1>
 
@@ -78,13 +78,13 @@ export default function SettingsPage() {
 
           {tab === 'security' && (
             <div className="space-y-4">
-              <h3 className="text-lg font-heading font-semibold text-white">{t('settings.change_password')}</h3>
+              <h3 className="text-lg font-heading font-semibold dark:text-white text-gray-900">{t('settings.change_password')}</h3>
               <input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)} placeholder={t('settings.current_password')} className="input-field" />
               <input type="password" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder={t('settings.new_password')} className="input-field" />
               <button onClick={changePassword} disabled={loading} className="btn-primary">{loading ? t('common.loading') : t('settings.change_password')}</button>
 
-              <div className="border-t border-white/10 pt-4 mt-6">
-                <h3 className="text-lg font-heading font-semibold text-white mb-2">{t('settings.enable_2fa')}</h3>
+              <div className="border-t dark:border-white/10 border-black/10 pt-4 mt-6">
+                <h3 className="text-lg font-heading font-semibold dark:text-white text-gray-900 mb-2">{t('settings.enable_2fa')}</h3>
                 <p className="text-dark-500 text-sm mb-3">Secure your account with Google Authenticator.</p>
                 <button className={user?.two_fa_enabled ? 'badge-success' : 'btn-accent text-sm'}>{user?.two_fa_enabled ? '2FA Enabled ✓' : t('settings.enable_2fa')}</button>
               </div>
@@ -93,7 +93,7 @@ export default function SettingsPage() {
 
           {tab === 'language' && (
             <div className="space-y-4">
-              <h3 className="text-lg font-heading font-semibold text-white">{t('settings.language')}</h3>
+              <h3 className="text-lg font-heading font-semibold dark:text-white text-gray-900">{t('settings.language')}</h3>
               <div className="flex gap-3">
                 {[{ code: 'en', label: 'English' }, { code: 'bn', label: 'বাংলা' }].map(l => (
                   <button key={l.code} onClick={() => setLang(l.code)} className={`px-6 py-3 rounded-xl text-sm font-medium transition-all ${lang === l.code ? 'bg-primary text-white shadow-glow' : 'bg-white/5 text-dark-500 hover:bg-white/10'}`}>{l.label}</button>

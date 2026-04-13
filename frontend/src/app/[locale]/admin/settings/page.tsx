@@ -45,7 +45,7 @@ export default function AdminSettingsPage() {
     <div className="p-8 space-y-6 max-w-[1200px] mx-auto pb-24 h-full flex flex-col">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-white mb-2">System Settings</h1>
+          <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">System Settings</h1>
           <p className="text-dark-500">Configure global platform parameters and infrastructure links.</p>
         </div>
         <button 
@@ -64,12 +64,12 @@ export default function AdminSettingsPage() {
           
           {/* AI Master Rules */}
           <section className="glass-card p-6 space-y-6 border-primary/20 bg-primary/5">
-            <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+            <div className="flex items-center gap-3 border-b dark:border-white/5 border-black/5 pb-4">
               <div className="p-2 bg-primary/20 rounded-lg">
                 <Brain className="w-5 h-5 text-primary" />
               </div>
               <div>
-                 <h3 className="text-lg font-heading font-bold text-white">AI Global Agent Rules</h3>
+                 <h3 className="text-lg font-heading font-bold dark:text-white text-gray-900">AI Global Agent Rules</h3>
                  <p className="text-[11px] text-dark-500 mt-1">Manage structured, priority-based platform constraints for all AI agents.</p>
               </div>
             </div>
@@ -84,11 +84,11 @@ export default function AdminSettingsPage() {
 
           {/* Branding & Identity */}
           <section className="glass-card p-6 space-y-6">
-            <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+            <div className="flex items-center gap-3 border-b dark:border-white/5 border-black/5 pb-4">
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Globe className="w-5 h-5 text-primary" />
               </div>
-              <h3 className="text-lg font-heading font-bold text-white">Platform Branding</h3>
+              <h3 className="text-lg font-heading font-bold dark:text-white text-gray-900">Platform Branding</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -115,13 +115,13 @@ export default function AdminSettingsPage() {
         {/* Right Column: Status & Toggles */}
         <div className="space-y-8">
           <section className="glass-card p-6 space-y-6">
-            <h3 className="font-heading font-bold text-white flex items-center gap-2">
+            <h3 className="font-heading font-bold dark:text-white text-gray-900 flex items-center gap-2">
               <Shield className="w-4 h-4 text-emerald-400" /> Maintenance
             </h3>
             
             <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-between">
               <div>
-                <div className="text-sm font-bold text-white">System Status</div>
+                <div className="text-sm font-bold dark:text-white text-gray-900">System Status</div>
                 <div className="text-[10px] text-emerald-400 uppercase tracking-widest font-bold">Operational</div>
               </div>
               <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />

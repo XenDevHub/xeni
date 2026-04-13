@@ -37,7 +37,7 @@ export default function PrivacyPolicyPage() {
       </div>
 
       <div className="relative max-w-4xl mx-auto px-6 py-20">
-        <Link href="/" className="inline-flex items-center gap-2 text-dark-500 hover:text-white transition-colors mb-12 group">
+        <Link href="/" className="inline-flex items-center gap-2 text-dark-500 hover:dark:text-white text-gray-900 transition-colors mb-12 group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Landing
         </Link>
         
@@ -54,7 +54,7 @@ export default function PrivacyPolicyPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-heading font-bold text-white mb-6"
+            className="text-4xl md:text-6xl font-heading font-bold dark:text-white text-gray-900 mb-6"
           >
             Privacy Policy
           </motion.h1>
@@ -76,14 +76,14 @@ export default function PrivacyPolicyPage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="glass-card p-8 border-white/5 relative overflow-hidden"
+              className="glass-card p-8 dark:border-white/5 border-black/5 relative overflow-hidden"
             >
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
                   <section.icon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white mb-4">{section.title}</h2>
+                  <h2 className="text-xl font-bold dark:text-white text-gray-900 mb-4">{section.title}</h2>
                   <p className="text-dark-400 leading-relaxed italic line-height-relaxed">
                     {section.content}
                   </p>
@@ -93,7 +93,7 @@ export default function PrivacyPolicyPage() {
           ))}
         </div>
 
-        <footer className="mt-20 pt-12 border-t border-white/10 text-center text-dark-500 text-sm">
+        <footer className="mt-20 pt-12 border-t dark:border-white/10 border-black/10 text-center text-dark-500 text-sm">
           <p>© {new Date().getFullYear()} Xentro Infotech. All rights reserved.</p>
           <p className="mt-2">Last Updated: April 8, 2026</p>
         </footer>

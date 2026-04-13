@@ -93,12 +93,12 @@ export function ActivityFeed() {
 
   return (
     <div className="glass-card flex flex-col h-full max-h-[400px]">
-      <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between">
-        <h3 className="font-heading font-semibold text-white flex items-center gap-2">
+      <div className="px-6 py-4 border-b dark:border-white/5 border-black/5 flex items-center justify-between">
+        <h3 className="font-heading font-semibold dark:text-white text-gray-900 flex items-center gap-2">
           <Activity className="w-5 h-5 text-primary" /> Live Activity
         </h3>
         <div className="flex items-center gap-3">
-          <button onClick={fetchActivity} className="text-dark-500 hover:text-white transition-colors">
+          <button onClick={fetchActivity} className="text-dark-500 hover:dark:text-white text-gray-900 transition-colors">
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
           <span className="text-xs text-dark-500">WS {isConnected ? 'live' : 'polling'}</span>
@@ -124,10 +124,10 @@ export function ActivityFeed() {
               >
                 <div className="relative mt-1">
                   <div className={`w-2 h-2 rounded-full ${getDotColor(item.type)}`} />
-                  <div className="absolute top-4 left-[3px] w-[2px] h-[30px] bg-white/5" />
+                  <div className="absolute top-4 left-[3px] w-[2px] h-[30px] dark:bg-white/5 bg-black/5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-dark-300 group-hover:text-white transition-colors">
+                  <p className="text-sm text-dark-300 group-hover:dark:text-white text-gray-900 transition-colors">
                     {item.message}
                   </p>
                   <p className="text-xs text-dark-500 mt-1">

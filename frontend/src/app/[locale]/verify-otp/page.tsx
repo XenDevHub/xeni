@@ -90,14 +90,14 @@ export default function VerifyOTPPage() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative w-full max-w-md z-10">
-        <div className="glass-card p-8 text-center border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="glass-card p-8 text-center dark:border-white/10 border-black/10 shadow-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
           <div className="relative z-10">
             <div className="w-20 h-20 rounded-2xl bg-primary/15 flex items-center justify-center mx-auto mb-6 border border-primary/20 shadow-glow-sm">
               <Shield className="w-10 h-10 text-primary" />
             </div>
-            <h1 className="text-3xl font-heading font-black text-white tracking-tight mb-2">{t('auth.verify_title')}</h1>
+            <h1 className="text-3xl font-heading font-black dark:text-white text-gray-900 tracking-tight mb-2">{t('auth.verify_title')}</h1>
             <p className="text-dark-400 text-sm mb-2 font-medium">{t('auth.verify_subtitle')}</p>
             {email && <div className="badge bg-primary/10 text-primary-300 border-primary/20 font-bold px-4 py-1.5 mb-8">{email}</div>}
 
@@ -113,7 +113,7 @@ export default function VerifyOTPPage() {
                   value={digit}
                   onChange={e => handleChange(i, e.target.value.replace(/\D/, ''))}
                   onKeyDown={e => handleKeyDown(i, e)}
-                  className="w-12 h-14 text-center text-2xl font-mono font-black glass-card bg-white/5 border-white/10 focus:bg-white/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-glow-sm"
+                  className="w-12 h-14 text-center text-2xl font-mono font-black glass-card dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-glow-sm"
                   autoFocus={i === 0}
                 />
               ))}
@@ -132,7 +132,7 @@ export default function VerifyOTPPage() {
                 Didn&apos;t receive the code?{' '}
                 <button onClick={handleResend} className="text-primary hover:text-primary-400 font-bold transition-colors">Resend</button>
               </p>
-              <Link href="/login" className="text-dark-500 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+              <Link href="/login" className="text-dark-500 hover:dark:text-white text-gray-900 transition-colors text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2">
                 Back to Login
               </Link>
             </div>

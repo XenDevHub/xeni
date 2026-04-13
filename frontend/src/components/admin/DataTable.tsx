@@ -35,7 +35,7 @@ export function DataTable<TData, TValue>({
         <table className="w-full text-sm">
           <thead>
             {table.getHeaderGroups().map(headerGroup => (
-              <tr key={headerGroup.id} className="border-b border-white/10 bg-black/20">
+              <tr key={headerGroup.id} className="border-b dark:border-white/10 border-black/10 bg-black/20">
                 {headerGroup.headers.map(header => (
                   <th key={header.id} className="text-left text-dark-500 font-medium px-6 py-4 whitespace-nowrap">
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -47,7 +47,7 @@ export function DataTable<TData, TValue>({
           <tbody>
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className="border-b border-white/5">
+                <tr key={i} className="border-b dark:border-white/5 border-black/5">
                   {columns.map((c, j) => (
                     <td key={j} className="px-6 py-4"><div className="skeleton h-6 w-full" /></td>
                   ))}
@@ -55,9 +55,9 @@ export function DataTable<TData, TValue>({
               ))
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map(row => (
-                <tr key={row.id} className="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                <tr key={row.id} className="border-b dark:border-white/5 border-black/5 hover:dark:bg-white/5 bg-black/5 transition-colors group">
                   {row.getVisibleCells().map(cell => (
-                    <td key={cell.id} className="px-6 py-4 text-dark-600 group-hover:text-white transition-colors whitespace-nowrap">
+                    <td key={cell.id} className="px-6 py-4 text-dark-600 group-hover:dark:text-white text-gray-900 transition-colors whitespace-nowrap">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -75,7 +75,7 @@ export function DataTable<TData, TValue>({
       </div>
       
       {pageCount && pageCount > 1 && (
-        <div className="flex items-center justify-between px-6 py-4 border-t border-white/5 bg-black/10">
+        <div className="flex items-center justify-between px-6 py-4 border-t dark:border-white/5 border-black/5 bg-black/10">
           <span className="text-sm text-dark-500">
             Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount() || 1}
           </span>
@@ -83,14 +83,14 @@ export function DataTable<TData, TValue>({
             <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              className="p-2 rounded-lg bg-white/5 text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="p-2 rounded-lg dark:bg-white/5 bg-black/5 dark:text-white text-gray-900 hover:dark:bg-white/10 bg-black/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              className="p-2 rounded-lg bg-white/5 text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="p-2 rounded-lg dark:bg-white/5 bg-black/5 dark:text-white text-gray-900 hover:dark:bg-white/10 bg-black/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

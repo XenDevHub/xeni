@@ -84,7 +84,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed top-0 right-0 bottom-0 w-[520px] bg-dark border-l border-white/10 z-50 flex flex-col shadow-2xl"
+        className="fixed top-0 right-0 bottom-0 w-[520px] bg-dark border-l dark:border-white/10 border-black/10 z-50 flex flex-col shadow-2xl"
       >
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center">
@@ -93,14 +93,14 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
         ) : detail ? (
           <>
             {/* Header */}
-            <div className="p-6 border-b border-white/10 bg-black/20">
+            <div className="p-6 border-b dark:border-white/10 border-black/10 bg-black/20">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-xl font-bold text-white shadow-glow-accent">
                     {user?.full_name?.charAt(0) || user?.email?.charAt(0)}
                   </div>
                   <div className="min-w-0">
-                    <h2 className="text-xl font-bold text-white truncate">{user?.full_name || 'No Name'}</h2>
+                    <h2 className="text-xl font-bold dark:text-white text-gray-900 truncate">{user?.full_name || 'No Name'}</h2>
                     <p className="text-sm text-dark-500 truncate">{user?.email}</p>
                     <div className="flex gap-2 mt-2">
                       <span className={`badge ${user?.role === 'user' ? 'bg-white/10 text-dark-400' : 'bg-primary/20 text-primary'} capitalize`}>{user?.role?.replace('_', ' ')}</span>
@@ -108,13 +108,13 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                     </div>
                   </div>
                 </div>
-                <button onClick={onClose} className="p-2 rounded-xl hover:bg-white/10 text-dark-500 hover:text-white transition-colors">
+                <button onClick={onClose} className="p-2 rounded-xl hover:dark:bg-white/10 bg-black/10 text-dark-500 hover:dark:text-white text-gray-900 transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               
               {/* Tabs */}
-              <div className="flex gap-1 overflow-x-auto border-b border-white/10 pb-[-1px]">
+              <div className="flex gap-1 overflow-x-auto border-b dark:border-white/10 border-black/10 pb-[-1px]">
                 {['overview', 'tasks', 'payments', 'conversations'].map((tab) => (
                   <button
                     key={tab}
@@ -122,7 +122,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                     className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors capitalize whitespace-nowrap ${
                       activeTab === tab 
                         ? 'border-primary text-primary' 
-                        : 'border-transparent text-dark-500 hover:text-white hover:border-white/20'
+                        : 'border-transparent text-dark-500 hover:dark:text-white text-gray-900 hover:dark:border-white/20 border-black/20'
                     }`}
                   >
                     {tab}
@@ -139,22 +139,22 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="glass-card p-4">
                       <Bot className="w-5 h-5 text-primary mb-2" />
-                      <div className="text-2xl font-bold text-white">{stats?.total_tasks || 0}</div>
+                      <div className="text-2xl font-bold dark:text-white text-gray-900">{stats?.total_tasks || 0}</div>
                       <div className="text-xs text-dark-500">Total Tasks</div>
                     </div>
                     <div className="glass-card p-4">
                       <DollarSign className="w-5 h-5 text-emerald-400 mb-2" />
-                      <div className="text-2xl font-bold text-white">৳{(stats?.total_spent_bdt || 0).toLocaleString()}</div>
+                      <div className="text-2xl font-bold dark:text-white text-gray-900">৳{(stats?.total_spent_bdt || 0).toLocaleString()}</div>
                       <div className="text-xs text-dark-500">Total Spent</div>
                     </div>
                     <div className="glass-card p-4">
                       <Activity className="w-5 h-5 text-cyan-400 mb-2" />
-                      <div className="text-2xl font-bold text-white">{stats?.orders_processed || 0}</div>
+                      <div className="text-2xl font-bold dark:text-white text-gray-900">{stats?.orders_processed || 0}</div>
                       <div className="text-xs text-dark-500">Orders Processed</div>
                     </div>
                     <div className="glass-card p-4">
                       <MessageSquare className="w-5 h-5 text-pink-400 mb-2" />
-                      <div className="text-2xl font-bold text-white">{stats?.messages_replied || 0}</div>
+                      <div className="text-2xl font-bold dark:text-white text-gray-900">{stats?.messages_replied || 0}</div>
                       <div className="text-xs text-dark-500">Messages Replied</div>
                     </div>
                   </div>
@@ -162,23 +162,23 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                   {/* Subscription Info */}
                   <div className="border border-white/10 rounded-2xl p-5 bg-gradient-to-br from-white/5 to-transparent">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="font-semibold text-white">Subscription Details</h4>
+                      <h4 className="font-semibold dark:text-white text-gray-900">Subscription Details</h4>
                       <span className={`badge ${sub?.plan?.tier === 'premium' ? 'bg-emerald-500/20 text-emerald-400' : sub?.plan?.tier === 'professional' ? 'bg-violet-500/20 text-violet-400' : 'bg-primary/20 text-primary'} uppercase text-[10px] tracking-wider`}>
                         {sub?.plan?.name || 'No Plan'}
                       </span>
                     </div>
                     <div className="space-y-2 text-sm">
-                      <div className="flex justify-between border-b border-white/5 pb-2">
+                      <div className="flex justify-between border-b dark:border-white/5 border-black/5 pb-2">
                         <span className="text-dark-500">Status</span>
                         <span className={`capitalize ${sub?.status === 'active' ? 'text-success' : 'text-danger'}`}>{sub?.status || 'n/a'}</span>
                       </div>
-                      <div className="flex justify-between border-b border-white/5 pb-2">
+                      <div className="flex justify-between border-b dark:border-white/5 border-black/5 pb-2">
                         <span className="text-dark-500">Renewal Date</span>
-                        <span className="text-white">{sub?.current_period_end ? new Date(sub.current_period_end).toLocaleDateString() : 'n/a'}</span>
+                        <span className="dark:text-white text-gray-900">{sub?.current_period_end ? new Date(sub.current_period_end).toLocaleDateString() : 'n/a'}</span>
                       </div>
                       <div className="flex justify-between pt-1">
                         <span className="text-dark-500">Member Since</span>
-                        <span className="text-white flex items-center gap-1">
+                        <span className="dark:text-white text-gray-900 flex items-center gap-1">
                           <Calendar className="w-3 h-3" /> {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'n/a'}
                         </span>
                       </div>
@@ -190,17 +190,17 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                     <h4 className="text-sm font-medium text-dark-500 mb-3 uppercase tracking-wider">Connected FB Pages ({detail?.connected_pages?.length || 0})</h4>
                     <div className="space-y-2">
                       {detail?.connected_pages?.map((page: any) => (
-                        <div key={page.id} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
-                          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">FB</div>
+                        <div key={page.id} className="flex items-center gap-3 p-3 dark:bg-white/5 bg-black/5 rounded-xl border dark:border-white/5 border-black/5">
+                          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center dark:text-white text-gray-900 font-bold text-xs">FB</div>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm text-white truncate">{page.page_name}</div>
+                            <div className="text-sm dark:text-white text-gray-900 truncate">{page.page_name}</div>
                             <div className="text-[10px] text-dark-500 truncate">ID: {page.facebook_page_id}</div>
                           </div>
                           <span className="badge bg-success/10 text-success text-[10px]">Active</span>
                         </div>
                       ))}
                       {(!detail?.connected_pages || detail?.connected_pages?.length === 0) && (
-                        <div className="text-center py-4 text-xs text-dark-600 border border-dashed border-white/5 rounded-xl">No pages connected</div>
+                        <div className="text-center py-4 text-xs text-dark-600 border border-dashed dark:border-white/5 border-black/5 rounded-xl">No pages connected</div>
                       )}
                     </div>
                   </div>
@@ -214,14 +214,14 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                           const newRole = user?.role === 'admin' ? 'user' : 'admin';
                           if (confirm(`Promote/Demote to ${newRole}?`)) changeRoleMutation.mutate(newRole);
                         }}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs text-white transition-all disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 bg-black/10 border dark:border-white/10 border-black/10 rounded-xl text-xs dark:text-white text-gray-900 transition-all disabled:opacity-50"
                         disabled={changeRoleMutation.isPending}
                       >
                          <Shield className="w-3.5 h-3.5 text-primary" /> {user?.role === 'admin' ? 'Demote to User' : 'Promote to Admin'}
                       </button>
                       <button 
                         onClick={() => toast('Plan Override logic coming soon')}
-                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs text-white transition-all"
+                        className="flex items-center gap-2 px-4 py-2 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 bg-black/10 border dark:border-white/10 border-black/10 rounded-xl text-xs dark:text-white text-gray-900 transition-all"
                       >
                          <CreditCard className="w-3.5 h-3.5 text-emerald-400" /> Force Plan Change
                       </button>
@@ -233,9 +233,9 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
               {activeTab === 'tasks' && (
                 <div className="space-y-3">
                   {detail?.recent_tasks?.map((task: any) => (
-                    <div key={task.id} className="p-3 bg-white/5 border border-white/5 rounded-xl">
+                    <div key={task.id} className="p-3 dark:bg-white/5 bg-black/5 border dark:border-white/5 border-black/5 rounded-xl">
                       <div className="flex justify-between items-start mb-1">
-                        <span className="text-xs font-medium text-white capitalize">{task.agent_type?.replace('_', ' ')}</span>
+                        <span className="text-xs font-medium dark:text-white text-gray-900 capitalize">{task.agent_type?.replace('_', ' ')}</span>
                         <span className={`text-[10px] badge ${task.status === 'completed' ? 'badge-success' : 'badge-danger'}`}>{task.status}</span>
                       </div>
                       <div className="text-[10px] text-dark-500 mb-2">{task.created_at ? new Date(task.created_at).toLocaleString() : 'n/a'}</div>
@@ -252,9 +252,9 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
               {activeTab === 'payments' && (
                 <div className="space-y-3">
                    {detail?.payment_history?.map((pay: any) => (
-                    <div key={pay.id} className="flex items-center justify-between p-3 bg-white/5 border border-white/5 rounded-xl">
+                    <div key={pay.id} className="flex items-center justify-between p-3 dark:bg-white/5 bg-black/5 border dark:border-white/5 border-black/5 rounded-xl">
                       <div>
-                        <div className="text-xs font-bold text-white">৳{pay.amount.toLocaleString()}</div>
+                        <div className="text-xs font-bold dark:text-white text-gray-900">৳{pay.amount.toLocaleString()}</div>
                         <div className="text-[10px] text-dark-500">{new Date(pay.created_at).toLocaleDateString()}</div>
                       </div>
                       <div className="text-right">
@@ -281,7 +281,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                         <div key={conv.id} className="glass-card p-4 hover:border-primary/30 transition-all cursor-default group">
                           <div className="flex justify-between items-start mb-3">
                             <div>
-                                <h5 className="text-sm font-semibold text-white group-hover:text-primary transition-colors">{conv.customer_name || 'Guest User'}</h5>
+                                <h5 className="text-sm font-semibold dark:text-white text-gray-900 group-hover:text-primary transition-colors">{conv.customer_name || 'Guest User'}</h5>
                                 <p className="text-[10px] text-dark-500">PSID: {conv.customer_psid}</p>
                             </div>
                             <div className="flex flex-col items-end gap-1.5">
@@ -294,7 +294,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                             </div>
                           </div>
                           
-                          <div className="bg-black/40 rounded-lg p-2.5 mb-2 border border-white/5">
+                          <div className="bg-black/40 rounded-lg p-2.5 mb-2 border dark:border-white/5 border-black/5">
                             <p className="text-xs text-dark-300 italic line-clamp-2">
                                 &ldquo;{conv.last_message_preview || 'No messages yet'}&rdquo;
                             </p>
@@ -319,7 +319,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                   ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                       <MessageSquare className="w-12 h-12 text-dark-600 mb-4 opacity-20" />
-                      <p className="text-white font-medium mb-1">No Conversations Found</p>
+                      <p className="dark:text-white text-gray-900 font-medium mb-1">No Conversations Found</p>
                       <p className="text-xs text-dark-500 px-8">There are no interaction logs available for this user&apos;s shop at the moment.</p>
                     </div>
                   )}
@@ -328,7 +328,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
             </div>
 
             {/* Footer Actions */}
-            <div className="p-4 border-t border-white/10 bg-black/20 flex gap-3">
+            <div className="p-4 border-t dark:border-white/10 border-black/10 bg-black/20 flex gap-3">
               <button className="flex-1 btn-primary py-2.5 text-sm flex items-center justify-center gap-2">
                  <MessageSquare className="w-4 h-4" /> Send Email
               </button>

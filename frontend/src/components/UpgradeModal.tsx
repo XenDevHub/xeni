@@ -95,7 +95,7 @@ export function UpgradeModalProvider({ children }: { children: React.ReactNode }
             >
               <button
                 onClick={hideUpgradeModal}
-                className="absolute top-4 right-4 p-1 rounded-lg hover:bg-white/10 transition-colors"
+                className="absolute top-4 right-4 p-1 rounded-lg hover:dark:bg-white/10 bg-black/10 transition-colors"
                 style={{ color: 'var(--text-muted)' }}
               >
                 <X className="w-5 h-5" />
@@ -103,7 +103,7 @@ export function UpgradeModalProvider({ children }: { children: React.ReactNode }
 
               <div className="text-center mb-6">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-primary to-accent flex items-center justify-center mx-auto mb-4">
-                  <Crown className="w-8 h-8 text-white" />
+                  <Crown className="w-8 h-8 dark:text-white text-gray-900" />
                 </div>
                 <h2 className="text-2xl font-heading font-bold" style={{ color: 'var(--text-primary)' }}>
                   Upgrade Required

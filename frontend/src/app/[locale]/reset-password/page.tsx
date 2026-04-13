@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative w-full max-w-md z-10">
-        <div className="glass-card p-8 border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="glass-card p-8 dark:border-white/10 border-black/10 shadow-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
           <div className="relative z-10">
@@ -61,7 +61,7 @@ export default function ResetPasswordPage() {
               <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-glow-sm">
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
-              <h1 className="text-3xl font-heading font-black text-white tracking-tight">Reset Password</h1>
+              <h1 className="text-3xl font-heading font-black dark:text-white text-gray-900 tracking-tight">Reset Password</h1>
               <p className="text-dark-400 text-sm mt-2 font-medium">Enter the code from your email and set a new password.</p>
               {email && <div className="mt-4 badge bg-primary/10 text-primary-300 border-primary/20 font-bold px-4">{email}</div>}
             </div>
@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
                 <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">Verification Code</label>
                 <div className="relative group">
                   <Key className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
-                  <input type="text" value={code} onChange={e => setCode(e.target.value)} placeholder="000 000" className="input-field pl-11 text-center tracking-[0.5em] font-black bg-white/5 border-white/10 focus:bg-white/10" maxLength={6} required />
+                  <input type="text" value={code} onChange={e => setCode(e.target.value)} placeholder="000 000" className="input-field pl-11 text-center tracking-[0.5em] font-black dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" maxLength={6} required />
                 </div>
               </div>
 
@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
                 <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">{t('settings.new_password')}</label>
                 <div className="relative group">
                   <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
-                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" className="input-field pl-11 bg-white/5 border-white/10 focus:bg-white/10" required minLength={8} />
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" required minLength={8} />
                 </div>
               </div>
 
@@ -87,7 +87,7 @@ export default function ResetPasswordPage() {
                 <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">Confirm Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
-                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" className="input-field pl-11 bg-white/5 border-white/10 focus:bg-white/10" required minLength={8} />
+                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" required minLength={8} />
                 </div>
               </div>
 

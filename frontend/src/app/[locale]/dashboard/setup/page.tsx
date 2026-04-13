@@ -96,10 +96,10 @@ export default function SetupGuidePage() {
             >
               <button
                 onClick={() => setOpenSection(isOpen ? null : section.id)}
-                className="w-full flex items-center gap-4 p-5 text-left hover:bg-white/5 transition-colors"
+                className="w-full flex items-center gap-4 p-5 text-left hover:dark:bg-white/5 bg-black/5 transition-colors"
               >
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${section.color} flex items-center justify-center shrink-0`}>
-                  <Icon className="w-6 h-6 text-white" />
+                  <Icon className="w-6 h-6 dark:text-white text-gray-900" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-heading font-semibold text-lg" style={{ color: 'var(--text-primary)' }}>

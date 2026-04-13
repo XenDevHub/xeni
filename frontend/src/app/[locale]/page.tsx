@@ -119,8 +119,8 @@ function AgentCard({ agent, index, t, isExpanded, onToggle }: { agent: any; inde
     >
       <div className="flex items-start justify-between mb-8">
         <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${agent.color} flex items-center justify-center shadow-2xl relative overflow-hidden group-hover:scale-110 transition-transform duration-500`}>
-          <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-          <Icon className="w-8 h-8 text-white drop-shadow-md" />
+          <div className="absolute inset-0 dark:bg-white/20 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          <Icon className="w-8 h-8 dark:text-white text-gray-900 drop-shadow-md" />
         </div>
         <div className="flex flex-col items-end gap-2">
             <span className="badge bg-white/5 text-dark-300 text-[10px] font-bold uppercase tracking-widest border border-white/10">{agent.tier}</span>
@@ -136,7 +136,7 @@ function AgentCard({ agent, index, t, isExpanded, onToggle }: { agent: any; inde
       </p>
 
       <div className="mt-auto">
-        <div className="flex items-center justify-between pt-6 border-t border-white/5 transition-colors duration-300">
+        <div className="flex items-center justify-between pt-6 border-t dark:border-white/5 border-black/5 transition-colors duration-300">
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${agent.color} animate-pulse`} />
             <span className="text-xs font-bold text-dark-500 tracking-widest uppercase">{isExpanded ? 'Hide Details' : 'View Capabilities'}</span>
@@ -205,7 +205,7 @@ export default function LandingPage() {
 
   // ── SKELETON COMPONENT ──
   const Skeleton = ({ className }: { className?: string }) => (
-    <div className={`animate-pulse bg-white/5 rounded-lg ${className}`} />
+    <div className={`animate-pulse dark:bg-white/5 bg-black/5 rounded-lg ${className}`} />
   );
 
   const bannerEn = bannerData?.en;
@@ -228,7 +228,7 @@ export default function LandingPage() {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="w-full relative z-[60] py-2 text-center text-xs md:text-sm font-bold text-white shadow-lg overflow-hidden animate-pulse-glow"
+            className="w-full relative z-[60] py-2 text-center text-xs md:text-sm font-bold dark:text-white text-gray-900 shadow-lg overflow-hidden animate-pulse-glow"
             style={{ backgroundColor: bannerData?.en?.color || '#7C3AED' }}
           >
             {banner?.link ? (
@@ -327,7 +327,7 @@ export default function LandingPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="inline-flex items-center gap-2 bg-white/5 border border-white/10 backdrop-blur-md rounded-full px-5 py-2 mb-8 shadow-sm"
+                    className="inline-flex items-center gap-2 dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10 backdrop-blur-md rounded-full px-5 py-2 mb-8 shadow-sm"
                   >
                     <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
                     <span className="text-xs font-bold text-dark-300 uppercase tracking-[0.2em]">{heroEn?.badge || 'Next-Gen AI Platform'}</span>
@@ -340,7 +340,7 @@ export default function LandingPage() {
                       return parts.map((part: string, i: number) => (
                         <span 
                           key={i} 
-                          className={`block ${i === 0 ? 'text-5xl sm:text-6xl lg:text-8xl text-white' : 'text-3xl sm:text-4xl lg:text-6xl gradient-text'} drop-shadow-2xl mb-2`}
+                          className={`block ${i === 0 ? 'text-5xl sm:text-6xl lg:text-8xl dark:text-white text-gray-900' : 'text-3xl sm:text-4xl lg:text-6xl gradient-text'} drop-shadow-2xl mb-2`}
                         >
                           {part.trim()}
                         </span>
@@ -400,7 +400,7 @@ export default function LandingPage() {
                     repeat: Infinity, 
                     ease: "easeInOut" 
                   }}
-                  className="relative z-10 glass-bento p-2 border-white/20 shadow-3xl"
+                  className="relative z-10 glass-bento p-2 dark:border-white/20 border-black/20 shadow-3xl"
                 >
                   <Image 
                     src="/hero-mockup.png" 
@@ -422,7 +422,7 @@ export default function LandingPage() {
                     </div>
                     <div>
                         <div className="text-[10px] uppercase font-bold text-dark-500">Sales Growth</div>
-                        <div className="text-sm font-black text-white">+142%</div>
+                        <div className="text-sm font-black dark:text-white text-gray-900">+142%</div>
                     </div>
                   </motion.div>
 
@@ -436,7 +436,7 @@ export default function LandingPage() {
                     </div>
                     <div>
                         <div className="text-[10px] uppercase font-bold text-dark-500">AI Response</div>
-                        <div className="text-sm font-black text-white">Live Automating</div>
+                        <div className="text-sm font-black dark:text-white text-gray-900">Live Automating</div>
                     </div>
                   </motion.div>
                 </motion.div>
@@ -449,7 +449,7 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="flex flex-wrap justify-center gap-8 md:gap-20 mt-32 pt-16 border-t border-white/5 relative overflow-hidden group"
+            className="flex flex-wrap justify-center gap-8 md:gap-20 mt-32 pt-16 border-t dark:border-white/5 border-black/5 relative overflow-hidden group"
           >
             <div className="absolute inset-0 bg-white/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
             {[{ n: '5', l: 'Smart Agents' }, { n: '24/7', l: 'Messenger Auto-Reply' }, { n: '99.9%', l: 'Uptime Guarantee' }, { n: 'বাংলা', l: '& English Support' }].map((s, i) => (
@@ -658,7 +658,7 @@ export default function LandingPage() {
             {isReviewsLoading ? (
               [1, 2, 3].map((i) => (
                 <div key={i} className="glass-bento p-8 animate-pulse">
-                  <div className="w-10 h-10 bg-white/5 rounded-2xl mb-6" />
+                  <div className="w-10 h-10 dark:bg-white/5 bg-black/5 rounded-2xl mb-6" />
                   <Skeleton className="w-full h-4 mb-3" />
                   <Skeleton className="w-[80%] h-4 mb-8" />
                   <div className="flex items-center gap-4">
@@ -695,7 +695,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex gap-1 mt-6">
                     {[...Array(5)].map((_, j) => (
-                      <Star key={j} className={`w-4 h-4 ${j < (testi.star_rating || 5) ? 'text-amber-400 fill-amber-400 shadow-glow' : 'text-white/5'}`} />
+                      <Star key={j} className={`w-4 h-4 ${j < (testi.star_rating || 5) ? 'text-amber-400 fill-amber-400 shadow-glow' : 'dark:text-white text-gray-900/5'}`} />
                     ))}
                   </div>
                 </motion.div>
@@ -721,7 +721,7 @@ export default function LandingPage() {
           <div className="space-y-4">
             {isFaqLoading ? (
               [1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="glass-bento p-6 border border-white/5 animate-pulse">
+                <div key={i} className="glass-bento p-6 border dark:border-white/5 border-black/5 animate-pulse">
                   <Skeleton className="w-full h-6" />
                 </div>
               ))

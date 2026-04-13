@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
       </div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative w-full max-w-md z-10">
-        <div className="glass-card p-8 border-white/10 shadow-2xl relative overflow-hidden">
+        <div className="glass-card p-8 dark:border-white/10 border-black/10 shadow-2xl relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
           
           <div className="relative z-10">
@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
               <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center mx-auto mb-4 border border-primary/20 shadow-glow-sm">
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
-              <h1 className="text-3xl font-heading font-black text-white tracking-tight">{t('auth.forgot_password')}</h1>
+              <h1 className="text-3xl font-heading font-black dark:text-white text-gray-900 tracking-tight">{t('auth.forgot_password')}</h1>
               <p className="text-dark-400 text-sm mt-2 font-medium">Enter your email to receive a reset code.</p>
             </div>
 
@@ -58,7 +58,7 @@ export default function ForgotPasswordPage() {
                   <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">{t('auth.email')}</label>
                   <div className="relative group">
                     <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" className="input-field pl-11 bg-white/5 border-white/10 focus:bg-white/10" required />
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" required />
                   </div>
                 </div>
                 <button type="submit" disabled={loading} className="btn-primary w-full py-4 text-sm uppercase tracking-widest font-black shadow-glow">
@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
                 <div className="w-20 h-20 rounded-2xl bg-success/15 flex items-center justify-center mx-auto mb-6 border border-success/20 shadow-glow-sm glow-emerald">
                   <Mail className="w-8 h-8 text-success" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">Check your email!</h3>
+                <h3 className="text-xl font-bold dark:text-white text-gray-900 mb-2">Check your email!</h3>
                 <p className="text-dark-400 text-sm mb-8 leading-relaxed">
                   We sent a 6-digit code to <br/>
                   <span className="text-primary font-bold">{email}</span>
