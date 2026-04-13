@@ -37,7 +37,7 @@ export default function TermsOfServicePage() {
       </div>
 
       <div className="relative max-w-4xl mx-auto px-6 py-20">
-        <Link href="/" className="inline-flex items-center gap-2 text-dark-500 hover:dark:text-white text-gray-900 transition-colors mb-12 group">
+        <Link href="/" className="inline-flex items-center gap-2 text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors mb-12 group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Landing
         </Link>
         
@@ -76,7 +76,7 @@ export default function TermsOfServicePage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="glass-card p-8 dark:border-white/5 border-black/5 relative overflow-hidden group hover:dark:border-white/10 border-black/10 transition-colors"
+              className="glass-card p-8 dark:border-white/5 border-black/5 relative overflow-hidden group hover:dark:border-white/10 hover:border-black/10 transition-colors"
             >
               <div className="flex items-start gap-4">
                 <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center text-accent flex-shrink-0 group-hover:scale-110 transition-transform">
@@ -93,7 +93,7 @@ export default function TermsOfServicePage() {
           ))}
         </div>
 
-        <footer className="mt-20 pt-12 border-t dark:border-white/10 border-black/10 text-center text-dark-500 text-sm">
+        <footer className="mt-20 pt-12 border-t dark:border-white/10 border-black/10 text-center text-slate-600 dark:text-dark-500 text-sm">
           <p>© {new Date().getFullYear()} Xentro Infotech. All rights reserved.</p>
           <p className="mt-2 text-dark-600">Headquarters: Dhaka, Bangladesh</p>
         </footer>

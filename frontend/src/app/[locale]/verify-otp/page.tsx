@@ -113,7 +113,7 @@ export default function VerifyOTPPage() {
                   value={digit}
                   onChange={e => handleChange(i, e.target.value.replace(/\D/, ''))}
                   onKeyDown={e => handleKeyDown(i, e)}
-                  className="w-12 h-14 text-center text-2xl font-mono font-black glass-card dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-glow-sm"
+                  className="w-12 h-14 text-center text-2xl font-mono font-black glass-card dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all shadow-glow-sm"
                   autoFocus={i === 0}
                 />
               ))}
@@ -128,11 +128,11 @@ export default function VerifyOTPPage() {
             </button>
 
             <div className="space-y-4">
-              <p className="text-dark-500 text-sm font-medium">
+              <p className="text-slate-600 dark:text-dark-500 text-sm font-medium">
                 Didn&apos;t receive the code?{' '}
                 <button onClick={handleResend} className="text-primary hover:text-primary-400 font-bold transition-colors">Resend</button>
               </p>
-              <Link href="/login" className="text-dark-500 hover:dark:text-white text-gray-900 transition-colors text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+              <Link href="/login" className="text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2">
                 Back to Login
               </Link>
             </div>

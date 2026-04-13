@@ -334,7 +334,7 @@ export default function ProductsPage() {
                 <tr><td colSpan={5} className="text-center py-12" style={{ color: 'var(--text-muted)' }}>No products yet. Add your first product!</td></tr>
               ) : (
                 products.map((p, i) => (
-                  <motion.tr key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="border-b last:border-0 hover:dark:bg-white/5 bg-black/5 transition-colors" style={{ borderColor: 'var(--border-color)' }}>
+                  <motion.tr key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }} className="border-b last:border-0 hover:dark:bg-white/5 hover:bg-black/5 transition-colors" style={{ borderColor: 'var(--border-color)' }}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         {p.images && p.images.length > 0 ? (
@@ -372,7 +372,7 @@ export default function ProductsPage() {
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => openFBModal(p)} className="p-2 rounded-lg hover:bg-blue-500/10 transition-colors text-blue-400/60 hover:text-blue-400" title="Generate FB Post"><Facebook className="w-4 h-4" /></button>
-                        <button onClick={() => openEdit(p)} className="p-2 rounded-lg hover:dark:bg-white/10 bg-black/10 transition-colors"><Edit className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /></button>
+                        <button onClick={() => openEdit(p)} className="p-2 rounded-lg hover:dark:bg-white/10 hover:bg-black/10 transition-colors"><Edit className="w-4 h-4" style={{ color: 'var(--text-muted)' }} /></button>
                         <button onClick={() => handleDelete(p.id)} className="p-2 rounded-lg hover:bg-danger/10 transition-colors text-danger/60 hover:text-danger"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
@@ -428,7 +428,7 @@ export default function ProductsPage() {
                   
                   <div className="space-y-3 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
                     {form.variants.map((v, idx) => (
-                      <div key={idx} className="grid grid-cols-12 gap-2 items-center bg-black/40 p-2.5 rounded-lg border dark:border-white/10 border-black/10 group">
+                      <div key={idx} className="grid grid-cols-12 gap-2 items-center dark:bg-black/40 bg-[rgba(0,0,0,0.02)] p-2.5 rounded-lg border dark:border-white/10 border-black/10 group">
                         <div className="col-span-3">
                           <label className="text-[9px] uppercase font-bold text-muted block mb-1">Color</label>
                           <input className="w-full dark:bg-white/5 bg-black/5 text-xs outline-none border dark:border-white/10 border-black/10 rounded px-1.5 py-1 focus:border-primary/50 transition-colors" placeholder="e.g. Red" value={v.color} onChange={e => {
@@ -519,7 +519,7 @@ export default function ProductsPage() {
                     <h2 className="text-xl font-heading font-bold" style={{ color: 'var(--text-primary)' }}>Generate AI Post</h2>
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Creating a post for <span className="font-medium text-primary">{fbProduct.name}</span></p>
                   </div>
-                  <button onClick={() => setShowFBModal(false)} className="p-2 hover:dark:bg-white/5 bg-black/5 rounded-full transition-colors"><X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} /></button>
+                  <button onClick={() => setShowFBModal(false)} className="p-2 hover:dark:bg-white/5 hover:bg-black/5 rounded-full transition-colors"><X className="w-5 h-5" style={{ color: 'var(--text-muted)' }} /></button>
                 </div>
 
                 {/* Page Selection */}
@@ -569,7 +569,7 @@ export default function ProductsPage() {
                     <button 
                       onClick={() => generateFBPost(fbProduct, refinement)} 
                       disabled={generatingPost || !refinement.trim()}
-                      className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 bg-black/10 text-primary transition-colors disabled:opacity-50"
+                      className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10 text-primary transition-colors disabled:opacity-50"
                     >
                       <RefreshCw className={`w-5 h-5 ${generatingPost ? 'animate-spin' : ''}`} />
                     </button>
@@ -578,7 +578,7 @@ export default function ProductsPage() {
 
                 {/* Footer Buttons */}
                 <div className="flex gap-3 pt-2">
-                  <button onClick={() => setShowFBModal(false)} className="btn-secondary flex-1 py-3 border-0 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 bg-black/10">Discard</button>
+                  <button onClick={() => setShowFBModal(false)} className="btn-secondary flex-1 py-3 border-0 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10">Discard</button>
                   <button 
                     onClick={publishToFB} 
                     disabled={publishing || !generatedPost || !selectedPage}

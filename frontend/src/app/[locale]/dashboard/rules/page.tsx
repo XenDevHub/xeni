@@ -156,13 +156,13 @@ export default function ShopRulesPage() {
           <div className="flex gap-4 border-b dark:border-white/10 border-black/10 mb-6">
             <button
               onClick={() => setActiveTab('shop')}
-              className={`pb-3 border-b-2 font-medium transition-colors ${activeTab === 'shop' ? 'border-primary text-primary' : 'border-transparent text-dark-400 hover:dark:text-white text-gray-900'}`}
+              className={`pb-3 border-b-2 font-medium transition-colors ${activeTab === 'shop' ? 'border-primary text-primary' : 'border-transparent text-dark-400 hover:dark:text-white hover:text-gray-900'}`}
             >
               Custom Rules
             </button>
             <button
               onClick={() => setActiveTab('global')}
-              className={`pb-3 border-b-2 font-medium transition-colors ${activeTab === 'global' ? 'border-amber-500 text-amber-500' : 'border-transparent text-dark-400 hover:dark:text-white text-gray-900'}`}
+              className={`pb-3 border-b-2 font-medium transition-colors ${activeTab === 'global' ? 'border-amber-500 text-amber-500' : 'border-transparent text-dark-400 hover:dark:text-white hover:text-gray-900'}`}
             >
               Platform Master Rules
             </button>
@@ -176,7 +176,7 @@ export default function ShopRulesPage() {
                   <Store className="w-5 h-5"/> Your Custom Rules
                 </h2>
                 <div className="bg-black/20 rounded-lg p-1.5 flex items-center w-full max-w-xs border dark:border-white/5 border-black/5">
-                  <Search className="w-4 h-4 text-dark-500 ml-2 mr-2" />
+                  <Search className="w-4 h-4 text-slate-600 dark:text-dark-500 ml-2 mr-2" />
                   <input 
                     type="text" 
                     placeholder="Search your rules..." 
@@ -203,10 +203,10 @@ export default function ShopRulesPage() {
                       </span>
                       
                       <div className="flex items-center gap-1">
-                        <button onClick={() => handleToggle(rule.id, rule.is_active)} className={`p-1.5 rounded-lg transition-colors ${rule.is_active ? 'text-green-400 hover:dark:bg-white/10 bg-black/10' : 'text-dark-500 hover:dark:text-white text-gray-900'}`} title="Toggle Active">
+                        <button onClick={() => handleToggle(rule.id, rule.is_active)} className={`p-1.5 rounded-lg transition-colors ${rule.is_active ? 'text-green-400 hover:dark:bg-white/10 hover:bg-black/10' : 'text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900'}`} title="Toggle Active">
                          <Power className="w-4 h-4" />
                         </button>
-                        <button onClick={() => handleOpenModal(rule)} className="p-1.5 rounded-lg hover:dark:bg-white/10 bg-black/10 text-cyan-400 transition-colors" title="Edit">
+                        <button onClick={() => handleOpenModal(rule)} className="p-1.5 rounded-lg hover:dark:bg-white/10 hover:bg-black/10 text-cyan-400 transition-colors" title="Edit">
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button onClick={() => handleDelete(rule.id)} className="p-1.5 rounded-lg hover:bg-danger/20 text-danger transition-colors" title="Delete">
@@ -223,8 +223,8 @@ export default function ShopRulesPage() {
                   <div className="col-span-full py-12 text-center border border-dashed dark:border-white/10 border-black/10 rounded-2xl bg-black/10">
                     <BrainCircuit className="w-8 h-8 text-dark-600 mx-auto mb-3" />
                     <p className="text-dark-400 font-medium">You haven&apos;t defined any custom rules yet.</p>
-                    <p className="text-sm text-dark-500 mt-1">Add rules to teach the AI about your shop&apos;s return policy, delivery fees, and identity.</p>
-                    <button onClick={() => handleOpenModal()} className="mt-4 px-4 py-2 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 bg-black/10 rounded-lg text-sm dark:text-white text-gray-900 transition-colors">
+                    <p className="text-sm text-slate-600 dark:text-dark-500 mt-1">Add rules to teach the AI about your shop&apos;s return policy, delivery fees, and identity.</p>
+                    <button onClick={() => handleOpenModal()} className="mt-4 px-4 py-2 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10 rounded-lg text-sm dark:text-white text-gray-900 transition-colors">
                       Create First Rule
                     </button>
                   </div>
@@ -254,7 +254,7 @@ export default function ShopRulesPage() {
 
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {globalRules.map(rule => (
-                  <div key={rule.id} className="glass-card p-5 border border-amber-900/40 bg-black/40">
+                  <div key={rule.id} className="glass-card p-5 border border-amber-900/40 dark:bg-black/40 bg-[rgba(0,0,0,0.02)]">
                     <span className="px-2 py-1 rounded-md text-[10px] font-bold tracking-wider uppercase bg-amber-500/10 text-amber-500 mb-3 inline-block">
                       {rule.category.replace('_', ' ')}
                     </span>
@@ -274,7 +274,7 @@ export default function ShopRulesPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-dark-900 border dark:border-white/10 border-black/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-              <div className="p-5 border-b dark:border-white/10 border-black/10 bg-black/40">
+              <div className="p-5 border-b dark:border-white/10 border-black/10 dark:bg-black/40 bg-[rgba(0,0,0,0.02)]">
                 <h3 className="text-lg font-bold dark:text-white text-gray-900">{editingRule ? 'Edit Shop Rule' : 'New Shop Rule'}</h3>
               </div>
               <form onSubmit={handleSave} className="p-5 space-y-4">
@@ -299,7 +299,7 @@ export default function ShopRulesPage() {
                   <textarea className="input-field min-h-[120px] font-mono text-sm leading-relaxed" value={form.rule} onChange={e => setForm({...form, rule: e.target.value})} placeholder="e.g. 'Inside Dhaka delivery charge is 60 BDT. Outside Dhaka is 120 BDT.'" />
                 </div>
                 <div className="pt-2 flex justify-end gap-3">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-sm font-medium dark:text-white text-gray-900 hover:dark:bg-white/10 bg-black/10 transition-colors">Cancel</button>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-sm font-medium dark:text-white text-gray-900 hover:dark:bg-white/10 hover:bg-black/10 transition-colors">Cancel</button>
                   <button type="submit" disabled={saving} className="btn-primary py-2 px-6 text-sm flex items-center gap-2">
                     {saving ? 'Saving...' : <><Sparkles className="w-4 h-4"/> Save Rule</>}
                   </button>

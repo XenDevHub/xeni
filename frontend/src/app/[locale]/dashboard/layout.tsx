@@ -52,10 +52,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-gray-950 via-gray-900 to-violet-950">
+    <div className="flex h-screen overflow-hidden bg-[var(--bg-primary)]">
       {/* Sidebar */}
       <aside
-        className={`${collapsed ? 'w-[68px]' : 'w-[240px]'} flex flex-col border-r dark:border-white/10 border-black/10 bg-black/40 backdrop-blur-xl transition-all duration-300 shrink-0`}
+        className={`${collapsed ? 'w-[68px]' : 'w-[240px]'} flex flex-col border-r dark:border-white/10 border-black/10 dark:bg-black/40 bg-[rgba(0,0,0,0.02)] backdrop-blur-xl transition-all duration-300 shrink-0`}
       >
         {/* Logo */}
         <div className="flex items-center gap-2 px-4 py-5 border-b dark:border-white/10 border-black/10">
@@ -74,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
                   isActive
                     ? 'bg-primary/20 text-white shadow-glow border border-primary/30'
-                    : 'text-dark-500 hover:dark:text-white text-gray-900 hover:dark:bg-white/5 bg-black/5'
+                    : 'text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 hover:dark:bg-white/5 hover:bg-black/5'
                 }`}
                 title={collapsed ? link.label : undefined}
               >
@@ -88,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Bottom Section */}
         <div className="border-t dark:border-white/10 border-black/10 px-2 py-3 space-y-1">
           {user?.role === 'super_admin' && (
-            <Link href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-dark-500 hover:dark:text-white text-gray-900 hover:dark:bg-white/5 bg-black/5 transition-all" title={collapsed ? 'Admin' : undefined}>
+            <Link href="/admin" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 hover:dark:bg-white/5 hover:bg-black/5 transition-all" title={collapsed ? 'Admin' : undefined}>
               <Shield className="w-5 h-5 shrink-0" />
               {!collapsed && <span>Admin</span>}
             </Link>
@@ -100,7 +100,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={link.href} 
                 href={link.href} 
                 className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all ${
-                  isActive ? 'bg-primary/20 text-white shadow-glow' : 'text-dark-500 hover:text-white hover:bg-white/5'
+                  isActive ? 'bg-primary/20 text-white shadow-glow' : 'text-slate-600 dark:text-dark-500 hover:text-white hover:bg-white/5'
                 }`} 
                 title={collapsed ? link.label : undefined}
               >
@@ -113,7 +113,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Collapse Toggle */}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm w-full text-dark-500 hover:dark:text-white text-gray-900 hover:dark:bg-white/5 bg-black/5 transition-all"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm w-full text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 hover:dark:bg-white/5 hover:bg-black/5 transition-all"
           >
             {collapsed ? <ChevronRight className="w-5 h-5 shrink-0" /> : <ChevronLeft className="w-5 h-5 shrink-0" />}
             {!collapsed && <span>Collapse</span>}
@@ -133,10 +133,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
           {!collapsed && (
             <div className="flex items-center gap-1">
-              <Link href={pathname} locale={locale === 'en' ? 'bn' : 'en'} title="Switch Language" className="p-1.5 rounded-lg hover:dark:bg-white/10 bg-black/10 transition-all text-xs font-bold text-primary flex items-center justify-center min-w-[28px]">
+              <Link href={pathname} locale={locale === 'en' ? 'bn' : 'en'} title="Switch Language" className="p-1.5 rounded-lg hover:dark:bg-white/10 hover:bg-black/10 transition-all text-xs font-bold text-primary flex items-center justify-center min-w-[28px]">
                 {locale === 'en' ? 'বাং' : 'EN'}
               </Link>
-              <button onClick={toggleTheme} title="Toggle Theme" className="p-1.5 rounded-lg hover:dark:bg-white/10 bg-black/10 transition-all text-dark-500 hover:dark:text-white text-gray-900">
+              <button onClick={toggleTheme} title="Toggle Theme" className="p-1.5 rounded-lg hover:dark:bg-white/10 hover:bg-black/10 transition-all text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900">
                 {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-cyan-400" />}
               </button>
               <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-danger/20 transition-all text-danger/70 hover:text-danger">

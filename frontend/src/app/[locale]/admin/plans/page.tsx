@@ -22,7 +22,7 @@ export default function PlanManagerPage() {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">Plan Manager</h1>
-          <p className="text-dark-500">Edit billing tiers and their associated limits directly. Sync to SSLCommerz.</p>
+          <p className="text-slate-600 dark:text-dark-500">Edit billing tiers and their associated limits directly. Sync to SSLCommerz.</p>
         </div>
         <button onClick={() => toast.success('Syncing with SSLCommerz...')} className="btn-accent py-2.5 flex items-center gap-2">
           <Sparkles className="w-4 h-4" /> Sync SSLCommerz
@@ -40,27 +40,27 @@ export default function PlanManagerPage() {
               />
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" defaultChecked={plan.active} className="rounded dark:border-white/10 border-black/10 bg-dark w-4 h-4 text-primary focus:ring-primary focus:ring-offset-dark" />
-                <span className="text-xs text-dark-500">Active</span>
+                <span className="text-xs text-slate-600 dark:text-dark-500">Active</span>
               </label>
             </div>
             
             <div className="mb-6 flex items-baseline">
-              <span className="text-2xl text-dark-500 mr-1">৳</span>
+              <span className="text-2xl text-slate-600 dark:text-dark-500 mr-1">৳</span>
               <input type="number" defaultValue={plan.price} className="bg-transparent text-4xl font-bold dark:text-white text-gray-900 w-28 focus:outline-none focus:border-b focus:border-primary px-1 font-mono" />
-              <span className="text-dark-500">/mo</span>
+              <span className="text-slate-600 dark:text-dark-500">/mo</span>
             </div>
 
             <div className="space-y-4 mb-8">
               <div className="flex items-center justify-between">
-                <span className="text-sm text-dark-500">Max Orders</span>
+                <span className="text-sm text-slate-600 dark:text-dark-500">Max Orders</span>
                 <input type="text" defaultValue={plan.orders} className="bg-dark/50 border dark:border-white/10 border-black/10 rounded-lg px-2 py-1 text-sm dark:text-white text-gray-900 w-20 text-right focus:outline-none focus:border-primary" />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-dark-500">FB Pages</span>
+                <span className="text-sm text-slate-600 dark:text-dark-500">FB Pages</span>
                 <input type="number" defaultValue={plan.pages} className="bg-dark/50 border dark:border-white/10 border-black/10 rounded-lg px-2 py-1 text-sm dark:text-white text-gray-900 w-20 text-right focus:outline-none focus:border-primary" />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-dark-500">Storage (GB)</span>
+                <span className="text-sm text-slate-600 dark:text-dark-500">Storage (GB)</span>
                 <input type="number" defaultValue={plan.storage} className="bg-dark/50 border dark:border-white/10 border-black/10 rounded-lg px-2 py-1 text-sm dark:text-white text-gray-900 w-20 text-right focus:outline-none focus:border-primary" />
               </div>
             </div>
@@ -80,7 +80,7 @@ export default function PlanManagerPage() {
           </div>
           <div>
             <h4 className="text-lg font-bold dark:text-white text-gray-900 mb-1">Danger Zone</h4>
-            <p className="text-sm text-dark-500 mb-4">Actions here are irreversible and affect active users.</p>
+            <p className="text-sm text-slate-600 dark:text-dark-500 mb-4">Actions here are irreversible and affect active users.</p>
             <button className="btn-secondary py-2 text-danger border-danger/30 hover:border-danger hover:bg-danger/10 text-sm">Force downgrade obsolete plan users</button>
           </div>
         </div>

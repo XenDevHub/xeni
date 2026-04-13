@@ -95,7 +95,7 @@ export function UpgradeModalProvider({ children }: { children: React.ReactNode }
             >
               <button
                 onClick={hideUpgradeModal}
-                className="absolute top-4 right-4 p-1 rounded-lg hover:dark:bg-white/10 bg-black/10 transition-colors"
+                className="absolute top-4 right-4 p-1 rounded-lg hover:dark:bg-white/10 hover:bg-black/10 transition-colors"
                 style={{ color: 'var(--text-muted)' }}
               >
                 <X className="w-5 h-5" />

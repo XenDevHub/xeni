@@ -98,10 +98,10 @@ export function ActivityFeed() {
           <Activity className="w-5 h-5 text-primary" /> Live Activity
         </h3>
         <div className="flex items-center gap-3">
-          <button onClick={fetchActivity} className="text-dark-500 hover:dark:text-white text-gray-900 transition-colors">
+          <button onClick={fetchActivity} className="text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors">
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
-          <span className="text-xs text-dark-500">WS {isConnected ? 'live' : 'polling'}</span>
+          <span className="text-xs text-slate-600 dark:text-dark-500">WS {isConnected ? 'live' : 'polling'}</span>
           <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-success animate-pulse' : 'bg-amber-500 animate-pulse'}`} />
         </div>
       </div>
@@ -110,7 +110,7 @@ export function ActivityFeed() {
         {loading ? (
           [1,2,3,4].map(i => <div key={i} className="skeleton h-10 w-full rounded-xl" />)
         ) : feed.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-dark-500 text-sm">
+          <div className="h-full flex items-center justify-center text-slate-600 dark:text-dark-500 text-sm">
             No recent activity found.
           </div>
         ) : (
@@ -127,10 +127,10 @@ export function ActivityFeed() {
                   <div className="absolute top-4 left-[3px] w-[2px] h-[30px] dark:bg-white/5 bg-black/5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-dark-300 group-hover:dark:text-white text-gray-900 transition-colors">
+                  <p className="text-sm text-dark-300 group-hover:dark:text-white hover:text-gray-900 transition-colors">
                     {item.message}
                   </p>
-                  <p className="text-xs text-dark-500 mt-1">
+                  <p className="text-xs text-slate-600 dark:text-dark-500 mt-1">
                     {new Date(item.timestamp).toLocaleTimeString()}
                   </p>
                 </div>

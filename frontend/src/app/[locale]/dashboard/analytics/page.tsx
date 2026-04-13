@@ -306,7 +306,7 @@ export default function AnalyticsPage() {
                       />
                    </div>
                    <span className="text-lg font-black dark:text-white text-gray-900">{s.value}%</span>
-                   <span className="text-[10px] font-bold text-dark-500 uppercase tracking-widest">{s.label}</span>
+                   <span className="text-[10px] font-bold text-slate-600 dark:text-dark-500 uppercase tracking-widest">{s.label}</span>
                 </div>
               ))}
            </div>
@@ -349,7 +349,7 @@ export default function AnalyticsPage() {
         </h3>
         <div className="space-y-3">
           {recommendations.map((r, i) => (
-            <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 + i * 0.08 }} className="flex items-start gap-3 p-3 rounded-xl hover:dark:bg-white/5 bg-black/5 transition-colors">
+            <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 + i * 0.08 }} className="flex items-start gap-3 p-3 rounded-xl hover:dark:bg-white/5 hover:bg-black/5 transition-colors">
               <span className="text-xl shrink-0">{r.icon}</span>
               <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>{r.text}</p>
             </motion.div>

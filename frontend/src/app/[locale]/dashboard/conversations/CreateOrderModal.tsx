@@ -122,7 +122,7 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
             <h2 className="text-lg font-bold dark:text-white text-gray-900 flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-primary" /> Create Manual Order
             </h2>
-            <button onClick={onClose} className="p-2 text-dark-400 hover:dark:text-white text-gray-900 transition-colors dark:bg-white/5 bg-black/5 rounded-xl hover:dark:bg-white/10 bg-black/10">
+            <button onClick={onClose} className="p-2 text-dark-400 hover:dark:text-white hover:text-gray-900 transition-colors dark:bg-white/5 bg-black/5 rounded-xl hover:dark:bg-white/10 hover:bg-black/10">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -160,10 +160,10 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
                 </div>
                 
                 {loading ? (
-                  <p className="text-xs text-dark-500 italic">Loading catalog...</p>
+                  <p className="text-xs text-slate-600 dark:text-dark-500 italic">Loading catalog...</p>
                 ) : items.length === 0 ? (
                   <div className="p-6 text-center border border-dashed dark:border-white/10 border-black/10 rounded-xl dark:bg-white/5 bg-black/5">
-                    <ShoppingBag className="w-8 h-8 text-dark-500 mx-auto mb-2" />
+                    <ShoppingBag className="w-8 h-8 text-slate-600 dark:text-dark-500 mx-auto mb-2" />
                     <p className="text-xs text-dark-400">No items added to this order.</p>
                   </div>
                 ) : (
@@ -184,7 +184,7 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
                         <div className="w-full md:w-28 text-right px-2">
                           <span className="text-sm font-bold dark:text-white text-gray-900">৳{item.price * item.quantity}</span>
                         </div>
-                        <button type="button" onClick={() => removeItem(idx)} className="p-2 text-rose-500 bg-rose-500/10 rounded-lg hover:bg-rose-500 hover:dark:text-white text-gray-900 transition-all w-full md:w-auto flex justify-center">
+                        <button type="button" onClick={() => removeItem(idx)} className="p-2 text-rose-500 bg-rose-500/10 rounded-lg hover:bg-rose-500 hover:dark:text-white hover:text-gray-900 transition-all w-full md:w-auto flex justify-center">
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
@@ -226,7 +226,7 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
 
           {/* Footer */}
           <div className="px-6 py-4 border-t dark:border-white/5 border-black/5 flex justify-end gap-3 dark:bg-white/5 bg-black/5">
-            <button type="button" onClick={onClose} className="px-5 py-2 text-xs font-bold dark:text-white text-gray-900 hover:dark:bg-white/10 bg-black/10 rounded-xl transition-colors">
+            <button type="button" onClick={onClose} className="px-5 py-2 text-xs font-bold dark:text-white text-gray-900 hover:dark:bg-white/10 hover:bg-black/10 rounded-xl transition-colors">
               Cancel
             </button>
             <button form="orderForm" type="submit" disabled={submitting || items.length === 0} className="btn-primary px-6 py-2 text-xs font-bold shadow-lg shadow-primary/20 flex items-center gap-2">

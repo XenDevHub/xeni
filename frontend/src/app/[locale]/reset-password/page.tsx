@@ -70,24 +70,24 @@ export default function ResetPasswordPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">Verification Code</label>
                 <div className="relative group">
-                  <Key className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
-                  <input type="text" value={code} onChange={e => setCode(e.target.value)} placeholder="000 000" className="input-field pl-11 text-center tracking-[0.5em] font-black dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" maxLength={6} required />
+                  <Key className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-600 dark:text-dark-500 group-focus-within:text-primary transition-colors" />
+                  <input type="text" value={code} onChange={e => setCode(e.target.value)} placeholder="000 000" className="input-field pl-11 text-center tracking-[0.5em] font-black dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10" maxLength={6} required />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">{t('settings.new_password')}</label>
                 <div className="relative group">
-                  <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
-                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" required minLength={8} />
+                  <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-600 dark:text-dark-500 group-focus-within:text-primary transition-colors" />
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••••••" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10" required minLength={8} />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">Confirm Password</label>
                 <div className="relative group">
-                  <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
-                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" required minLength={8} />
+                  <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-600 dark:text-dark-500 group-focus-within:text-primary transition-colors" />
+                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} placeholder="••••••••" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10" required minLength={8} />
                 </div>
               </div>
 

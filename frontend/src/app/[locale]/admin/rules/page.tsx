@@ -132,7 +132,7 @@ export default function AdminRulesPage() {
             <Globe className="w-7 h-7 text-primary" />
             Global AI Rules Engine
           </h1>
-          <p className="text-dark-500 mt-1">Manage platform-wide behaviors and restrictions for the conversational AI.</p>
+          <p className="text-slate-600 dark:text-dark-500 mt-1">Manage platform-wide behaviors and restrictions for the conversational AI.</p>
         </div>
         <button onClick={() => handleOpenModal()} className="btn-primary flex items-center justify-center gap-2">
           <Plus className="w-4 h-4" /> Add Global Rule
@@ -140,7 +140,7 @@ export default function AdminRulesPage() {
       </div>
 
       <div className="glass-card mb-6 p-2 flex items-center w-full max-w-md">
-        <div className="p-3 text-dark-500"><Search className="w-5 h-5" /></div>
+        <div className="p-3 text-slate-600 dark:text-dark-500"><Search className="w-5 h-5" /></div>
         <input 
           type="text" 
           placeholder="Search rules..." 
@@ -171,10 +171,10 @@ export default function AdminRulesPage() {
                 </span>
                 
                 <div className="flex items-center gap-1">
-                  <button onClick={() => handleToggle(rule.id, rule.is_active)} className={`p-1.5 rounded-lg transition-colors ${rule.is_active ? 'text-green-400 hover:dark:bg-white/10 bg-black/10' : 'text-dark-500 hover:dark:text-white text-gray-900'}`} title="Toggle Active">
+                  <button onClick={() => handleToggle(rule.id, rule.is_active)} className={`p-1.5 rounded-lg transition-colors ${rule.is_active ? 'text-green-400 hover:dark:bg-white/10 hover:bg-black/10' : 'text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900'}`} title="Toggle Active">
                    <Power className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleOpenModal(rule)} className="p-1.5 rounded-lg hover:dark:bg-white/10 bg-black/10 text-cyan-400 transition-colors" title="Edit">
+                  <button onClick={() => handleOpenModal(rule)} className="p-1.5 rounded-lg hover:dark:bg-white/10 hover:bg-black/10 text-cyan-400 transition-colors" title="Edit">
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button onClick={() => handleDelete(rule.id)} className="p-1.5 rounded-lg hover:bg-danger/20 text-danger transition-colors" title="Delete">
@@ -186,14 +186,14 @@ export default function AdminRulesPage() {
               <h3 className="font-bold dark:text-white text-gray-900 text-lg mb-2 leading-tight pr-8">{rule.title}</h3>
               <p className="text-sm text-dark-400 line-clamp-3">{rule.rule}</p>
               
-              <div className="mt-4 pt-3 border-t dark:border-white/5 border-black/5 flex justify-between items-center text-xs text-dark-500">
+              <div className="mt-4 pt-3 border-t dark:border-white/5 border-black/5 flex justify-between items-center text-xs text-slate-600 dark:text-dark-500">
                 <span>Priority: {rule.priority}</span>
                 {rule.is_active && <span className="flex items-center gap-1 text-green-400"><Check className="w-3 h-3"/> Active</span>}
               </div>
             </motion.div>
           ))}
           {filteredRules.length === 0 && (
-            <div className="col-span-full py-12 text-center text-dark-500">
+            <div className="col-span-full py-12 text-center text-slate-600 dark:text-dark-500">
               No global rules found.
             </div>
           )}
@@ -206,7 +206,7 @@ export default function AdminRulesPage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="relative bg-dark-900 border dark:border-white/10 border-black/10 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
-              <div className="p-6 border-b dark:border-white/10 border-black/10 flex items-center justify-between bg-black/40">
+              <div className="p-6 border-b dark:border-white/10 border-black/10 flex items-center justify-between dark:bg-black/40 bg-[rgba(0,0,0,0.02)]">
                 <h3 className="text-xl font-bold dark:text-white text-gray-900">{editingRule ? 'Edit Global Rule' : 'New Global Rule'}</h3>
               </div>
               <form onSubmit={handleSave} className="p-6 space-y-4">
@@ -231,7 +231,7 @@ export default function AdminRulesPage() {
                   <textarea className="input-field min-h-[120px] font-mono text-sm" value={form.rule} onChange={e => setForm({...form, rule: e.target.value})} placeholder="Write the exact instruction for the AI..." />
                 </div>
                 <div className="pt-4 flex justify-end gap-3 border-t dark:border-white/10 border-black/10">
-                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-sm font-medium dark:text-white text-gray-900 hover:dark:bg-white/10 bg-black/10 transition-colors">Cancel</button>
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-sm font-medium dark:text-white text-gray-900 hover:dark:bg-white/10 hover:bg-black/10 transition-colors">Cancel</button>
                   <button type="submit" disabled={saving} className="btn-primary py-2 text-sm">{saving ? 'Saving...' : 'Save Rule'}</button>
                 </div>
               </form>

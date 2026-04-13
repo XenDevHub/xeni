@@ -104,7 +104,7 @@ export default function RegisterPage() {
 
             <div className="flex items-center gap-4 mb-8">
               <div className="flex-1 h-px dark:bg-white/10 bg-black/10" />
-              <span className="text-dark-500 text-xs font-bold uppercase tracking-widest">{t('auth.or')}</span>
+              <span className="text-slate-600 dark:text-dark-500 text-xs font-bold uppercase tracking-widest">{t('auth.or')}</span>
               <div className="flex-1 h-px dark:bg-white/10 bg-black/10" />
             </div>
 
@@ -112,24 +112,24 @@ export default function RegisterPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">{t('auth.full_name')}</label>
                 <div className="relative group">
-                  <User className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
-                  <input type="text" value={form.full_name} onChange={e => setForm({...form, full_name: e.target.value})} placeholder="John Doe" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" required autoComplete="name" />
+                  <User className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-600 dark:text-dark-500 group-focus-within:text-primary transition-colors" />
+                  <input type="text" value={form.full_name} onChange={e => setForm({...form, full_name: e.target.value})} placeholder="John Doe" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10" required autoComplete="name" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">{t('auth.email')}</label>
                 <div className="relative group">
-                  <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
-                  <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="email@example.com" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" required autoComplete="email" />
+                  <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-600 dark:text-dark-500 group-focus-within:text-primary transition-colors" />
+                  <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})} placeholder="email@example.com" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10" required autoComplete="email" />
                 </div>
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">{t('auth.password')}</label>
                 <div className="relative group">
-                  <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
-                  <input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="••••••••" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" required minLength={8} autoComplete="new-password" />
+                  <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-600 dark:text-dark-500 group-focus-within:text-primary transition-colors" />
+                  <input type="password" value={form.password} onChange={e => setForm({...form, password: e.target.value})} placeholder="••••••••" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10" required minLength={8} autoComplete="new-password" />
                 </div>
               </div>
 
@@ -139,7 +139,7 @@ export default function RegisterPage() {
             </form>
 
             <div className="mt-8 text-center">
-              <p className="text-dark-500 text-sm font-medium">
+              <p className="text-slate-600 dark:text-dark-500 text-sm font-medium">
                 {t('auth.has_account')}{' '}
                 <Link href="/login" className="text-primary font-bold hover:text-primary-400 transition-colors">{t('nav.login')}</Link>
               </p>

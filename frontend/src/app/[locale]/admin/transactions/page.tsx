@@ -32,7 +32,7 @@ export default function TransactionsPage() {
         return (
           <div>
             <div className="dark:text-white text-gray-900 font-medium">{user?.full_name || 'Anonymous'}</div>
-            <div className="text-xs text-dark-500">{user?.email}</div>
+            <div className="text-xs text-slate-600 dark:text-dark-500">{user?.email}</div>
           </div>
         );
       }
@@ -60,13 +60,13 @@ export default function TransactionsPage() {
     {
       header: 'Date',
       accessorKey: 'created_at',
-      cell: (info: any) => <span className="text-dark-500 text-xs">{new Date(info.getValue()).toLocaleString()}</span>
+      cell: (info: any) => <span className="text-slate-600 dark:text-dark-500 text-xs">{new Date(info.getValue()).toLocaleString()}</span>
     },
     {
       header: '',
       id: 'actions',
       cell: () => (
-        <button className="p-2 hover:dark:bg-white/10 bg-black/10 rounded-lg text-dark-500 hover:dark:text-white text-gray-900 transition-colors" title="View Details">
+        <button className="p-2 hover:dark:bg-white/10 hover:bg-black/10 rounded-lg text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors" title="View Details">
           <ExternalLink className="w-4 h-4" />
         </button>
       )
@@ -77,12 +77,12 @@ export default function TransactionsPage() {
     <div className="p-8 space-y-6 max-w-[1600px] mx-auto pb-24 h-full flex flex-col">
       <div>
         <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">Transactions</h1>
-        <p className="text-dark-500">Monitor platform subscription payments generated via SSLCommerz.</p>
+        <p className="text-slate-600 dark:text-dark-500">Monitor platform subscription payments generated via SSLCommerz.</p>
       </div>
 
       <div className="flex justify-between items-center bg-black/20 p-4 rounded-2xl border dark:border-white/5 border-black/5">
         <div className="relative w-96">
-          <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-dark-500" />
+          <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 dark:text-dark-500" />
           <input 
             type="text" 
             placeholder="Search TrxID or User..." 

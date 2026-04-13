@@ -42,7 +42,7 @@ export default function UserManagementPage() {
           </div>
           <div className="min-w-0">
             <div className="font-medium dark:text-white text-gray-900 truncate">{info.getValue() || 'No Name'}</div>
-            <div className="text-xs text-dark-500 truncate">{info.row.original.email}</div>
+            <div className="text-xs text-slate-600 dark:text-dark-500 truncate">{info.row.original.email}</div>
           </div>
         </div>
       )
@@ -92,7 +92,7 @@ export default function UserManagementPage() {
         <div className="flex justify-end">
           <button 
             onClick={() => setSelectedUserId(info.row.original.id)}
-            className="p-2 hover:dark:bg-white/10 bg-black/10 rounded-lg text-dark-500 hover:dark:text-white text-gray-900 transition-colors"
+            className="p-2 hover:dark:bg-white/10 hover:bg-black/10 rounded-lg text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors"
           >
             <MoreVertical className="w-4 h-4" />
           </button>
@@ -105,12 +105,12 @@ export default function UserManagementPage() {
     <div className="p-8 space-y-6 max-w-[1600px] mx-auto pb-24 h-full flex flex-col">
       <div>
         <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">User Management</h1>
-        <p className="text-dark-500">Manage platform users, roles, and view detailed agent usage.</p>
+        <p className="text-slate-600 dark:text-dark-500">Manage platform users, roles, and view detailed agent usage.</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-black/20 p-4 rounded-2xl border dark:border-white/5 border-black/5">
         <div className="relative w-full md:w-96">
-          <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-dark-500" />
+          <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 dark:text-dark-500" />
           <input 
             type="text" 
             placeholder="Search users by name or email..." 

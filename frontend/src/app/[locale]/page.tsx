@@ -139,7 +139,7 @@ function AgentCard({ agent, index, t, isExpanded, onToggle }: { agent: any; inde
         <div className="flex items-center justify-between pt-6 border-t dark:border-white/5 border-black/5 transition-colors duration-300">
           <div className="flex items-center gap-2">
             <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${agent.color} animate-pulse`} />
-            <span className="text-xs font-bold text-dark-500 tracking-widest uppercase">{isExpanded ? 'Hide Details' : 'View Capabilities'}</span>
+            <span className="text-xs font-bold text-slate-600 dark:text-dark-500 tracking-widest uppercase">{isExpanded ? 'Hide Details' : 'View Capabilities'}</span>
           </div>
           <motion.div 
             animate={{ rotate: isExpanded ? 180 : 0, scale: isExpanded ? 1.2 : 1 }} 
@@ -366,11 +366,11 @@ export default function LandingPage() {
                   <div className="mt-16 flex items-center gap-8 justify-center lg:justify-start grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-500">
                      <div className="flex items-center gap-2">
                         <ShoppingBag className="w-5 h-5" />
-                        <span className="text-xs font-bold uppercase tracking-widest text-dark-500">Shopify Sync</span>
+                        <span className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-dark-500">Shopify Sync</span>
                      </div>
                      <div className="flex items-center gap-2">
                         <Shield className="w-5 h-5 text-emerald-500" />
-                        <span className="text-xs font-bold uppercase tracking-widest text-dark-500">Secured Payments</span>
+                        <span className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-dark-500">Secured Payments</span>
                      </div>
                   </div>
                 </>
@@ -421,7 +421,7 @@ export default function LandingPage() {
                         <TrendingUp className="w-5 h-5" />
                     </div>
                     <div>
-                        <div className="text-[10px] uppercase font-bold text-dark-500">Sales Growth</div>
+                        <div className="text-[10px] uppercase font-bold text-slate-600 dark:text-dark-500">Sales Growth</div>
                         <div className="text-sm font-black dark:text-white text-gray-900">+142%</div>
                     </div>
                   </motion.div>
@@ -435,7 +435,7 @@ export default function LandingPage() {
                         <MessageCircle className="w-5 h-5" />
                     </div>
                     <div>
-                        <div className="text-[10px] uppercase font-bold text-dark-500">AI Response</div>
+                        <div className="text-[10px] uppercase font-bold text-slate-600 dark:text-dark-500">AI Response</div>
                         <div className="text-sm font-black dark:text-white text-gray-900">Live Automating</div>
                     </div>
                   </motion.div>
@@ -462,7 +462,7 @@ export default function LandingPage() {
                 >
                   {s.n}
                 </motion.div>
-                <div className="text-xs md:text-sm mt-3 font-bold uppercase tracking-[0.2em] text-dark-500 hover:text-dark-300 transition-colors" style={{ color: 'var(--text-muted)' }}>{s.l}</div>
+                <div className="text-xs md:text-sm mt-3 font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-dark-500 hover:text-dark-300 transition-colors" style={{ color: 'var(--text-muted)' }}>{s.l}</div>
               </div>
             ))}
           </motion.div>

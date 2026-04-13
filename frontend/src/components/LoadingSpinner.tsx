@@ -17,7 +17,7 @@ export default function LoadingSpinner({ size = 'md', text }: LoadingSpinnerProp
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
       />
-      {text && <p className="text-dark-500 text-sm animate-pulse">{text}</p>}
+      {text && <p className="text-slate-600 dark:text-dark-500 text-sm animate-pulse">{text}</p>}
     </div>
   );
 }

@@ -120,7 +120,7 @@ export default function LoginPage() {
 
             <div className="flex items-center gap-4 mb-8">
               <div className="flex-1 h-px dark:bg-white/10 bg-black/10" />
-              <span className="text-dark-500 text-xs font-bold uppercase tracking-widest">{t('auth.or')}</span>
+              <span className="text-slate-600 dark:text-dark-500 text-xs font-bold uppercase tracking-widest">{t('auth.or')}</span>
               <div className="flex-1 h-px dark:bg-white/10 bg-black/10" />
             </div>
 
@@ -128,13 +128,13 @@ export default function LoginPage() {
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">{t('auth.email')}</label>
                 <div className="relative group">
-                  <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
+                  <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-600 dark:text-dark-500 group-focus-within:text-primary transition-colors" />
                   <input 
                     type="email" 
                     value={email} 
                     onChange={e => setEmail(e.target.value)} 
                     placeholder="email@example.com" 
-                    className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" 
+                    className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10" 
                     required 
                     autoComplete="email" 
                   />
@@ -147,17 +147,17 @@ export default function LoginPage() {
                   <Link href="/forgot-password" locale={locale} className="text-[10px] uppercase font-black text-primary hover:underline">{t('auth.forgot_password')}</Link>
                 </div>
                 <div className="relative group">
-                  <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
+                  <Lock className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-600 dark:text-dark-500 group-focus-within:text-primary transition-colors" />
                   <input 
                     type={showPassword ? 'text' : 'password'} 
                     value={password} 
                     onChange={e => setPassword(e.target.value)} 
                     placeholder="••••••••" 
-                    className="input-field pl-11 pr-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" 
+                    className="input-field pl-11 pr-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10" 
                     required 
                     autoComplete="current-password" 
                   />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-3.5 text-dark-500 hover:dark:text-white text-gray-900 transition-colors">
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-3.5 text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors">
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
@@ -166,7 +166,7 @@ export default function LoginPage() {
               {needs2FA && (
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">2FA Code</label>
-                  <input type="text" value={totpCode} onChange={e => setTotpCode(e.target.value)} placeholder="000 000" className="input-field text-center tracking-[0.5em] font-black dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" maxLength={6} />
+                  <input type="text" value={totpCode} onChange={e => setTotpCode(e.target.value)} placeholder="000 000" className="input-field text-center tracking-[0.5em] font-black dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10" maxLength={6} />
                 </div>
               )}
 
@@ -176,7 +176,7 @@ export default function LoginPage() {
             </form>
 
             <div className="mt-8 text-center">
-              <p className="text-dark-500 text-sm font-medium">
+              <p className="text-slate-600 dark:text-dark-500 text-sm font-medium">
                 {t('auth.no_account')}{' '}
                 <Link href="/register" className="text-primary hover:text-primary-400 font-bold transition-colors">{t('nav.register')}</Link>
               </p>

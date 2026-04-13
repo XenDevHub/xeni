@@ -196,7 +196,7 @@ export default function ConversationsPage() {
       <div className="w-[300px] border-r dark:border-white/5 border-black/5 flex flex-col shrink-0" style={{ background: 'var(--bg-secondary)' }}>
         <div className="p-4 border-b dark:border-white/5 border-black/5">
           <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 dark:text-dark-500" />
             <input 
               type="text" 
               placeholder="Search..." 
@@ -210,7 +210,7 @@ export default function ConversationsPage() {
               <button 
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
-                className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === tab ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-dark-500 hover:text-dark-300'}`}
+                className={`flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === tab ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-600 dark:text-dark-500 hover:text-dark-300'}`}
               >
                 {tab}
               </button>
@@ -225,7 +225,7 @@ export default function ConversationsPage() {
              </div>
           ) : filteredConversations.length === 0 ? (
             <div className="p-10 text-center">
-              <p className="text-dark-500 text-sm italic">No chats found</p>
+              <p className="text-slate-600 dark:text-dark-500 text-sm italic">No chats found</p>
             </div>
           ) : (
             filteredConversations.map(conv => (
@@ -246,12 +246,12 @@ export default function ConversationsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 overflow-hidden">
                     <p className="text-sm font-bold dark:text-white text-gray-900 truncate">{conv.customer_name || `PSID: ${conv.customer_psid}`}</p>
-                    <span className="text-[10px] text-dark-500 whitespace-nowrap">
+                    <span className="text-[10px] text-slate-600 dark:text-dark-500 whitespace-nowrap">
                       {conv.last_message_at ? new Date(conv.last_message_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mt-0.5">
-                    <p className={`text-xs truncate ${conv.unread_count > 0 ? 'dark:text-white text-gray-900 font-medium' : 'text-dark-500'}`}>
+                    <p className={`text-xs truncate ${conv.unread_count > 0 ? 'dark:text-white text-gray-900 font-medium' : 'text-slate-600 dark:text-dark-500'}`}>
                       {conv.last_message_preview || 'No messages...'}
                     </p>
                     {conv.unread_count > 0 && (
@@ -279,7 +279,7 @@ export default function ConversationsPage() {
                 </div>
                 <div>
                    <h2 className="text-sm font-bold dark:text-white text-gray-900 leading-none">{selected.customer_name}</h2>
-                   <p className="text-[10px] text-dark-500 mt-1 uppercase tracking-widest font-bold">PSID: {selected.customer_psid}</p>
+                   <p className="text-[10px] text-slate-600 dark:text-dark-500 mt-1 uppercase tracking-widest font-bold">PSID: {selected.customer_psid}</p>
                 </div>
               </div>
 
@@ -287,18 +287,18 @@ export default function ConversationsPage() {
                  <div className="flex items-center dark:bg-white/5 bg-black/5 p-1 rounded-xl border dark:border-white/5 border-black/5">
                     <button 
                       onClick={() => selected.handling_mode !== 'ai' && toggleMode()}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${selected.handling_mode === 'ai' ? 'bg-violet-600 dark:text-white text-gray-900 shadow-lg' : 'text-dark-500 hover:text-dark-300'}`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${selected.handling_mode === 'ai' ? 'bg-violet-600 dark:text-white text-gray-900 shadow-lg' : 'text-slate-600 dark:text-dark-500 hover:text-dark-300'}`}
                     >
                       <Bot className="w-3.5 h-3.5" /> AI Mode
                     </button>
                     <button 
                       onClick={() => selected.handling_mode !== 'human' && toggleMode()}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${selected.handling_mode === 'human' ? 'bg-blue-600 dark:text-white text-gray-900 shadow-lg' : 'text-dark-500 hover:text-dark-300'}`}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${selected.handling_mode === 'human' ? 'bg-blue-600 dark:text-white text-gray-900 shadow-lg' : 'text-slate-600 dark:text-dark-500 hover:text-dark-300'}`}
                     >
                       <User className="w-3.5 h-3.5" /> Human Mode
                     </button>
                  </div>
-                 <button className="p-2 h-10 w-10 text-dark-500 hover:dark:text-white text-gray-900 transition-colors">
+                 <button className="p-2 h-10 w-10 text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors">
                    <MoreVertical className="w-5 h-5" />
                  </button>
               </div>
@@ -312,7 +312,7 @@ export default function ConversationsPage() {
                  if (msg.sender_type === 'system') {
                    return (
                      <div key={msg.id} className="flex justify-center">
-                        <span className="px-3 py-1 rounded-full dark:bg-white/5 bg-black/5 text-[10px] font-bold text-dark-500 uppercase tracking-widest border dark:border-white/5 border-black/5">
+                        <span className="px-3 py-1 rounded-full dark:bg-white/5 bg-black/5 text-[10px] font-bold text-slate-600 dark:text-dark-500 uppercase tracking-widest border dark:border-white/5 border-black/5">
                           {msg.content_text}
                         </span>
                      </div>
@@ -333,7 +333,7 @@ export default function ConversationsPage() {
                              <span className="text-[10px] font-bold uppercase tracking-widest text-violet-400 block mb-1">Xeni AI</span>
                            )}
                            <p>{msg.content_text}</p>
-                           <span className="absolute -bottom-5 right-0 text-[9px] text-dark-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <span className="absolute -bottom-5 right-0 text-[9px] text-slate-600 dark:text-dark-500 opacity-0 group-hover:opacity-100 transition-opacity">
                              {new Date(msg.sent_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                            </span>
                          </div>
@@ -352,7 +352,7 @@ export default function ConversationsPage() {
                        <Bot className="w-6 h-6 text-violet-400" />
                        <div>
                           <p className="text-sm font-bold dark:text-white text-gray-900 leading-none">Xeni AI is Handling</p>
-                          <p className="text-xs text-dark-500 mt-1">AI responds automatically based on shop settings.</p>
+                          <p className="text-xs text-slate-600 dark:text-dark-500 mt-1">AI responds automatically based on shop settings.</p>
                        </div>
                     </div>
                     <button 
@@ -380,10 +380,10 @@ export default function ConversationsPage() {
                       />
                       <div className="flex items-center justify-between px-2 pt-2 pb-1 border-t dark:border-white/5 border-black/5 mt-2">
                          <div className="flex items-center gap-2">
-                            <button className="p-1.5 text-dark-500 hover:dark:text-white text-gray-900 transition-colors"><ShoppingBag className="w-4 h-4" /></button>
-                            <button className="p-1.5 text-dark-500 hover:dark:text-white text-gray-900 transition-colors"><Bot className="w-4 h-4" /></button>
+                            <button className="p-1.5 text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors"><ShoppingBag className="w-4 h-4" /></button>
+                            <button className="p-1.5 text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors"><Bot className="w-4 h-4" /></button>
                          </div>
-                         <span className="text-[10px] text-dark-500 font-medium">Shift + Enter for new line</span>
+                         <span className="text-[10px] text-slate-600 dark:text-dark-500 font-medium">Shift + Enter for new line</span>
                       </div>
                    </div>
                    <button 
@@ -400,10 +400,10 @@ export default function ConversationsPage() {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-center p-10 opacity-40">
              <div className="w-20 h-20 rounded-3xl dark:bg-white/5 bg-black/5 flex items-center justify-center mb-6 border dark:border-white/5 border-black/5">
-                <MessageCircle className="w-10 h-10 text-dark-500" />
+                <MessageCircle className="w-10 h-10 text-slate-600 dark:text-dark-500" />
              </div>
              <h2 className="text-xl font-heading font-bold dark:text-white text-gray-900 mb-2">No Conversation Selected</h2>
-             <p className="text-sm text-dark-500 max-w-xs mx-auto">Select a chat from the left to start communicating with your customers.</p>
+             <p className="text-sm text-slate-600 dark:text-dark-500 max-w-xs mx-auto">Select a chat from the left to start communicating with your customers.</p>
           </div>
         )}
       </div>
@@ -417,13 +417,13 @@ export default function ConversationsPage() {
                  {(selected.customer_name || 'C').charAt(0)}
                </div>
                <h3 className="font-heading font-bold dark:text-white text-gray-900 mb-1">{selected.customer_name}</h3>
-               <p className="text-[10px] font-bold text-dark-500 uppercase tracking-widest">{selected.status}</p>
+               <p className="text-[10px] font-bold text-slate-600 dark:text-dark-500 uppercase tracking-widest">{selected.status}</p>
             </div>
 
             <div className="p-6 space-y-6">
                {/* Quick Info */}
                <div>
-                  <h4 className="text-[10px] font-bold text-dark-500 uppercase tracking-widest mb-3">Customer Details</h4>
+                  <h4 className="text-[10px] font-bold text-slate-600 dark:text-dark-500 uppercase tracking-widest mb-3">Customer Details</h4>
                   <div className="space-y-3">
                      <div className="flex items-center justify-between">
                         <span className="text-xs text-dark-400">PSID</span>
@@ -438,22 +438,22 @@ export default function ConversationsPage() {
 
                {/* Recent Orders */}
                <div>
-                  <h4 className="text-[10px] font-bold text-dark-500 uppercase tracking-widest mb-3">Recent Orders</h4>
+                  <h4 className="text-[10px] font-bold text-slate-600 dark:text-dark-500 uppercase tracking-widest mb-3">Recent Orders</h4>
                   <div className="space-y-2">
                     {customerOrders.length === 0 ? (
-                       <p className="text-xs text-dark-500 italic">No orders yet</p>
+                       <p className="text-xs text-slate-600 dark:text-dark-500 italic">No orders yet</p>
                     ) : (
                       customerOrders.slice(0, 3).map(order => (
                         <div key={order.id} className="p-3 dark:bg-white/5 bg-black/5 border dark:border-white/5 border-black/5 rounded-xl flex items-center justify-between">
                            <div>
                               <p className="text-xs font-bold dark:text-white text-gray-900">#XENI-{order.id.slice(0,4)}</p>
-                              <p className="text-[10px] text-dark-500">{new Date(order.created_at).toLocaleDateString()}</p>
+                              <p className="text-[10px] text-slate-600 dark:text-dark-500">{new Date(order.created_at).toLocaleDateString()}</p>
                            </div>
                            <span className="text-xs font-bold text-primary">৳{order.total_bdt}</span>
                         </div>
                       ))
                     )}
-                    <button className="w-full text-center py-2 text-[10px] font-bold text-dark-500 uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-1">
+                    <button className="w-full text-center py-2 text-[10px] font-bold text-slate-600 dark:text-dark-500 uppercase tracking-widest hover:text-primary transition-colors flex items-center justify-center gap-1">
                       View All Orders <ExternalLink className="w-3 h-3" />
                     </button>
                   </div>
@@ -464,7 +464,7 @@ export default function ConversationsPage() {
                   <button onClick={() => setIsCreateOrderOpen(true)} className="w-full btn-primary py-2.5 text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
                     <ShoppingBag className="w-4 h-4" /> Create New Order
                   </button>
-                  <button className="w-full py-2.5 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10">
+                  <button className="w-full py-2.5 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10">
                     Mark as Resolved
                   </button>
                   <div className="grid grid-cols-2 gap-2">

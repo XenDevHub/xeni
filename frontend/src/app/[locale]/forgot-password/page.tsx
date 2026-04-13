@@ -57,8 +57,8 @@ export default function ForgotPasswordPage() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">{t('auth.email')}</label>
                   <div className="relative group">
-                    <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-dark-500 group-focus-within:text-primary transition-colors" />
-                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 bg-black/10" required />
+                    <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-600 dark:text-dark-500 group-focus-within:text-primary transition-colors" />
+                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10" required />
                   </div>
                 </div>
                 <button type="submit" disabled={loading} className="btn-primary w-full py-4 text-sm uppercase tracking-widest font-black shadow-glow">
@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
 
             <div className="mt-8 text-center">
               <Link href="/login" className="text-primary font-bold hover:text-primary-400 transition-colors text-sm flex items-center justify-center gap-2">
-                <span className="text-dark-500 font-medium">Wait, I remember!</span> {t('common.back')} to Login
+                <span className="text-slate-600 dark:text-dark-500 font-medium">Wait, I remember!</span> {t('common.back')} to Login
               </Link>
             </div>
           </div>
