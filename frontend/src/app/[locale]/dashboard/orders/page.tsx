@@ -159,7 +159,7 @@ export default function OrdersPage() {
       case 'pending': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
       case 'manual_required': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
       case 'failed': return 'bg-danger/10 text-danger border-danger/20';
-      default: return 'bg-dark-500/10 text-dark-400 dark:border-white/5 border-black/5';
+      default: return 'bg-dark-500/10 text-slate-600 dark:text-dark-600 dark:border-white/5 border-black/5';
     }
   };
 
@@ -170,11 +170,11 @@ export default function OrdersPage() {
           <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-1 flex items-center gap-3">
              <ShoppingBag className="w-8 h-8 text-primary" /> Order Management
           </h1>
-          <p className="text-slate-600 dark:text-dark-500 text-sm">{orders.length} total orders processed</p>
+          <p className="text-slate-600 dark:text-slate-600 dark:text-dark-700 text-sm">{orders.length} total orders processed</p>
         </div>
         <div className="flex items-center gap-3">
            <button className="glass-card px-4 py-2 text-sm dark:text-white text-gray-900 flex items-center gap-2 hover:dark:bg-white/10 hover:bg-black/10 transition-all">
-             <Printer className="w-4 h-4 text-slate-600 dark:text-dark-500" /> Bulk Invoices
+             <Printer className="w-4 h-4 text-slate-600 dark:text-slate-600 dark:text-dark-700" /> Bulk Invoices
            </button>
            <button onClick={() => { fetchOrders(); fetchManualReview(); }} className="btn-primary flex items-center gap-2">
              <Zap className="w-4 h-4" /> Refresh Data
@@ -189,7 +189,7 @@ export default function OrdersPage() {
           className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border ${
             activeTab === 'all' 
               ? 'bg-primary/20 text-primary border-primary/30 shadow-lg shadow-primary/10' 
-              : 'dark:bg-white/5 bg-black/5 text-dark-400 dark:border-white/5 border-black/5 hover:dark:bg-white/10 hover:bg-black/10'
+              : 'dark:bg-white/5 bg-black/5 text-slate-600 dark:text-dark-600 dark:border-white/5 border-black/5 hover:dark:bg-white/10 hover:bg-black/10'
           }`}
         >
           All Orders
@@ -199,7 +199,7 @@ export default function OrdersPage() {
           className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all border flex items-center gap-2 ${
             activeTab === 'manual_review' 
               ? 'bg-orange-500/20 text-orange-400 border-orange-500/30 shadow-lg shadow-orange-500/10' 
-              : 'dark:bg-white/5 bg-black/5 text-dark-400 dark:border-white/5 border-black/5 hover:dark:bg-white/10 hover:bg-black/10'
+              : 'dark:bg-white/5 bg-black/5 text-slate-600 dark:text-dark-600 dark:border-white/5 border-black/5 hover:dark:bg-white/10 hover:bg-black/10'
           }`}
         >
           <AlertTriangle className="w-4 h-4" /> Manual Review
@@ -215,7 +215,7 @@ export default function OrdersPage() {
       {activeTab === 'all' && (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-8">
           <div className="md:col-span-6 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 dark:text-dark-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 dark:text-slate-600 dark:text-dark-700" />
             <input 
               type="text" 
               placeholder="Search by ID or customer name..." 
@@ -225,7 +225,7 @@ export default function OrdersPage() {
             />
           </div>
           <div className="md:col-span-3 relative">
-             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 dark:text-dark-500" />
+             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 dark:text-slate-600 dark:text-dark-700" />
              <select className="w-full dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10 rounded-xl py-2.5 pl-10 pr-8 text-sm dark:text-white text-gray-900 appearance-none focus:outline-none focus:border-primary/50" value={paymentFilter} onChange={e => setPaymentFilter(e.target.value)}>
                <option value="">All Payments</option>
                <option value="pending">Pending</option>
@@ -233,7 +233,7 @@ export default function OrdersPage() {
                <option value="manual_required">Manual Review</option>
                <option value="failed">Failed</option>
              </select>
-             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 dark:text-dark-500 pointer-events-none" />
+             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 dark:text-slate-600 dark:text-dark-700 pointer-events-none" />
           </div>
           <div className="md:col-span-3 relative">
              <select className="w-full dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10 rounded-xl py-2.5 px-4 pr-8 text-sm dark:text-white text-gray-900 appearance-none focus:outline-none focus:border-primary/50" value={deliveryFilter} onChange={e => setDeliveryFilter(e.target.value)}>
@@ -243,7 +243,7 @@ export default function OrdersPage() {
                <option value="in_transit">In Transit</option>
                <option value="delivered">Delivered</option>
              </select>
-             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 dark:text-dark-500 pointer-events-none" />
+             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 dark:text-slate-600 dark:text-dark-700 pointer-events-none" />
           </div>
         </div>
       )}
@@ -254,13 +254,13 @@ export default function OrdersPage() {
           <table className="w-full text-sm text-left">
             <thead className="border-b dark:border-white/5 border-black/5 dark:bg-white/5 bg-black/5">
               <tr>
-                <th className="px-6 py-4 font-bold text-dark-400 uppercase tracking-wider text-[10px]">Order ID</th>
-                <th className="px-6 py-4 font-bold text-dark-400 uppercase tracking-wider text-[10px]">Customer</th>
-                <th className="px-6 py-4 font-bold text-dark-400 uppercase tracking-wider text-[10px]">Total</th>
-                <th className="px-6 py-4 font-bold text-dark-400 uppercase tracking-wider text-[10px]">Payment</th>
-                <th className="px-6 py-4 font-bold text-dark-400 uppercase tracking-wider text-[10px]">Delivery</th>
-                <th className="px-6 py-4 font-bold text-dark-400 uppercase tracking-wider text-[10px]">Date</th>
-                <th className="px-6 py-4 font-bold text-dark-400 uppercase tracking-wider text-[10px] text-right">Action</th>
+                <th className="px-6 py-4 font-bold text-slate-600 dark:text-dark-600 uppercase tracking-wider text-[10px]">Order ID</th>
+                <th className="px-6 py-4 font-bold text-slate-600 dark:text-dark-600 uppercase tracking-wider text-[10px]">Customer</th>
+                <th className="px-6 py-4 font-bold text-slate-600 dark:text-dark-600 uppercase tracking-wider text-[10px]">Total</th>
+                <th className="px-6 py-4 font-bold text-slate-600 dark:text-dark-600 uppercase tracking-wider text-[10px]">Payment</th>
+                <th className="px-6 py-4 font-bold text-slate-600 dark:text-dark-600 uppercase tracking-wider text-[10px]">Delivery</th>
+                <th className="px-6 py-4 font-bold text-slate-600 dark:text-dark-600 uppercase tracking-wider text-[10px]">Date</th>
+                <th className="px-6 py-4 font-bold text-slate-600 dark:text-dark-600 uppercase tracking-wider text-[10px] text-right">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -269,7 +269,7 @@ export default function OrdersPage() {
                   <tr key={i} className="border-b dark:border-white/5 border-black/5"><td colSpan={7} className="px-6 py-4"><div className="skeleton h-10 w-full rounded-lg" /></td></tr>
                 ))
               ) : filteredOrders.length === 0 ? (
-                <tr><td colSpan={7} className="text-center py-20 text-slate-600 dark:text-dark-500 italic">
+                <tr><td colSpan={7} className="text-center py-20 text-slate-600 dark:text-slate-600 dark:text-dark-700 italic">
                   {activeTab === 'manual_review' ? '🎉 No orders awaiting manual review!' : 'No orders matching your criteria...'}
                 </td></tr>
               ) : (
@@ -289,7 +289,7 @@ export default function OrdersPage() {
                          <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs">{(o.customer_name || 'C').charAt(0)}</div>
                          <div>
                             <p className="dark:text-white text-gray-900 font-medium">{o.customer_name || 'Guest'}</p>
-                            <p className="text-[10px] text-slate-600 dark:text-dark-500">{o.customer_phone}</p>
+                            <p className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700">{o.customer_phone}</p>
                          </div>
                        </div>
                     </td>
@@ -302,13 +302,13 @@ export default function OrdersPage() {
                     <td className="px-6 py-4">
                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${
                          o.delivery_status === 'delivered' ? 'bg-success/10 text-success border-success/20' : 
-                         o.delivery_status === 'pending' ? 'bg-dark-500/10 text-dark-400 dark:border-white/5 border-black/5' : 
+                         o.delivery_status === 'pending' ? 'bg-dark-500/10 text-slate-600 dark:text-dark-600 dark:border-white/5 border-black/5' : 
                          'bg-primary/10 text-primary border-primary/20'
                        }`}>
                          {o.delivery_status.replace('_', ' ')}
                        </span>
                     </td>
-                    <td className="px-6 py-4 text-[11px] text-slate-600 dark:text-dark-500">
+                    <td className="px-6 py-4 text-[11px] text-slate-600 dark:text-slate-600 dark:text-dark-700">
                       {new Date(o.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -345,9 +345,9 @@ export default function OrdersPage() {
             <div className="p-6 border-b dark:border-white/5 border-black/5 flex items-center justify-between dark:bg-white/5 bg-black/5">
                <div>
                  <h2 className="text-xl font-heading font-bold dark:text-white text-gray-900">Order Details</h2>
-                 <p className="text-[10px] text-slate-600 dark:text-dark-500 font-mono mt-1">#XENI-{selectedOrder.id}</p>
+                 <p className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 font-mono mt-1">#XENI-{selectedOrder.id}</p>
                </div>
-               <button onClick={() => setSelectedOrder(null)} className="p-2 rounded-full hover:dark:bg-white/10 hover:bg-black/10 text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-all">
+               <button onClick={() => setSelectedOrder(null)} className="p-2 rounded-full hover:dark:bg-white/10 hover:bg-black/10 text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:dark:text-white hover:text-gray-900 transition-all">
                  <X className="w-5 h-5" />
                </button>
             </div>
@@ -365,11 +365,11 @@ export default function OrdersPage() {
                        return (
                          <div key={idx} className="flex flex-col items-center gap-2">
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 z-10 transition-all ${
-                              active ? 'bg-primary border-primary text-white shadow-lg shadow-primary/30' : 'bg-slate-900 border-white/10 text-slate-600 dark:text-dark-500'
+                              active ? 'bg-primary border-primary text-white shadow-lg shadow-primary/30' : 'bg-slate-900 border-white/10 text-slate-600 dark:text-slate-600 dark:text-dark-700'
                             }`}>
                                <step.icon className="w-5 h-5" />
                             </div>
-                            <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'dark:text-white text-gray-900' : 'text-slate-600 dark:text-dark-500'}`}>{step.label}</span>
+                            <span className={`text-[10px] font-bold uppercase tracking-wider ${active ? 'dark:text-white text-gray-900' : 'text-slate-600 dark:text-slate-600 dark:text-dark-700'}`}>{step.label}</span>
                          </div>
                        );
                      })}
@@ -398,21 +398,21 @@ export default function OrdersPage() {
                {/* Two Column Info */}
                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-6">
-                     <h3 className="text-xs font-bold text-dark-400 uppercase tracking-widest flex items-center gap-2">
+                     <h3 className="text-xs font-bold text-slate-600 dark:text-dark-600 uppercase tracking-widest flex items-center gap-2">
                        <User className="w-4 h-4" /> Customer Info
                      </h3>
                      <div className="space-y-4">
                         <div className="flex items-center gap-4">
-                           <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-slate-600 dark:text-dark-500"><Phone className="w-4 h-4" /></div>
+                           <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-slate-600 dark:text-slate-600 dark:text-dark-700"><Phone className="w-4 h-4" /></div>
                            <div>
-                              <p className="text-[10px] text-slate-600 dark:text-dark-500 font-bold uppercase">Phone Number</p>
+                              <p className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 font-bold uppercase">Phone Number</p>
                               <p className="text-sm dark:text-white text-gray-900">{selectedOrder.customer_phone}</p>
                            </div>
                         </div>
                         <div className="flex items-center gap-4">
-                           <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-slate-600 dark:text-dark-500"><MapPin className="w-4 h-4" /></div>
+                           <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-slate-600 dark:text-slate-600 dark:text-dark-700"><MapPin className="w-4 h-4" /></div>
                            <div>
-                              <p className="text-[10px] text-slate-600 dark:text-dark-500 font-bold uppercase">Shipping Address</p>
+                              <p className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 font-bold uppercase">Shipping Address</p>
                               <p className="text-sm dark:text-white text-gray-900">{selectedOrder.customer_address || 'Not provided'}</p>
                            </div>
                         </div>
@@ -420,29 +420,29 @@ export default function OrdersPage() {
                   </div>
 
                   <div className="space-y-6">
-                     <h3 className="text-xs font-bold text-dark-400 uppercase tracking-widest flex items-center gap-2">
+                     <h3 className="text-xs font-bold text-slate-600 dark:text-dark-600 uppercase tracking-widest flex items-center gap-2">
                        <DollarSign className="w-4 h-4" /> Payment & Billing
                      </h3>
                      <div className="space-y-4">
                         <div className="flex items-center gap-4">
-                           <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-slate-600 dark:text-dark-500"><CreditCard className="w-4 h-4" /></div>
+                           <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-slate-600 dark:text-slate-600 dark:text-dark-700"><CreditCard className="w-4 h-4" /></div>
                            <div>
-                              <p className="text-[10px] text-slate-600 dark:text-dark-500 font-bold uppercase">Method & Amount</p>
+                              <p className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 font-bold uppercase">Method & Amount</p>
                               <p className="text-sm dark:text-white text-gray-900"><span className="uppercase">{selectedOrder.payment_method}</span> — <span className="font-bold">৳{selectedOrder.total_amount.toLocaleString()}</span></p>
                            </div>
                         </div>
                         {selectedOrder.payment_trx_id && (
                           <div className="flex items-center gap-4">
-                             <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-slate-600 dark:text-dark-500"><Zap className="w-4 h-4" /></div>
+                             <div className="p-2.5 rounded-xl dark:bg-white/5 bg-black/5 text-slate-600 dark:text-slate-600 dark:text-dark-700"><Zap className="w-4 h-4" /></div>
                              <div className="flex-1">
-                                <p className="text-[10px] text-slate-600 dark:text-dark-500 font-bold uppercase">Transaction ID</p>
+                                <p className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 font-bold uppercase">Transaction ID</p>
                                 <div className="flex items-center gap-2">
                                   <p className="text-sm dark:text-white text-gray-900 font-mono">{selectedOrder.payment_trx_id}</p>
                                   <button 
                                     onClick={() => copyToClipboard(selectedOrder.payment_trx_id!)}
                                     className="p-1 rounded-md hover:dark:bg-white/10 hover:bg-black/10 transition-all"
                                   >
-                                    <Copy className="w-3 h-3 text-slate-600 dark:text-dark-500" />
+                                    <Copy className="w-3 h-3 text-slate-600 dark:text-slate-600 dark:text-dark-700" />
                                   </button>
                                 </div>
                              </div>
@@ -455,7 +455,7 @@ export default function OrdersPage() {
                {/* Payment Screenshot */}
                {selectedOrder.payment_screenshot_url && (
                  <div className="space-y-3">
-                   <h3 className="text-xs font-bold text-dark-400 uppercase tracking-widest flex items-center gap-2">
+                   <h3 className="text-xs font-bold text-slate-600 dark:text-dark-600 uppercase tracking-widest flex items-center gap-2">
                      <ImageIcon className="w-4 h-4" /> Payment Screenshot
                    </h3>
                    <div 

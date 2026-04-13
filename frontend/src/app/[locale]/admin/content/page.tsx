@@ -19,7 +19,7 @@ export default function ContentControlPage() {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">Content Control (CMS)</h1>
-          <p className="text-slate-600 dark:text-dark-500">Changes made here are instantly reflected on the public landing page via ISR.</p>
+          <p className="text-slate-600 dark:text-slate-600 dark:text-dark-700">Changes made here are instantly reflected on the public landing page via ISR.</p>
         </div>
         <button onClick={handleSave} className="btn-primary py-2.5 flex items-center gap-2">
           <Save className="w-4 h-4" /> Publish Changes
@@ -38,7 +38,7 @@ export default function ContentControlPage() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id as TabType)}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all ${
-              activeTab === tab.id ? 'bg-primary text-white shadow-glow' : 'bg-white/5 text-slate-600 dark:text-dark-500 hover:text-white hover:bg-white/10'
+              activeTab === tab.id ? 'bg-primary text-white shadow-glow' : 'bg-white/5 text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:text-white hover:bg-white/10'
             }`}
           >
             <tab.icon className="w-4 h-4" /> {tab.label}
@@ -130,7 +130,7 @@ function HeroEditor() {
         </div>
 
         <div>
-          <label className="text-sm font-medium text-slate-600 dark:text-dark-500 block mb-2">Announcement Badge (Top)</label>
+          <label className="text-sm font-medium text-slate-600 dark:text-slate-600 dark:text-dark-700 block mb-2">Announcement Badge (Top)</label>
           <input 
             type="text" 
             value={heroForm.badge} 
@@ -141,7 +141,7 @@ function HeroEditor() {
         <div className="space-y-4">
           <h4 className="text-sm font-bold dark:text-white text-gray-900 uppercase tracking-wider">English Content</h4>
           <div>
-            <label className="text-sm font-medium text-slate-600 dark:text-dark-500 block mb-2">Headline (EN)</label>
+            <label className="text-sm font-medium text-slate-600 dark:text-slate-600 dark:text-dark-700 block mb-2">Headline (EN)</label>
             <textarea 
               className="input-field min-h-[80px]" 
               value={heroForm.headline_en}
@@ -149,7 +149,7 @@ function HeroEditor() {
             />
           </div>
           <div>
-            <label className="text-sm font-medium text-slate-600 dark:text-dark-500 block mb-2">Subheadline (EN)</label>
+            <label className="text-sm font-medium text-slate-600 dark:text-slate-600 dark:text-dark-700 block mb-2">Subheadline (EN)</label>
             <textarea 
               className="input-field min-h-[120px]" 
               value={heroForm.subheadline_en}
@@ -160,7 +160,7 @@ function HeroEditor() {
         <div className="space-y-4">
           <h4 className="text-sm font-bold dark:text-white text-gray-900 uppercase tracking-wider text-primary-400">Bangla Content</h4>
           <div>
-            <label className="text-sm font-medium text-slate-600 dark:text-dark-500 block mb-2">Headline (BN)</label>
+            <label className="text-sm font-medium text-slate-600 dark:text-slate-600 dark:text-dark-700 block mb-2">Headline (BN)</label>
             <textarea 
               className="input-field min-h-[80px] font-bengali" 
               value={heroForm.headline_bn}
@@ -178,7 +178,7 @@ function HeroEditor() {
           <h1 className="text-4xl font-heading font-bold dark:text-white text-gray-900 mb-4 leading-tight">
             {heroForm.headline_en || 'Your Shop Headline'}
           </h1>
-          <p className="text-dark-400 text-sm max-w-md mx-auto mb-8 whitespace-pre-wrap">{heroForm.subheadline_en}</p>
+          <p className="text-slate-600 dark:text-dark-600 text-sm max-w-md mx-auto mb-8 whitespace-pre-wrap">{heroForm.subheadline_en}</p>
           <button className="btn-primary">CTA Button</button>
         </div>
       </div>
@@ -223,7 +223,7 @@ function PricingEditor() {
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => setEditingPlan(plan)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${editingPlan?.id === plan.id ? 'bg-primary text-white' : 'bg-white/5 text-slate-600 dark:text-dark-500 hover:text-white'}`}
+                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${editingPlan?.id === plan.id ? 'bg-primary text-white' : 'bg-white/5 text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:text-white'}`}
                 >
                   Edit
                 </button>
@@ -234,7 +234,7 @@ function PricingEditor() {
                     onChange={e => updateMutation.mutate({...plan, is_active: e.target.checked})}
                     className="rounded dark:border-white/10 border-black/10 bg-dark w-4 h-4 text-primary" 
                   />
-                  <span className="text-xs text-slate-600 dark:text-dark-500">Active</span>
+                  <span className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700">Active</span>
                 </label>
               </div>
             </div>
@@ -243,7 +243,7 @@ function PricingEditor() {
               <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-slate-600 dark:text-dark-500 mb-1 block">Monthly Price (BDT)</label>
+                    <label className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700 mb-1 block">Monthly Price (BDT)</label>
                     <input 
                       type="number" 
                       value={editingPlan.price_monthly_bdt} 
@@ -252,7 +252,7 @@ function PricingEditor() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-600 dark:text-dark-500 mb-1 block">CTA Text</label>
+                    <label className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700 mb-1 block">CTA Text</label>
                     <input 
                       type="text" 
                       value={editingPlan.cta_text} 
@@ -262,7 +262,7 @@ function PricingEditor() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-600 dark:text-dark-500 mb-1 block">Tagline (EN)</label>
+                  <label className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700 mb-1 block">Tagline (EN)</label>
                   <input 
                     type="text" 
                     value={editingPlan.tagline} 
@@ -271,7 +271,7 @@ function PricingEditor() {
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-600 dark:text-dark-500 mb-2 block">Features (One per line)</label>
+                  <label className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700 mb-2 block">Features (One per line)</label>
                   <textarea 
                     className="input-field font-mono text-xs min-h-[120px]" 
                     value={Array.isArray(editingPlan.features) ? editingPlan.features.join('\n') : ''}
@@ -302,17 +302,17 @@ function PricingEditor() {
         <div className="absolute top-4 right-4 badge bg-primary text-white text-xs">Live Preview</div>
         <div className="border dark:border-white/10 border-black/10 rounded-2xl p-8 dark:bg-white/5 bg-black/5 backdrop-blur-xl shadow-2xl">
           <h4 className="text-2xl font-bold font-heading dark:text-white text-gray-900">{editingPlan?.name || 'Starter'}</h4>
-          <p className="text-sm text-slate-600 dark:text-dark-500 mb-4">{editingPlan?.tagline || 'Select a plan to preview'}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-600 dark:text-dark-700 mb-4">{editingPlan?.tagline || 'Select a plan to preview'}</p>
           <div className="text-4xl font-bold dark:text-white text-gray-900 mb-8">
             ৳{(editingPlan?.price_monthly_bdt || 0).toLocaleString()}
-            <span className="text-sm text-slate-600 dark:text-dark-500 font-normal ml-1">/mo</span>
+            <span className="text-sm text-slate-600 dark:text-slate-600 dark:text-dark-700 font-normal ml-1">/mo</span>
           </div>
           <button className="w-full btn-secondary mb-8 py-3 border-primary/30 text-primary-300 font-bold uppercase tracking-wider text-xs">
             {editingPlan?.cta_text || 'Get Started'}
           </button>
           <ul className="space-y-4">
             {(editingPlan?.features || []).slice(0, 5).map((f: string, i: number) => (
-              <li key={i} className="flex gap-3 text-sm text-dark-400">
+              <li key={i} className="flex gap-3 text-sm text-slate-600 dark:text-dark-600">
                 <CheckCircle className="w-4 h-4 text-primary shrink-0"/> {f}
               </li>
             ))}
@@ -377,7 +377,7 @@ function ReviewsEditor() {
                   </div>
                   <div>
                     <div className="font-medium dark:text-white text-gray-900 text-sm">{r.reviewer_name}</div>
-                    <div className="text-[10px] text-slate-600 dark:text-dark-500">{new Date(r.created_at).toLocaleDateString()}</div>
+                    <div className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700">{new Date(r.created_at).toLocaleDateString()}</div>
                   </div>
                 </div>
                 <div className="flex text-amber-400 gap-0.5">
@@ -386,7 +386,7 @@ function ReviewsEditor() {
                   ))}
                 </div>
               </div>
-              <p className="text-sm text-dark-400 italic mb-6 leading-relaxed">&quot;{r.review_text}&quot;</p>
+              <p className="text-sm text-slate-600 dark:text-dark-600 italic mb-6 leading-relaxed">&quot;{r.review_text}&quot;</p>
               <div className="flex gap-3">
                 <button 
                   onClick={() => approveMutation.mutate(r.id)}
@@ -420,7 +420,7 @@ function ReviewsEditor() {
       <div className="glass-card p-6 flex flex-col min-h-0 max-h-[70vh]">
         <div className="flex justify-between items-center mb-6">
           <h3 className="font-heading font-bold dark:text-white text-gray-900">Live on Landing Page ({live.length}/8)</h3>
-          <button className="text-[10px] text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors">Manage Priority</button>
+          <button className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:dark:text-white hover:text-gray-900 transition-colors">Manage Priority</button>
         </div>
         <div className="space-y-3 overflow-y-auto pr-2 scrollbar-hide">
           {live.map((r: any) => (
@@ -428,7 +428,7 @@ function ReviewsEditor() {
                <GripVertical className="w-4 h-4 text-dark-700 cursor-move" />
                <div className="flex-1 min-w-0">
                  <div className="text-sm dark:text-white text-gray-900 font-medium truncate">{r.reviewer_name}</div>
-                 <div className="text-[10px] text-slate-600 dark:text-dark-500 truncate italic">&quot;{r.review_text}&quot;</div>
+                 <div className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 truncate italic">&quot;{r.review_text}&quot;</div>
                </div>
                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                  <button 
@@ -522,7 +522,7 @@ function FAQEditor() {
             <div className="flex-1 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                   <label className="text-[10px] text-slate-600 dark:text-dark-500 mb-1 block uppercase">Question (EN)</label>
+                   <label className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 mb-1 block uppercase">Question (EN)</label>
                    <input 
                     type="text" 
                     value={item.question} 
@@ -544,7 +544,7 @@ function FAQEditor() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                   <label className="text-[10px] text-slate-600 dark:text-dark-500 mb-1 block uppercase">Answer (EN)</label>
+                   <label className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 mb-1 block uppercase">Answer (EN)</label>
                    <textarea 
                     value={item.answer} 
                     onChange={e => handleUpdateItem(i, 'answer', e.target.value)}
@@ -639,11 +639,11 @@ function BannerEditor() {
       <div className="flex items-center justify-between p-4 dark:bg-white/5 bg-black/5 rounded-2xl border dark:border-white/5 border-black/5">
         <div className="space-y-1">
           <label className="dark:text-white text-gray-900 font-medium block">Active Status</label>
-          <p className="text-xs text-slate-600 dark:text-dark-500">Banner will be visible globally when active.</p>
+          <p className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700">Banner will be visible globally when active.</p>
         </div>
         <button 
           onClick={() => setBannerForm({...bannerForm, is_active: !bannerForm.is_active})}
-          className={`w-12 h-6 rounded-full relative transition-all ${bannerForm.is_active ? 'bg-primary shadow-glow' : 'bg-dark-700'}`}
+          className={`w-12 h-6 rounded-full relative transition-all ${bannerForm.is_active ? 'bg-primary shadow-glow' : 'bg-[var(--bg-secondary)]'}`}
         >
           <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${bannerForm.is_active ? 'right-1' : 'left-1'}`} />
         </button>
@@ -651,7 +651,7 @@ function BannerEditor() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="text-xs font-bold text-slate-600 dark:text-dark-500 uppercase block mb-2">Banner Text (EN)</label>
+          <label className="text-xs font-bold text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase block mb-2">Banner Text (EN)</label>
           <input 
             type="text" 
             value={bannerForm.text_en} 
@@ -674,7 +674,7 @@ function BannerEditor() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="text-xs font-bold text-slate-600 dark:text-dark-500 uppercase block mb-2">Banner Color</label>
+          <label className="text-xs font-bold text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase block mb-2">Banner Color</label>
           <div className="flex gap-3 flex-wrap">
             {['#7C3AED', '#06B6D4', '#10B981', '#EF4444', '#F59E0B'].map(c => (
               <button 
@@ -687,7 +687,7 @@ function BannerEditor() {
           </div>
         </div>
         <div>
-          <label className="text-xs font-bold text-slate-600 dark:text-dark-500 uppercase block mb-2">Redirect URL (Optional)</label>
+          <label className="text-xs font-bold text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase block mb-2">Redirect URL (Optional)</label>
           <input 
             type="text" 
             value={bannerForm.link} 
@@ -700,7 +700,7 @@ function BannerEditor() {
       
       {/* Visual Preview */}
       <div className="pt-6">
-        <label className="text-xs font-bold text-slate-600 dark:text-dark-500 uppercase block mb-4">Desktop Preview</label>
+        <label className="text-xs font-bold text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase block mb-4">Desktop Preview</label>
         <div className="w-full h-12 rounded-xl flex items-center justify-center text-sm font-bold dark:text-white text-gray-900 shadow-lg overflow-hidden animate-pulse" style={{ backgroundColor: bannerForm.color }}>
           {bannerForm.text_en || 'Your Banner Message'}
         </div>

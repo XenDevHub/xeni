@@ -55,7 +55,7 @@ export default function SettingsPage() {
 
         <div className="flex gap-2 mb-8">
           {tabs.map(tb => (
-            <button key={tb.id} onClick={() => setTab(tb.id)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all ${tab === tb.id ? 'bg-primary text-white' : 'bg-white/5 text-slate-600 dark:text-dark-500 hover:bg-white/10'}`}>
+            <button key={tb.id} onClick={() => setTab(tb.id)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-all ${tab === tb.id ? 'bg-primary text-white' : 'bg-white/5 text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:bg-white/10'}`}>
               <tb.icon className="w-4 h-4" /> {tb.label}
             </button>
           ))}
@@ -85,7 +85,7 @@ export default function SettingsPage() {
 
               <div className="border-t dark:border-white/10 border-black/10 pt-4 mt-6">
                 <h3 className="text-lg font-heading font-semibold dark:text-white text-gray-900 mb-2">{t('settings.enable_2fa')}</h3>
-                <p className="text-slate-600 dark:text-dark-500 text-sm mb-3">Secure your account with Google Authenticator.</p>
+                <p className="text-slate-600 dark:text-slate-600 dark:text-dark-700 text-sm mb-3">Secure your account with Google Authenticator.</p>
                 <button className={user?.two_fa_enabled ? 'badge-success' : 'btn-accent text-sm'}>{user?.two_fa_enabled ? '2FA Enabled ✓' : t('settings.enable_2fa')}</button>
               </div>
             </div>
@@ -96,7 +96,7 @@ export default function SettingsPage() {
               <h3 className="text-lg font-heading font-semibold dark:text-white text-gray-900">{t('settings.language')}</h3>
               <div className="flex gap-3">
                 {[{ code: 'en', label: 'English' }, { code: 'bn', label: 'বাংলা' }].map(l => (
-                  <button key={l.code} onClick={() => setLang(l.code)} className={`px-6 py-3 rounded-xl text-sm font-medium transition-all ${lang === l.code ? 'bg-primary text-white shadow-glow' : 'bg-white/5 text-slate-600 dark:text-dark-500 hover:bg-white/10'}`}>{l.label}</button>
+                  <button key={l.code} onClick={() => setLang(l.code)} className={`px-6 py-3 rounded-xl text-sm font-medium transition-all ${lang === l.code ? 'bg-primary text-white shadow-glow' : 'bg-white/5 text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:bg-white/10'}`}>{l.label}</button>
                 ))}
               </div>
               <button onClick={saveProfile} disabled={loading} className="btn-primary">{loading ? t('common.loading') : t('settings.save_changes')}</button>

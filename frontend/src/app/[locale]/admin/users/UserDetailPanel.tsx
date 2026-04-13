@@ -101,14 +101,14 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                   </div>
                   <div className="min-w-0">
                     <h2 className="text-xl font-bold dark:text-white text-gray-900 truncate">{user?.full_name || 'No Name'}</h2>
-                    <p className="text-sm text-slate-600 dark:text-dark-500 truncate">{user?.email}</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-600 dark:text-dark-700 truncate">{user?.email}</p>
                     <div className="flex gap-2 mt-2">
-                      <span className={`badge ${user?.role === 'user' ? 'bg-white/10 text-dark-400' : 'bg-primary/20 text-primary'} capitalize`}>{user?.role?.replace('_', ' ')}</span>
+                      <span className={`badge ${user?.role === 'user' ? 'bg-white/10 text-slate-600 dark:text-dark-600' : 'bg-primary/20 text-primary'} capitalize`}>{user?.role?.replace('_', ' ')}</span>
                       <span className={`badge ${user?.status === 'active' ? 'bg-success/20 text-success' : 'bg-danger/20 text-danger'} capitalize`}>{user?.status}</span>
                     </div>
                   </div>
                 </div>
-                <button onClick={onClose} className="p-2 rounded-xl hover:dark:bg-white/10 hover:bg-black/10 text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors">
+                <button onClick={onClose} className="p-2 rounded-xl hover:dark:bg-white/10 hover:bg-black/10 text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:dark:text-white hover:text-gray-900 transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -122,7 +122,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                     className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors capitalize whitespace-nowrap ${
                       activeTab === tab 
                         ? 'border-primary text-primary' 
-                        : 'border-transparent text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 hover:dark:border-white/20 hover:border-black/20'
+                        : 'border-transparent text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:dark:text-white hover:text-gray-900 hover:dark:border-white/20 hover:border-black/20'
                     }`}
                   >
                     {tab}
@@ -140,22 +140,22 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                     <div className="glass-card p-4">
                       <Bot className="w-5 h-5 text-primary mb-2" />
                       <div className="text-2xl font-bold dark:text-white text-gray-900">{stats?.total_tasks || 0}</div>
-                      <div className="text-xs text-slate-600 dark:text-dark-500">Total Tasks</div>
+                      <div className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700">Total Tasks</div>
                     </div>
                     <div className="glass-card p-4">
                       <DollarSign className="w-5 h-5 text-emerald-400 mb-2" />
                       <div className="text-2xl font-bold dark:text-white text-gray-900">৳{(stats?.total_spent_bdt || 0).toLocaleString()}</div>
-                      <div className="text-xs text-slate-600 dark:text-dark-500">Total Spent</div>
+                      <div className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700">Total Spent</div>
                     </div>
                     <div className="glass-card p-4">
                       <Activity className="w-5 h-5 text-cyan-400 mb-2" />
                       <div className="text-2xl font-bold dark:text-white text-gray-900">{stats?.orders_processed || 0}</div>
-                      <div className="text-xs text-slate-600 dark:text-dark-500">Orders Processed</div>
+                      <div className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700">Orders Processed</div>
                     </div>
                     <div className="glass-card p-4">
                       <MessageSquare className="w-5 h-5 text-pink-400 mb-2" />
                       <div className="text-2xl font-bold dark:text-white text-gray-900">{stats?.messages_replied || 0}</div>
-                      <div className="text-xs text-slate-600 dark:text-dark-500">Messages Replied</div>
+                      <div className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700">Messages Replied</div>
                     </div>
                   </div>
 
@@ -169,15 +169,15 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                     </div>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between border-b dark:border-white/5 border-black/5 pb-2">
-                        <span className="text-slate-600 dark:text-dark-500">Status</span>
+                        <span className="text-slate-600 dark:text-slate-600 dark:text-dark-700">Status</span>
                         <span className={`capitalize ${sub?.status === 'active' ? 'text-success' : 'text-danger'}`}>{sub?.status || 'n/a'}</span>
                       </div>
                       <div className="flex justify-between border-b dark:border-white/5 border-black/5 pb-2">
-                        <span className="text-slate-600 dark:text-dark-500">Renewal Date</span>
+                        <span className="text-slate-600 dark:text-slate-600 dark:text-dark-700">Renewal Date</span>
                         <span className="dark:text-white text-gray-900">{sub?.current_period_end ? new Date(sub.current_period_end).toLocaleDateString() : 'n/a'}</span>
                       </div>
                       <div className="flex justify-between pt-1">
-                        <span className="text-slate-600 dark:text-dark-500">Member Since</span>
+                        <span className="text-slate-600 dark:text-slate-600 dark:text-dark-700">Member Since</span>
                         <span className="dark:text-white text-gray-900 flex items-center gap-1">
                           <Calendar className="w-3 h-3" /> {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'n/a'}
                         </span>
@@ -187,14 +187,14 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
 
                   {/* Connected Pages */}
                   <div>
-                    <h4 className="text-sm font-medium text-slate-600 dark:text-dark-500 mb-3 uppercase tracking-wider">Connected FB Pages ({detail?.connected_pages?.length || 0})</h4>
+                    <h4 className="text-sm font-medium text-slate-600 dark:text-slate-600 dark:text-dark-700 mb-3 uppercase tracking-wider">Connected FB Pages ({detail?.connected_pages?.length || 0})</h4>
                     <div className="space-y-2">
                       {detail?.connected_pages?.map((page: any) => (
                         <div key={page.id} className="flex items-center gap-3 p-3 dark:bg-white/5 bg-black/5 rounded-xl border dark:border-white/5 border-black/5">
                           <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center dark:text-white text-gray-900 font-bold text-xs">FB</div>
                           <div className="flex-1 min-w-0">
                             <div className="text-sm dark:text-white text-gray-900 truncate">{page.page_name}</div>
-                            <div className="text-[10px] text-slate-600 dark:text-dark-500 truncate">ID: {page.facebook_page_id}</div>
+                            <div className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 truncate">ID: {page.facebook_page_id}</div>
                           </div>
                           <span className="badge bg-success/10 text-success text-[10px]">Active</span>
                         </div>
@@ -207,7 +207,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
 
                   {/* Admin Actions Section */}
                   <div className="pt-4 space-y-4">
-                    <h4 className="text-sm font-medium text-slate-600 dark:text-dark-500 uppercase tracking-wider">Special Actions</h4>
+                    <h4 className="text-sm font-medium text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase tracking-wider">Special Actions</h4>
                     <div className="grid grid-cols-2 gap-3">
                       <button 
                         onClick={() => {
@@ -238,14 +238,14 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                         <span className="text-xs font-medium dark:text-white text-gray-900 capitalize">{task.agent_type?.replace('_', ' ')}</span>
                         <span className={`text-[10px] badge ${task.status === 'completed' ? 'badge-success' : 'badge-danger'}`}>{task.status}</span>
                       </div>
-                      <div className="text-[10px] text-slate-600 dark:text-dark-500 mb-2">{task.created_at ? new Date(task.created_at).toLocaleString() : 'n/a'}</div>
+                      <div className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 mb-2">{task.created_at ? new Date(task.created_at).toLocaleString() : 'n/a'}</div>
                       <div className="text-[11px] text-dark-300 font-mono bg-black/30 p-2 rounded line-clamp-2">
                         {JSON.stringify(task.input_data)}
                       </div>
                     </div>
                   ))}
                   {(!detail?.recent_tasks || detail.recent_tasks.length === 0) && (
-                    <div className="text-center py-10 text-slate-600 dark:text-dark-500 text-sm">No tasks found.</div>
+                    <div className="text-center py-10 text-slate-600 dark:text-slate-600 dark:text-dark-700 text-sm">No tasks found.</div>
                   )}
                 </div>
               )}
@@ -255,16 +255,16 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                     <div key={pay.id} className="flex items-center justify-between p-3 dark:bg-white/5 bg-black/5 border dark:border-white/5 border-black/5 rounded-xl">
                       <div>
                         <div className="text-xs font-bold dark:text-white text-gray-900">৳{pay.amount.toLocaleString()}</div>
-                        <div className="text-[10px] text-slate-600 dark:text-dark-500">{new Date(pay.created_at).toLocaleDateString()}</div>
+                        <div className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700">{new Date(pay.created_at).toLocaleDateString()}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-[10px] text-dark-400">{pay.plan?.name || 'Plan'}</div>
+                        <div className="text-[10px] text-slate-600 dark:text-dark-600">{pay.plan?.name || 'Plan'}</div>
                         <span className={`text-[10px] badge ${pay.status === 'success' ? 'badge-success' : 'badge-danger'}`}>{pay.status}</span>
                       </div>
                     </div>
                   ))}
                   {(!detail?.payment_history || detail.payment_history.length === 0) && (
-                    <div className="text-center py-10 text-slate-600 dark:text-dark-500 text-sm">No payment history.</div>
+                    <div className="text-center py-10 text-slate-600 dark:text-slate-600 dark:text-dark-700 text-sm">No payment history.</div>
                   )}
                 </div>
               )}
@@ -273,7 +273,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                   {isConversationsLoading ? (
                     <div className="flex flex-col items-center justify-center py-12">
                       <Loader2 className="w-8 h-8 text-primary/40 animate-spin mb-4" />
-                      <p className="text-sm text-slate-600 dark:text-dark-500">Loading conversation history...</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-600 dark:text-dark-700">Loading conversation history...</p>
                     </div>
                   ) : conversations && conversations.length > 0 ? (
                     <div className="space-y-3">
@@ -282,13 +282,13 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                           <div className="flex justify-between items-start mb-3">
                             <div>
                                 <h5 className="text-sm font-semibold dark:text-white text-gray-900 group-hover:text-primary transition-colors">{conv.customer_name || 'Guest User'}</h5>
-                                <p className="text-[10px] text-slate-600 dark:text-dark-500">PSID: {conv.customer_psid}</p>
+                                <p className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700">PSID: {conv.customer_psid}</p>
                             </div>
                             <div className="flex flex-col items-end gap-1.5">
                                 <span className={`badge text-[10px] ${conv.handling_mode === 'ai' ? 'bg-primary/20 text-primary' : 'bg-cyan-500/20 text-cyan-400'}`}>
                                     {conv.handling_mode === 'ai' ? '🤖 AI Bot' : '👨‍💼 Human'}
                                 </span>
-                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${conv.status === 'open' ? 'border-success text-success' : 'border-dark-600 text-slate-600 dark:text-dark-500'}`}>
+                                <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${conv.status === 'open' ? 'border-success text-success' : 'border-dark-600 text-slate-600 dark:text-slate-600 dark:text-dark-700'}`}>
                                     {conv.status}
                                 </span>
                             </div>
@@ -300,7 +300,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                             </p>
                           </div>
 
-                          <div className="flex justify-between items-center text-[10px] text-slate-600 dark:text-dark-500">
+                          <div className="flex justify-between items-center text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700">
                              <div className="flex items-center gap-1.5">
                                 <Activity className="w-3 h-3 text-dark-600" />
                                 {conv.unread_count > 0 ? (
@@ -320,7 +320,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
                     <div className="flex flex-col items-center justify-center py-12 text-center">
                       <MessageSquare className="w-12 h-12 text-dark-600 mb-4 opacity-20" />
                       <p className="dark:text-white text-gray-900 font-medium mb-1">No Conversations Found</p>
-                      <p className="text-xs text-slate-600 dark:text-dark-500 px-8">There are no interaction logs available for this user&apos;s shop at the moment.</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700 px-8">There are no interaction logs available for this user&apos;s shop at the moment.</p>
                     </div>
                   )}
                 </div>
@@ -355,7 +355,7 @@ export function UserDetailPanel({ userId, onClose }: UserDetailPanelProps) {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-slate-600 dark:text-dark-500">User not found</div>
+          <div className="flex-1 flex items-center justify-center text-slate-600 dark:text-slate-600 dark:text-dark-700">User not found</div>
         )}
       </motion.div>
     </AnimatePresence>

@@ -306,7 +306,7 @@ export default function AnalyticsPage() {
                       />
                    </div>
                    <span className="text-lg font-black dark:text-white text-gray-900">{s.value}%</span>
-                   <span className="text-[10px] font-bold text-slate-600 dark:text-dark-500 uppercase tracking-widest">{s.label}</span>
+                   <span className="text-[10px] font-bold text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase tracking-widest">{s.label}</span>
                 </div>
               ))}
            </div>
@@ -328,7 +328,7 @@ export default function AnalyticsPage() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.8 + i * 0.05 }}
-                  className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tight border hover:scale-110 transition-transform cursor-default ${i < 3 ? 'bg-primary/20 border-primary text-white shadow-lg' : 'bg-white/5 border-white/5 text-dark-400'}`}
+                  className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-tight border hover:scale-110 transition-transform cursor-default ${i < 3 ? 'bg-primary/20 border-primary text-white shadow-lg' : 'bg-white/5 border-white/5 text-slate-600 dark:text-dark-600'}`}
                 >
                   {tag}
                 </motion.span>

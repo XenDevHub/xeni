@@ -36,7 +36,7 @@ function HealthScoreGauge({ score }: { score: number }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-xl font-black dark:text-white text-gray-900">{score}</span>
-        <span className="text-[8px] font-bold text-slate-600 dark:text-dark-500 uppercase tracking-widest">Health</span>
+        <span className="text-[8px] font-bold text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase tracking-widest">Health</span>
       </div>
       {/* Tooltip */}
       <div className="absolute top-full mt-2 hidden group-hover:block z-50 w-48 p-3 glass-card text-[10px] leading-relaxed shadow-2xl">
@@ -73,10 +73,10 @@ function AskXeniBar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={`Ask Xeni: "${placeholders[placeholderIdx]}"`}
-          className="w-full glass-card dark:bg-white/5 bg-black/5 py-4 pl-12 pr-4 text-sm dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:dark:bg-white/10 focus:bg-black/10 focus:border-primary/50 transition-all placeholder:text-slate-600 dark:text-dark-500 font-medium shadow-glow-sm"
+          className="w-full glass-card dark:bg-white/5 bg-black/5 py-4 pl-12 pr-4 text-sm dark:text-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:dark:bg-white/10 focus:bg-black/10 focus:border-primary/50 transition-all placeholder:text-slate-600 dark:text-slate-600 dark:text-dark-700 font-medium shadow-glow-sm"
        />
        <div className="absolute inset-y-0 right-4 flex items-center">
-          <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border dark:border-white/10 border-black/10 dark:bg-white/5 bg-black/5 px-1.5 font-mono text-[10px] font-medium text-slate-600 dark:text-dark-500">
+          <kbd className="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border dark:border-white/10 border-black/10 dark:bg-white/5 bg-black/5 px-1.5 font-mono text-[10px] font-medium text-slate-600 dark:text-slate-600 dark:text-dark-700">
             <span className="text-xs">⌘</span>K
           </kbd>
        </div>
@@ -110,11 +110,11 @@ function AgentTile({ name, icon: Icon, metric, lastActivity, status, href, requi
       className={`glass-card p-6 relative overflow-hidden group ${className} ${!available ? 'cursor-not-allowed' : 'cursor-pointer'}`}
     >
       <div className="flex justify-between items-start mb-4">
-        <div className={`p-3 rounded-2xl ${available ? 'bg-primary/10 text-primary' : 'bg-white/5 text-slate-600 dark:text-dark-500'}`}>
+        <div className={`p-3 rounded-2xl ${available ? 'bg-primary/10 text-primary' : 'bg-white/5 text-slate-600 dark:text-slate-600 dark:text-dark-700'}`}>
           <Icon className="w-6 h-6" />
         </div>
         <div className="flex items-center gap-2">
-           <span className="text-[10px] font-bold text-slate-600 dark:text-dark-500 uppercase tracking-wider">{status}</span>
+           <span className="text-[10px] font-bold text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase tracking-wider">{status}</span>
            <div className={`w-2 h-2 rounded-full ${
              status === 'active' ? 'bg-success animate-pulse' : 
              status === 'processing' ? 'bg-primary animate-ping' : 
@@ -124,10 +124,10 @@ function AgentTile({ name, icon: Icon, metric, lastActivity, status, href, requi
       </div>
 
       <h3 className="text-lg font-heading font-bold dark:text-white text-gray-900 mb-1">{name}</h3>
-      <p className="text-sm text-dark-400 mb-6">{metric}</p>
+      <p className="text-sm text-slate-600 dark:text-dark-600 mb-6">{metric}</p>
       
       <div className="flex items-center justify-between mt-auto">
-        <div className="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-dark-500">
+        <div className="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-600 dark:text-dark-700">
           <Clock className="w-3 h-3" /> {lastActivity}
         </div>
         {available && (
@@ -188,7 +188,7 @@ function LivePulseMonitor() {
              </div>
              <div className="flex-1 min-w-0">
                 <p className="text-[11px] dark:text-white text-gray-900 font-medium truncate">{event.text}</p>
-                <p className="text-[9px] text-slate-600 dark:text-dark-500 font-semibold">{event.time}</p>
+                <p className="text-[9px] text-slate-600 dark:text-slate-600 dark:text-dark-700 font-semibold">{event.time}</p>
              </div>
              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
           </motion.div>
@@ -253,7 +253,7 @@ export default function DashboardOverview() {
             </div>
             <div className="flex items-center gap-3">
                <span className="badge bg-primary/20 text-primary-300 border border-primary/30 px-3 capitalize font-bold shadow-glow-sm">{planTier} Plan</span>
-               <span className="text-slate-600 dark:text-dark-500 text-sm flex items-center gap-1.5 font-medium">
+               <span className="text-slate-600 dark:text-slate-600 dark:text-dark-700 text-sm flex items-center gap-1.5 font-medium">
                   <Activity className="w-4 h-4 text-success animate-pulse" /> All systems operational
                </span>
             </div>
@@ -266,7 +266,7 @@ export default function DashboardOverview() {
 
         <div className="flex items-center gap-3 self-end lg:self-auto">
           <button className="glass-card px-5 py-3 text-sm font-bold dark:text-white text-gray-900 flex items-center gap-2 hover:dark:bg-white/10 hover:bg-black/10 transition-all group dark:border-white/10 border-black/10">
-            <Clock className="w-4 h-4 text-slate-600 dark:text-dark-500 group-hover:text-primary transition-colors" /> Report
+            <Clock className="w-4 h-4 text-slate-600 dark:text-slate-600 dark:text-dark-700 group-hover:text-primary transition-colors" /> Report
           </button>
           <Link href="/dashboard/setup" className="btn-primary flex items-center gap-2 px-6 py-3 shadow-[0_0_20px_rgba(124,58,237,0.3)]">
             <Settings className="w-5 h-5" /> Setup
@@ -309,7 +309,7 @@ export default function DashboardOverview() {
               <card.icon className="w-6 h-6 dark:text-white text-gray-900" />
             </div>
             <div>
-              <p className="text-slate-600 dark:text-dark-500 text-xs font-bold uppercase tracking-wider mb-1">{card.title}</p>
+              <p className="text-slate-600 dark:text-slate-600 dark:text-dark-700 text-xs font-bold uppercase tracking-wider mb-1">{card.title}</p>
               <h3 className={`text-2xl font-heading font-bold ${card.alert ? 'text-amber-400' : 'dark:text-white text-gray-900'}`}>
                 {loading ? '...' : card.value}
               </h3>
@@ -394,7 +394,7 @@ export default function DashboardOverview() {
                 <Brain className="w-5 h-5 text-primary animate-pulse" /> Live Pulse
               </h3>
               <LivePulseMonitor />
-              <div className="mt-auto pt-4 border-t dark:border-white/5 border-black/5 flex items-center justify-between text-[10px] text-slate-600 dark:text-dark-500 font-bold uppercase tracking-widest">
+              <div className="mt-auto pt-4 border-t dark:border-white/5 border-black/5 flex items-center justify-between text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 font-bold uppercase tracking-widest">
                  <span>AI Usage This Hour</span>
                  <span className="text-primary">142 Requests</span>
               </div>
@@ -402,7 +402,7 @@ export default function DashboardOverview() {
 
            {/* Integration Status (Compact) */}
            <div className="glass-card p-5">
-              <h4 className="text-xs font-bold text-dark-400 uppercase tracking-widest mb-4">Connectivity</h4>
+              <h4 className="text-xs font-bold text-slate-600 dark:text-dark-600 uppercase tracking-widest mb-4">Connectivity</h4>
               <div className="flex gap-4">
                  {[{ i: MessageCircle, s: 'success' }, { i: DollarSign, s: 'success' }, { i: Package, s: 'amber-500' }].map((item, i) => (
                     <div key={i} className={`p-2 rounded-lg dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10 text-${item.s} relative`}>
@@ -424,7 +424,7 @@ export default function DashboardOverview() {
         </h2>
         <div className="flex items-center gap-2 dark:bg-white/5 bg-black/5 rounded-full px-4 py-1.5">
            <div className="w-2 h-2 rounded-full bg-primary animate-ping" />
-           <span className="text-[10px] font-bold text-dark-400">Tracking 14 channels</span>
+           <span className="text-[10px] font-bold text-slate-600 dark:text-dark-600">Tracking 14 channels</span>
         </div>
       </div>
 
@@ -432,7 +432,7 @@ export default function DashboardOverview() {
         <div className="lg:col-span-2 glass-card p-4">
           <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
             {auditTasks.length === 0 ? (
-               <div className="p-8 text-center text-slate-600 dark:text-dark-500 font-medium">
+               <div className="p-8 text-center text-slate-600 dark:text-slate-600 dark:text-dark-700 font-medium">
                  No AI insights available yet. Run an AI Audit from your Products page!
                </div>
             ) : auditTasks.map((task, i) => (
@@ -452,13 +452,13 @@ export default function DashboardOverview() {
                       <p className="text-base dark:text-white text-gray-900 font-bold group-hover:text-primary transition-colors">
                         {task.agent_type === 'inventory' ? 'Inventory Optimization' : 'AI Action'}
                       </p>
-                      <p className="text-sm text-slate-600 dark:text-dark-500 mt-1 leading-relaxed max-w-lg">
+                      <p className="text-sm text-slate-600 dark:text-slate-600 dark:text-dark-700 mt-1 leading-relaxed max-w-lg">
                         {task.summary || 'AI task completed.'}
                       </p>
                     </div>
                  </div>
                  <div className="text-right shrink-0">
-                    <span className="text-[10px] text-slate-600 dark:text-dark-500 font-bold block mb-1">
+                    <span className="text-[10px] text-slate-600 dark:text-slate-600 dark:text-dark-700 font-bold block mb-1">
                       {new Date(task.created_at).toLocaleDateString()}
                     </span>
                     <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-md bg-primary/10 text-primary">

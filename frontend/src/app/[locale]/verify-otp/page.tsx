@@ -98,7 +98,7 @@ export default function VerifyOTPPage() {
               <Shield className="w-10 h-10 text-primary" />
             </div>
             <h1 className="text-3xl font-heading font-black dark:text-white text-gray-900 tracking-tight mb-2">{t('auth.verify_title')}</h1>
-            <p className="text-dark-400 text-sm mb-2 font-medium">{t('auth.verify_subtitle')}</p>
+            <p className="text-slate-600 dark:text-dark-600 text-sm mb-2 font-medium">{t('auth.verify_subtitle')}</p>
             {email && <div className="badge bg-primary/10 text-primary-300 border-primary/20 font-bold px-4 py-1.5 mb-8">{email}</div>}
 
             {/* OTP Inputs */}
@@ -128,11 +128,11 @@ export default function VerifyOTPPage() {
             </button>
 
             <div className="space-y-4">
-              <p className="text-slate-600 dark:text-dark-500 text-sm font-medium">
+              <p className="text-slate-600 dark:text-slate-600 dark:text-dark-700 text-sm font-medium">
                 Didn&apos;t receive the code?{' '}
                 <button onClick={handleResend} className="text-primary hover:text-primary-400 font-bold transition-colors">Resend</button>
               </p>
-              <Link href="/login" className="text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+              <Link href="/login" className="text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:dark:text-white hover:text-gray-900 transition-colors text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2">
                 Back to Login
               </Link>
             </div>

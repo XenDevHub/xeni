@@ -37,7 +37,7 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id} className="border-b dark:border-white/10 border-black/10 bg-black/20">
                 {headerGroup.headers.map(header => (
-                  <th key={header.id} className="text-left text-slate-600 dark:text-dark-500 font-medium px-6 py-4 whitespace-nowrap">
+                  <th key={header.id} className="text-left text-slate-600 dark:text-slate-600 dark:text-dark-700 font-medium px-6 py-4 whitespace-nowrap">
                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
                 ))}
@@ -65,7 +65,7 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <tr>
-                <td colSpan={columns.length} className="h-24 text-center text-slate-600 dark:text-dark-500">
+                <td colSpan={columns.length} className="h-24 text-center text-slate-600 dark:text-slate-600 dark:text-dark-700">
                   No results found.
                 </td>
               </tr>
@@ -76,7 +76,7 @@ export function DataTable<TData, TValue>({
       
       {pageCount && pageCount > 1 && (
         <div className="flex items-center justify-between px-6 py-4 border-t dark:border-white/5 border-black/5 bg-black/10">
-          <span className="text-sm text-slate-600 dark:text-dark-500">
+          <span className="text-sm text-slate-600 dark:text-slate-600 dark:text-dark-700">
             Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount() || 1}
           </span>
           <div className="flex items-center gap-2">

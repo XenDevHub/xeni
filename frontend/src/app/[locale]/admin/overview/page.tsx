@@ -54,7 +54,7 @@ export default function AdminOverview() {
     <div className="p-8 space-y-8 max-w-[1600px] mx-auto pb-24">
       <div>
         <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">Overview Dashboard</h1>
-        <p className="text-slate-600 dark:text-dark-500">Platform analytics and real-time performance metrics.</p>
+        <p className="text-slate-600 dark:text-slate-600 dark:text-dark-700">Platform analytics and real-time performance metrics.</p>
       </div>
 
       {/* Top Stats Strip */}
@@ -117,7 +117,7 @@ export default function AdminOverview() {
             </p>
             <div className="flex items-center gap-6">
                 <div className="p-4 dark:bg-white/5 bg-black/5 rounded-xl border dark:border-white/10 border-black/10">
-                    <div className="text-xs text-slate-600 dark:text-dark-500 uppercase font-bold mb-1">Total Auto-Replied</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase font-bold mb-1">Total Auto-Replied</div>
                     <div className="text-xl font-black text-primary-400">{metrics?.totalAIMessages?.toLocaleString() || 0}</div>
                 </div>
                 <div className="p-4 bg-danger/10 rounded-xl border border-danger/20">
@@ -162,7 +162,7 @@ export default function AdminOverview() {
               </ResponsiveContainer>
             )}
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-sm text-slate-600 dark:text-dark-500">Total Active</span>
+              <span className="text-sm text-slate-600 dark:text-slate-600 dark:text-dark-700">Total Active</span>
               <span className="text-xl font-bold dark:text-white text-gray-900">{overview?.plan_distribution?.reduce((acc: number, curr: any) => acc + (curr.value || curr.count || 0), 0) || '0'}</span>
             </div>
           </div>
@@ -170,7 +170,7 @@ export default function AdminOverview() {
             {(overview?.plan_distribution || []).map((plan: any, index: number) => {
               const COLORS = ['#06B6D4', '#7C3AED', '#10B981', '#F59E0B', '#EF4444'];
               return (
-                <div key={plan.name || plan.plan} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-dark-500">
+                <div key={plan.name || plan.plan} className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[index % COLORS.length] }} />
                   {plan.name || plan.plan} ({plan.value || plan.count || 0})
                 </div>
@@ -193,12 +193,12 @@ export default function AdminOverview() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium dark:text-white text-gray-900 group-hover:text-cyan-400 transition-colors truncate">{u.full_name}</div>
-                    <div className="text-xs text-slate-600 dark:text-dark-500">{u.plan || 'No Plan'}</div>
+                    <div className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700">{u.plan || 'No Plan'}</div>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-sm font-bold text-emerald-400">৳{u.total_spent?.toLocaleString()}</div>
-                  <div className="text-xs text-slate-600 dark:text-dark-500">Total Spend</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700">Total Spend</div>
                 </div>
               </div>
             ))}

@@ -122,7 +122,7 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
             <h2 className="text-lg font-bold dark:text-white text-gray-900 flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-primary" /> Create Manual Order
             </h2>
-            <button onClick={onClose} className="p-2 text-dark-400 hover:dark:text-white hover:text-gray-900 transition-colors dark:bg-white/5 bg-black/5 rounded-xl hover:dark:bg-white/10 hover:bg-black/10">
+            <button onClick={onClose} className="p-2 text-slate-600 dark:text-dark-600 hover:dark:text-white hover:text-gray-900 transition-colors dark:bg-white/5 bg-black/5 rounded-xl hover:dark:bg-white/10 hover:bg-black/10">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -160,11 +160,11 @@ export default function CreateOrderModal({ isOpen, onClose, customerName, custom
                 </div>
                 
                 {loading ? (
-                  <p className="text-xs text-slate-600 dark:text-dark-500 italic">Loading catalog...</p>
+                  <p className="text-xs text-slate-600 dark:text-slate-600 dark:text-dark-700 italic">Loading catalog...</p>
                 ) : items.length === 0 ? (
                   <div className="p-6 text-center border border-dashed dark:border-white/10 border-black/10 rounded-xl dark:bg-white/5 bg-black/5">
-                    <ShoppingBag className="w-8 h-8 text-slate-600 dark:text-dark-500 mx-auto mb-2" />
-                    <p className="text-xs text-dark-400">No items added to this order.</p>
+                    <ShoppingBag className="w-8 h-8 text-slate-600 dark:text-slate-600 dark:text-dark-700 mx-auto mb-2" />
+                    <p className="text-xs text-slate-600 dark:text-dark-600">No items added to this order.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">

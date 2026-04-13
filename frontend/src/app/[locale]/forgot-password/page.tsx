@@ -49,15 +49,15 @@ export default function ForgotPasswordPage() {
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
               <h1 className="text-3xl font-heading font-black dark:text-white text-gray-900 tracking-tight">{t('auth.forgot_password')}</h1>
-              <p className="text-dark-400 text-sm mt-2 font-medium">Enter your email to receive a reset code.</p>
+              <p className="text-slate-600 dark:text-dark-600 text-sm mt-2 font-medium">Enter your email to receive a reset code.</p>
             </div>
 
             {!sent ? (
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-dark-400 uppercase tracking-widest ml-1">{t('auth.email')}</label>
+                  <label className="text-xs font-bold text-slate-600 dark:text-dark-600 uppercase tracking-widest ml-1">{t('auth.email')}</label>
                   <div className="relative group">
-                    <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-600 dark:text-dark-500 group-focus-within:text-primary transition-colors" />
+                    <Mail className="absolute left-3.5 top-3.5 w-5 h-5 text-slate-600 dark:text-slate-600 dark:text-dark-700 group-focus-within:text-primary transition-colors" />
                     <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="email@example.com" className="input-field pl-11 dark:bg-white/5 bg-black/5 dark:border-white/10 border-black/10 focus:dark:bg-white/10 focus:bg-black/10" required />
                   </div>
                 </div>
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
                   <Mail className="w-8 h-8 text-success" />
                 </div>
                 <h3 className="text-xl font-bold dark:text-white text-gray-900 mb-2">Check your email!</h3>
-                <p className="text-dark-400 text-sm mb-8 leading-relaxed">
+                <p className="text-slate-600 dark:text-dark-600 text-sm mb-8 leading-relaxed">
                   We sent a 6-digit code to <br/>
                   <span className="text-primary font-bold">{email}</span>
                 </p>
@@ -83,7 +83,7 @@ export default function ForgotPasswordPage() {
 
             <div className="mt-8 text-center">
               <Link href="/login" className="text-primary font-bold hover:text-primary-400 transition-colors text-sm flex items-center justify-center gap-2">
-                <span className="text-slate-600 dark:text-dark-500 font-medium">Wait, I remember!</span> {t('common.back')} to Login
+                <span className="text-slate-600 dark:text-slate-600 dark:text-dark-700 font-medium">Wait, I remember!</span> {t('common.back')} to Login
               </Link>
             </div>
           </div>

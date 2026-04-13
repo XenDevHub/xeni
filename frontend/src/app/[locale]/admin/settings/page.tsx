@@ -46,7 +46,7 @@ export default function AdminSettingsPage() {
       <div className="flex justify-between items-end">
         <div>
           <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">System Settings</h1>
-          <p className="text-slate-600 dark:text-dark-500">Configure global platform parameters and infrastructure links.</p>
+          <p className="text-slate-600 dark:text-slate-600 dark:text-dark-700">Configure global platform parameters and infrastructure links.</p>
         </div>
         <button 
           onClick={handleSave} 
@@ -70,7 +70,7 @@ export default function AdminSettingsPage() {
               </div>
               <div>
                  <h3 className="text-lg font-heading font-bold dark:text-white text-gray-900">AI Global Agent Rules</h3>
-                 <p className="text-[11px] text-slate-600 dark:text-dark-500 mt-1">Manage structured, priority-based platform constraints for all AI agents.</p>
+                 <p className="text-[11px] text-slate-600 dark:text-slate-600 dark:text-dark-700 mt-1">Manage structured, priority-based platform constraints for all AI agents.</p>
               </div>
             </div>
             
@@ -93,17 +93,17 @@ export default function AdminSettingsPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-600 dark:text-dark-500 uppercase tracking-wider">Site Name</label>
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase tracking-wider">Site Name</label>
                 <input type="text" defaultValue="Xeni AI" className="input-field" />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-600 dark:text-dark-500 uppercase tracking-wider">Support Email</label>
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase tracking-wider">Support Email</label>
                 <input type="email" defaultValue="support@xeni.ai" className="input-field" />
               </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-600 dark:text-dark-500 uppercase tracking-wider">Logo URL (Dark Mode)</label>
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-600 dark:text-dark-700 uppercase tracking-wider">Logo URL (Dark Mode)</label>
               <div className="flex gap-4">
                 <input type="text" defaultValue="/logo-full.png" className="input-field flex-1" />
                 <button className="btn-secondary px-4 text-xs">Preview</button>

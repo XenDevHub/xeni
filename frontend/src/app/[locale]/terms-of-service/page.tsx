@@ -37,7 +37,7 @@ export default function TermsOfServicePage() {
       </div>
 
       <div className="relative max-w-4xl mx-auto px-6 py-20">
-        <Link href="/" className="inline-flex items-center gap-2 text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors mb-12 group">
+        <Link href="/" className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:dark:text-white hover:text-gray-900 transition-colors mb-12 group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Back to Landing
         </Link>
         
@@ -62,7 +62,7 @@ export default function TermsOfServicePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-xl text-dark-400"
+            className="text-xl text-slate-600 dark:text-dark-600"
           >
             Please read these terms carefully before using the Xeni AI platform.
           </motion.p>
@@ -84,7 +84,7 @@ export default function TermsOfServicePage() {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold dark:text-white text-gray-900 mb-4">{term.title}</h2>
-                  <p className="text-dark-400 leading-relaxed italic">
+                  <p className="text-slate-600 dark:text-dark-600 leading-relaxed italic">
                     {term.content}
                   </p>
                 </div>
@@ -93,7 +93,7 @@ export default function TermsOfServicePage() {
           ))}
         </div>
 
-        <footer className="mt-20 pt-12 border-t dark:border-white/10 border-black/10 text-center text-slate-600 dark:text-dark-500 text-sm">
+        <footer className="mt-20 pt-12 border-t dark:border-white/10 border-black/10 text-center text-slate-600 dark:text-slate-600 dark:text-dark-700 text-sm">
           <p>© {new Date().getFullYear()} Xentro Infotech. All rights reserved.</p>
           <p className="mt-2 text-dark-600">Headquarters: Dhaka, Bangladesh</p>
         </footer>

@@ -80,7 +80,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         {/* Bottom Section */}
         <div className="border-t dark:border-white/10 border-black/10 p-4 space-y-2">
-          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 hover:dark:bg-white/5 hover:bg-black/5 transition-all">
+          <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:dark:text-white hover:text-gray-900 hover:dark:bg-white/5 hover:bg-black/5 transition-all">
             <ArrowLeft className="w-5 h-5 shrink-0" />
             <span>Back to App</span>
           </Link>
@@ -96,7 +96,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <p className="text-xs text-primary-300 truncate">{user?.role === 'super_admin' ? 'Super Admin' : 'Admin'}</p>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={toggleTheme} title="Toggle Theme" className="p-2 rounded-lg hover:dark:bg-white/10 hover:bg-black/10 transition-all text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900">
+            <button onClick={toggleTheme} title="Toggle Theme" className="p-2 rounded-lg hover:dark:bg-white/10 hover:bg-black/10 transition-all text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:dark:text-white hover:text-gray-900">
               {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-cyan-400" />}
             </button>
             <button onClick={handleLogout} title="Logout" className="p-2 rounded-lg hover:bg-danger/20 transition-all text-danger/70 hover:text-danger">

@@ -64,19 +64,19 @@ export default function AgentPage() {
       case 'completed': return <CheckCircle className="w-4 h-4 text-success" />;
       case 'failed': return <XCircle className="w-4 h-4 text-danger" />;
       case 'processing': return <Zap className="w-4 h-4 text-primary animate-pulse" />;
-      default: return <Clock className="w-4 h-4 text-slate-600 dark:text-dark-500" />;
+      default: return <Clock className="w-4 h-4 text-slate-600 dark:text-slate-600 dark:text-dark-700" />;
     }
   };
 
   return (
     <div className="min-h-screen bg-dark px-6 py-8">
       <div className="max-w-4xl mx-auto">
-        <Link href="/dashboard" className="flex items-center gap-2 text-slate-600 dark:text-dark-500 hover:dark:text-white hover:text-gray-900 transition-colors mb-6 text-sm">
+        <Link href="/dashboard" className="flex items-center gap-2 text-slate-600 dark:text-slate-600 dark:text-dark-700 hover:dark:text-white hover:text-gray-900 transition-colors mb-6 text-sm">
           <ArrowLeft className="w-4 h-4" /> {t('common.back')}
         </Link>
 
         <h1 className="text-3xl font-heading font-bold dark:text-white text-gray-900 mb-2">{t(`agents.${agentKey}.name`)}</h1>
-        <p className="text-slate-600 dark:text-dark-500 mb-8">{t(`agents.${agentKey}.description`)}</p>
+        <p className="text-slate-600 dark:text-slate-600 dark:text-dark-700 mb-8">{t(`agents.${agentKey}.description`)}</p>
 
         {/* Input Form */}
         <div className="glass-card p-6 mb-8">
@@ -109,18 +109,18 @@ export default function AgentPage() {
         <h2 className="text-xl font-heading font-semibold dark:text-white text-gray-900 mb-4">History</h2>
         <div className="space-y-3">
           {tasks.length === 0 ? (
-            <p className="text-slate-600 dark:text-dark-500 text-center py-8">{t('common.no_results')}</p>
+            <p className="text-slate-600 dark:text-slate-600 dark:text-dark-700 text-center py-8">{t('common.no_results')}</p>
           ) : tasks.map((task, i) => (
             <motion.div key={task.task_id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.05 }} className="glass-card p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {statusIcon(task.status)}
                 <div>
                   <p className="dark:text-white text-gray-900 text-sm font-medium">{task.task_id.slice(0, 8)}...</p>
-                  <p className="text-slate-600 dark:text-dark-500 text-xs">{new Date(task.created_at).toLocaleString()}</p>
+                  <p className="text-slate-600 dark:text-slate-600 dark:text-dark-700 text-xs">{new Date(task.created_at).toLocaleString()}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                {task.duration_ms && <span className="text-slate-600 dark:text-dark-500 text-xs">{task.duration_ms}ms</span>}
+                {task.duration_ms && <span className="text-slate-600 dark:text-slate-600 dark:text-dark-700 text-xs">{task.duration_ms}ms</span>}
                 <span className={`badge ${task.status === 'completed' ? 'badge-success' : task.status === 'failed' ? 'badge-danger' : 'badge-warning'}`}>{t(`status.${task.status}`)}</span>
               </div>
             </motion.div>
