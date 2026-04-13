@@ -159,7 +159,7 @@ func Setup(
 	productsGroup.Delete("/:id", productsHandler.DeleteProduct)
 
 	// ── Order Routes ──
-	ordersHandler := orders.NewHandler(db)
+	ordersHandler := orders.NewHandler(db, rmqClient, wsHub, notifSvc)
 	ordersGroup := api.Group("/orders", middleware.AuthMiddleware(jwtManager, redis), apiRateLimit)
 	ordersGroup.Get("", ordersHandler.ListOrders)
 	ordersGroup.Get("/stats", ordersHandler.GetOrderStats)

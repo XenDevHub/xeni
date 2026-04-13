@@ -1,6 +1,7 @@
 package notifications
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/google/uuid"
@@ -98,4 +99,56 @@ func (s *Service) SendSystemFailureAlert(agentType, errorMsg string) {
 			}
 		}(to)
 	}
+}
+
+// SendPaymentAlert sends a WhatsApp alert to the shop owner about a payment event.
+// if isManualRequired is true, it emphasizes that action is needed.
+func (s *Service) SendPaymentAlert(shopID uuid.UUID, orderIDShort string, customerName string, amount float64, isManualRequired bool) {
+	if s.WhatsApp == nil {
+		slog.Warn("WhatsApp client not initialized, skipping payment notification")
+		return
+	}
+
+	var shop models.Shop
+	if err := s.DB.Preload("User").Where("id = ?", shopID).First(&shop).Error; err != nil {
+		slog.Error("failed to find shop for payment alert", "shop_id", shopID, "error", err)
+		return
+	}
+
+	// Priority: owner_mobile > whatsapp_number > user whatsapp
+	to := ""
+	if shop.OwnerMobile != nil && *shop.OwnerMobile != "" {
+		to = *shop.OwnerMobile
+	} else if shop.WhatsAppNumber != nil && *shop.WhatsAppNumber != "" {
+		to = *shop.WhatsAppNumber
+	} else if shop.User.WhatsAppNumber != nil && *shop.User.WhatsAppNumber != "" {
+		to = *shop.User.WhatsAppNumber
+	}
+
+	if to == "" {
+		slog.Warn("no whatsapp/mobile number found for payment alert", "shop_id", shopID)
+		return
+	}
+
+	if customerName == "" {
+		customerName = "একজন কাস্টমার"
+	}
+
+	amountStr := fmt.Sprintf("%.0f", amount)
+	params := []string{shop.ShopName, orderIDShort, amountStr, customerName}
+	
+	// We'll use two different templates based on state. 
+	// Make sure these are created in your Meta WhatsApp Manager.
+	templateName := "payment_auto_verified_bn"
+	if isManualRequired {
+		templateName = "payment_manual_review_bn"
+	}
+
+	go func() {
+		if err := s.WhatsApp.SendTemplate(to, templateName, "bn", params); err != nil {
+			slog.Error("failed to send payment whatsapp alert", "to", to, "error", err)
+		} else {
+			slog.Info("payment whatsapp alert sent", "to", to, "order", orderIDShort, "manual", isManualRequired)
+		}
+	}()
 }

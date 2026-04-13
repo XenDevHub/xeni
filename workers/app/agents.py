@@ -402,23 +402,133 @@ class OrderAgent(BaseWorker):
         }
 
     def _verify_trxid(self, payload: dict) -> dict:
-        """Verify payment via TrxID — call API if credentials exist, else manual review."""
+        """Verify payment via TrxID — call real API if credentials exist, else manual review."""
         trx_id = payload.get("trx_id", "")
         payment_method = payload.get("payment_method", "unknown")
         order_id = payload.get("order_id", "")
+        expected_amount = payload.get("expected_amount", 0)
+        verification_mode = payload.get("payment_verification_mode", "manual")
 
-        logger.info(f"TrxID verification for order {order_id}: {trx_id} ({payment_method})")
+        logger.info(f"TrxID verification for order {order_id}: {trx_id} ({payment_method}), mode={verification_mode}")
 
-        # Step A: Try real API if credentials are available
-        if payment_method == "bkash" and settings.BKASH_APP_KEY:
-            logger.info("bKash API credentials found — calling verification API...")
-            # TODO: Implement real bKash Tokenized API call
-            # For now, mark as manual_required
-        elif payment_method == "nagad" and settings.NAGAD_MERCHANT_ID:
-            logger.info("Nagad API credentials found — calling verification API...")
-            # TODO: Implement real Nagad API call
+        # Step A: Try real bKash API if credentials provided
+        if payment_method == "bkash":
+            bkash_app_key = payload.get("bkash_app_key", "")
+            bkash_app_secret = payload.get("bkash_app_secret", "")
 
-        # Step B: No API credentials — send to manual review
+            if bkash_app_key and bkash_app_secret:
+                logger.info("bKash API credentials found — calling verification API...")
+                try:
+                    # 1. Get token
+                    token_url = "https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout/token/grant"
+                    token_resp = httpx.post(token_url, json={
+                        "app_key": bkash_app_key,
+                        "app_secret": bkash_app_secret,
+                    }, headers={"Content-Type": "application/json"}, timeout=15.0)
+
+                    if token_resp.status_code == 200:
+                        token_data = token_resp.json()
+                        id_token = token_data.get("id_token", "")
+
+                        if id_token:
+                            # 2. Search transaction
+                            search_url = "https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout/general/searchTransaction"
+                            search_resp = httpx.post(search_url, json={"trxID": trx_id}, headers={
+                                "Content-Type": "application/json",
+                                "Authorization": id_token,
+                                "X-App-Key": bkash_app_key,
+                            }, timeout=15.0)
+
+                            if search_resp.status_code == 200:
+                                search_data = search_resp.json()
+                                trx_status = search_data.get("transactionStatus", "")
+                                trx_amount = float(search_data.get("amount", "0"))
+
+                                if trx_status == "Completed" and abs(trx_amount - expected_amount) <= 5:
+                                    return {
+                                        "verify_action": "trxid_check",
+                                        "order_id": order_id,
+                                        "payment_status": "verified",
+                                        "verified_by": "bkash_api",
+                                        "extracted_trx_id": trx_id,
+                                        "payment_method": "bkash",
+                                        "customer_psid": payload.get("customer_psid"),
+                                        "page_id": payload.get("page_id"),
+                                        "conversation_id": payload.get("conversation_id"),
+                                        "shop_id": payload.get("shop_id"),
+                                        "summary": f"Payment verified via bKash API. TrxID: {trx_id}, Amount: ৳{trx_amount}",
+                                    }
+                                else:
+                                    return {
+                                        "verify_action": "trxid_check",
+                                        "order_id": order_id,
+                                        "payment_status": "failed",
+                                        "verified_by": "bkash_api",
+                                        "extracted_trx_id": trx_id,
+                                        "payment_method": "bkash",
+                                        "customer_psid": payload.get("customer_psid"),
+                                        "page_id": payload.get("page_id"),
+                                        "conversation_id": payload.get("conversation_id"),
+                                        "shop_id": payload.get("shop_id"),
+                                        "summary": f"bKash API: Transaction {trx_status}, amount mismatch or incomplete.",
+                                    }
+                except Exception as e:
+                    logger.error(f"bKash API verification failed: {e}")
+                    # Fall through to manual review
+
+        # Step B: Try real Nagad API if credentials provided
+        elif payment_method == "nagad":
+            nagad_merchant_id = payload.get("nagad_merchant_id", "")
+            nagad_merchant_key = payload.get("nagad_merchant_key", "")
+
+            if nagad_merchant_id and nagad_merchant_key:
+                logger.info("Nagad API credentials found — calling verification API...")
+                try:
+                    verify_url = f"https://api.mynagad.com/api/dfs/verify/payment/{trx_id}"
+                    verify_resp = httpx.get(verify_url, headers={
+                        "X-KM-Api-Version": "v-0.2.0",
+                        "X-KM-IP-V4": "127.0.0.1",
+                        "X-KM-Client-Type": "PC_WEB",
+                    }, timeout=15.0)
+
+                    if verify_resp.status_code == 200:
+                        verify_data = verify_resp.json()
+                        nagad_status = verify_data.get("status", "")
+                        nagad_amount = float(verify_data.get("amount", "0"))
+
+                        if nagad_status == "Success" and abs(nagad_amount - expected_amount) <= 5:
+                            return {
+                                "verify_action": "trxid_check",
+                                "order_id": order_id,
+                                "payment_status": "verified",
+                                "verified_by": "nagad_api",
+                                "extracted_trx_id": trx_id,
+                                "payment_method": "nagad",
+                                "customer_psid": payload.get("customer_psid"),
+                                "page_id": payload.get("page_id"),
+                                "conversation_id": payload.get("conversation_id"),
+                                "shop_id": payload.get("shop_id"),
+                                "summary": f"Payment verified via Nagad API. TrxID: {trx_id}, Amount: ৳{nagad_amount}",
+                            }
+                        else:
+                            return {
+                                "verify_action": "trxid_check",
+                                "order_id": order_id,
+                                "payment_status": "failed",
+                                "verified_by": "nagad_api",
+                                "extracted_trx_id": trx_id,
+                                "payment_method": "nagad",
+                                "customer_psid": payload.get("customer_psid"),
+                                "page_id": payload.get("page_id"),
+                                "conversation_id": payload.get("conversation_id"),
+                                "shop_id": payload.get("shop_id"),
+                                "summary": f"Nagad API: Status {nagad_status}, amount mismatch or incomplete.",
+                            }
+                except Exception as e:
+                    logger.error(f"Nagad API verification failed: {e}")
+                    # Fall through to manual review
+
+        # Step C: No API credentials or API call failed — send to manual review
         return {
             "verify_action": "trxid_check",
             "order_id": order_id,
@@ -430,7 +540,7 @@ class OrderAgent(BaseWorker):
             "page_id": payload.get("page_id"),
             "conversation_id": payload.get("conversation_id"),
             "shop_id": payload.get("shop_id"),
-            "summary": f"TrxID {trx_id} received — sent to manual review.",
+            "summary": f"TrxID {trx_id} received — sent to manual review (no API credentials).",
         }
 
     def _verify_payment_legacy(self, method: str, trx_id: str, amount: float) -> dict:

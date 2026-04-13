@@ -21,6 +21,15 @@ type Shop struct {
 	BkashMerchantNumber *string   `gorm:"size:20" json:"bkash_merchant_number"`
 	NagadMerchantNumber *string   `gorm:"size:20" json:"nagad_merchant_number"`
 	WhatsAppNumber      *string   `gorm:"size:20" json:"whatsapp_number"`
+	OwnerMobile         *string   `gorm:"size:20" json:"owner_mobile"`
+	District            *string   `gorm:"size:100" json:"district"`
+	DeliveryChargeInside  float64 `gorm:"type:decimal(8,2);default:60;not null" json:"delivery_charge_inside"`
+	DeliveryChargeOutside float64 `gorm:"type:decimal(8,2);default:120;not null" json:"delivery_charge_outside"`
+	PaymentVerificationMode string `gorm:"size:10;default:'manual';not null" json:"payment_verification_mode"`
+	BkashAppKey         *string   `gorm:"size:255" json:"bkash_app_key"`
+	BkashAppSecret      *string   `gorm:"size:255" json:"-"`
+	NagadMerchantID     *string   `gorm:"size:255" json:"nagad_merchant_id"`
+	NagadMerchantKey    *string   `gorm:"size:255" json:"-"`
 	AutoReplyEnabled    bool      `gorm:"default:true;not null" json:"auto_reply_enabled"`
 	AutoOrderEnabled    bool      `gorm:"default:true;not null" json:"auto_order_enabled"`
 	Integrations        JSON      `gorm:"type:jsonb;default:'{}'" json:"integrations"`

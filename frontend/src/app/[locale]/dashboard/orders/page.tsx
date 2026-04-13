@@ -7,7 +7,7 @@ import {
   ShoppingBag, Filter, Eye, ChevronDown, CheckCircle2, 
   MapPin, Phone, CreditCard, Truck, Calendar, 
   ArrowRight, Search, Zap, Clock, X, Printer, User, DollarSign,
-  AlertTriangle, Copy, Image as ImageIcon, Shield, XCircle
+  AlertTriangle, Copy, Image as ImageIcon, Shield, XCircle, Brain
 } from 'lucide-react';
 import api from '@/lib/api';
 import toast from 'react-hot-toast';
@@ -479,9 +479,13 @@ export default function OrdersPage() {
                  <div className="p-4 bg-success/5 border border-success/20 rounded-2xl flex items-center gap-3">
                    <Shield className="w-5 h-5 text-success" />
                    <div>
-                     <p className="text-xs font-bold text-success">
-                       Verified by: <span className="capitalize">{selectedOrder.verified_by}</span>
-                       {selectedOrder.verified_at && ` — ${new Date(selectedOrder.verified_at).toLocaleString()}`}
+                     <p className="text-xs font-bold text-success flex items-center gap-2">
+                       {selectedOrder.verified_by.includes('_api') ? (
+                         <><Brain className="w-3 h-3" /> Auto-Verified by API</>
+                       ) : (
+                         <><User className="w-3 h-3" /> Manually Verified by: <span className="capitalize">{selectedOrder.verified_by}</span></>
+                       )}
+                       {selectedOrder.verified_at && <span className="text-success/70 font-normal">— {new Date(selectedOrder.verified_at).toLocaleString()}</span>}
                      </p>
                      {selectedOrder.admin_note && (
                        <p className="text-[10px] text-success/70 mt-1">Note: {selectedOrder.admin_note}</p>

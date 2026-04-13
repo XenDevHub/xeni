@@ -642,7 +642,11 @@ func (h *Handler) handleVerifyPaymentTrxID(result rabbitmq.ResultMessage) {
 	// Save TrxID to the order immediately
 	h.DB.Model(&pendingOrder).Update("payment_trx_id", trxID)
 
-	h.dispatchPaymentVerification(map[string]interface{}{
+	// Fetch shop's payment API credentials
+	var shop models.Shop
+	h.DB.First(&shop, sid)
+
+	payload := map[string]interface{}{
 		"verify_action":   "trxid_check",
 		"trx_id":          trxID,
 		"payment_method":  paymentMethod,
@@ -652,7 +656,24 @@ func (h *Handler) handleVerifyPaymentTrxID(result rabbitmq.ResultMessage) {
 		"shop_id":         shopIDStr,
 		"page_id":         pageID,
 		"conversation_id": convIDStr,
-	})
+		"payment_verification_mode": shop.PaymentVerificationMode,
+	}
+
+	// Include API credentials if shop has them configured
+	if shop.BkashAppKey != nil && *shop.BkashAppKey != "" {
+		payload["bkash_app_key"] = *shop.BkashAppKey
+	}
+	if shop.BkashAppSecret != nil && *shop.BkashAppSecret != "" {
+		payload["bkash_app_secret"] = *shop.BkashAppSecret
+	}
+	if shop.NagadMerchantID != nil && *shop.NagadMerchantID != "" {
+		payload["nagad_merchant_id"] = *shop.NagadMerchantID
+	}
+	if shop.NagadMerchantKey != nil && *shop.NagadMerchantKey != "" {
+		payload["nagad_merchant_key"] = *shop.NagadMerchantKey
+	}
+
+	h.dispatchPaymentVerification(payload)
 }
 
 // dispatchPaymentVerification sends a payment verification task to the OrderAgent via RabbitMQ.
@@ -719,6 +740,32 @@ func (h *Handler) handlePaymentVerificationResult(result rabbitmq.ResultMessage)
 		orderUpdates["verified_at"] = &now
 		messengerReply = fmt.Sprintf("✅ আপনার পেমেন্ট নিশ্চিত হয়েছে! অর্ডার #%s প্রসেস হচ্ছে। শীঘ্রই ডেলিভারি ব্যবস্থা করা হবে। 🚚", orderIDStr[:8])
 
+		sid, _ := uuid.Parse(shopIDStr)
+		var shop models.Shop
+		h.DB.First(&shop, sid)
+
+		var order models.Order
+		h.DB.First(&order, orderID)
+
+		// Send WebSocket alert to seller dashboard
+		h.WSHub.SendToUser(shop.UserID.String(), websocket.Event{
+			EventType: "payment.confirmed",
+			Payload: map[string]interface{}{
+				"order_id":      orderIDStr,
+				"customer_name": order.CustomerName,
+				"amount":        order.TotalAmount,
+			},
+		})
+
+		// Send WhatsApp notification to shop owner about auto-verified payment
+		if h.NotifSvc != nil {
+			custName := ""
+			if order.CustomerName != nil {
+				custName = *order.CustomerName
+			}
+			h.NotifSvc.SendPaymentAlert(sid, orderIDStr[:8], custName, order.TotalAmount, false)
+		}
+
 		// Trigger courier booking
 		go h.dispatchPaymentVerification(map[string]interface{}{
 			"verify_action": "",
@@ -747,6 +794,15 @@ func (h *Handler) handlePaymentVerificationResult(result rabbitmq.ResultMessage)
 				"screenshot_url": order.PaymentScreenshotURL,
 			},
 		})
+
+		// Send WhatsApp notification to shop owner for manual review
+		if h.NotifSvc != nil {
+			custName := ""
+			if order.CustomerName != nil {
+				custName = *order.CustomerName
+			}
+			h.NotifSvc.SendPaymentAlert(sid, orderIDStr[:8], custName, order.TotalAmount, true)
+		}
 
 	case "failed":
 		messengerReply = "দুঃখিত, পেমেন্ট verify করা যায়নি। সঠিক Transaction ID বা screenshot পাঠান দয়া করে। 🙏"

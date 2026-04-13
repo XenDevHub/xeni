@@ -1,7 +1,11 @@
 package orders
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"log/slog"
+	"net/http"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,17 +13,23 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/xeni-ai/gateway/internal/models"
+	"github.com/xeni-ai/gateway/internal/notifications"
+	"github.com/xeni-ai/gateway/internal/rabbitmq"
+	"github.com/xeni-ai/gateway/internal/websocket"
 	"github.com/xeni-ai/gateway/pkg/response"
 )
 
 // Handler holds order dependencies.
 type Handler struct {
-	DB *gorm.DB
+	DB       *gorm.DB
+	RabbitMQ *rabbitmq.Client
+	WSHub    *websocket.Hub
+	NotifSvc *notifications.Service
 }
 
 // NewHandler creates a new orders handler.
-func NewHandler(db *gorm.DB) *Handler {
-	return &Handler{DB: db}
+func NewHandler(db *gorm.DB, rmq *rabbitmq.Client, wsHub *websocket.Hub, notifSvc *notifications.Service) *Handler {
+	return &Handler{DB: db, RabbitMQ: rmq, WSHub: wsHub, NotifSvc: notifSvc}
 }
 
 func (h *Handler) getUserShop(userID string) (*models.Shop, error) {
@@ -342,6 +352,9 @@ func (h *Handler) ConfirmPayment(c *fiber.Ctx) error {
 	h.DB.Model(&order).Updates(updates)
 	h.DB.First(&order, order.ID)
 
+	// Trigger downstream: notify customer + dispatch courier booking
+	go h.triggerPostPaymentWorkflow(&order, shop)
+
 	return response.Success(c, order)
 }
 
@@ -378,5 +391,77 @@ func (h *Handler) RejectPayment(c *fiber.Ctx) error {
 	h.DB.Model(&order).Updates(updates)
 	h.DB.First(&order, order.ID)
 
+	// Notify customer about rejection
+	go h.notifyCustomerPaymentRejected(&order)
+
 	return response.Success(c, order)
+}
+
+// triggerPostPaymentWorkflow dispatches courier booking and notifies customer after payment confirmation.
+func (h *Handler) triggerPostPaymentWorkflow(order *models.Order, shop *models.Shop) {
+	// 1. Notify customer via Messenger
+	if order.CustomerPSID != nil && *order.CustomerPSID != "" {
+		var page models.ConnectedPage
+		if err := h.DB.Where("shop_id = ? AND is_active = true", shop.ID).First(&page).Error; err == nil {
+			reply := fmt.Sprintf("✅ আপনার পেমেন্ট নিশ্চিত হয়েছে! অর্ডার #%s প্রসেস হচ্ছে। শীঘ্রই ডেলিভারি ব্যবস্থা করা হবে। 🚚", order.ID.String()[:8])
+			h.sendMessengerMessage(*order.CustomerPSID, reply, page.PageAccessToken)
+
+			// Save outbound message
+			if order.MessengerThreadID != nil {
+				var conv models.Conversation
+				if err := h.DB.Where("shop_id = ? AND customer_psid = ?", shop.ID, *order.CustomerPSID).First(&conv).Error; err == nil {
+					h.DB.Create(&models.Message{
+						ConversationID: conv.ID,
+						Direction:      models.DirectionOutbound,
+						SenderType:     models.SenderAI,
+						ContentType:    models.ContentText,
+						ContentText:    &reply,
+						SentAt:         time.Now(),
+					})
+				}
+			}
+		}
+	}
+
+	// 2. Send WebSocket event to dashboard
+	h.WSHub.SendToUser(shop.UserID.String(), websocket.Event{
+		EventType: "payment.confirmed",
+		Payload: map[string]interface{}{
+			"order_id":      order.ID.String(),
+			"customer_name": order.CustomerName,
+			"amount":        order.TotalAmount,
+		},
+	})
+
+	slog.Info("Post-payment workflow triggered", "order_id", order.ID)
+}
+
+// notifyCustomerPaymentRejected informs the customer that their payment was rejected.
+func (h *Handler) notifyCustomerPaymentRejected(order *models.Order) {
+	if order.CustomerPSID == nil || *order.CustomerPSID == "" {
+		return
+	}
+
+	var page models.ConnectedPage
+	if err := h.DB.Where("shop_id = ? AND is_active = true", order.ShopID).First(&page).Error; err != nil {
+		return
+	}
+
+	reply := "দুঃখিত, আপনার পেমেন্ট verify করা যায়নি। সঠিক Transaction ID বা নতুন পেমেন্ট পাঠান দয়া করে। 🙏"
+	h.sendMessengerMessage(*order.CustomerPSID, reply, page.PageAccessToken)
+}
+
+func (h *Handler) sendMessengerMessage(psid, text, token string) {
+	url := fmt.Sprintf("https://graph.facebook.com/v19.0/me/messages?access_token=%s", token)
+	payload := map[string]interface{}{
+		"recipient": map[string]string{"id": psid},
+		"message":   map[string]string{"text": text},
+	}
+	b, _ := json.Marshal(payload)
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(b))
+	if err != nil {
+		slog.Error("failed to send messenger reply from orders handler", "error", err)
+		return
+	}
+	defer resp.Body.Close()
 }

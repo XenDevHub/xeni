@@ -16,6 +16,13 @@ interface Shop {
   courier_preference: string;
   bkash_merchant_number: string | null;
   nagad_merchant_number: string | null;
+  owner_mobile?: string | null;
+  district?: string | null;
+  delivery_charge_inside?: number;
+  delivery_charge_outside?: number;
+  payment_verification_mode?: string;
+  bkash_app_key?: string | null;
+  nagad_merchant_id?: string | null;
   auto_reply_enabled: boolean;
   auto_order_enabled: boolean;
   custom_agent_rules?: string | null;
@@ -35,6 +42,15 @@ export default function ShopPage() {
     courier_preference: 'pathao',
     bkash_merchant_number: '',
     nagad_merchant_number: '',
+    owner_mobile: '',
+    district: '',
+    delivery_charge_inside: 60,
+    delivery_charge_outside: 120,
+    payment_verification_mode: 'manual',
+    bkash_app_key: '',
+    bkash_app_secret: '',
+    nagad_merchant_id: '',
+    nagad_merchant_key: '',
     auto_reply_enabled: true,
     auto_order_enabled: true,
     custom_agent_rules: '',
@@ -67,6 +83,15 @@ export default function ShopPage() {
           courier_preference: s.courier_preference || 'pathao',
           bkash_merchant_number: s.bkash_merchant_number || '',
           nagad_merchant_number: s.nagad_merchant_number || '',
+          owner_mobile: s.owner_mobile || '',
+          district: s.district || '',
+          delivery_charge_inside: s.delivery_charge_inside ?? 60,
+          delivery_charge_outside: s.delivery_charge_outside ?? 120,
+          payment_verification_mode: s.payment_verification_mode || 'manual',
+          bkash_app_key: s.bkash_app_key || '',
+          bkash_app_secret: '', // Security: don't show secret
+          nagad_merchant_id: s.nagad_merchant_id || '',
+          nagad_merchant_key: '', // Security: don't show secret
           auto_reply_enabled: s.auto_reply_enabled ?? true,
           auto_order_enabled: s.auto_order_enabled ?? true,
           custom_agent_rules: s.custom_agent_rules || '',
@@ -154,6 +179,31 @@ export default function ShopPage() {
             />
           </div>
 
+          {/* Contact & Location */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--text-secondary)' }}>
+                <Smartphone className="w-4 h-4" /> Owner Mobile (WhatsApp)
+              </label>
+              <input 
+                className="input-field" 
+                placeholder="01XXXXXXXXX" 
+                value={form.owner_mobile} 
+                onChange={e => setForm({ ...form, owner_mobile: e.target.value })} 
+                title="Used for manual payment review notifications"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Shop District</label>
+              <input 
+                className="input-field" 
+                placeholder="e.g. Dhaka" 
+                value={form.district} 
+                onChange={e => setForm({ ...form, district: e.target.value })} 
+              />
+            </div>
+          </div>
+
           {/* Language & Courier */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -171,6 +221,24 @@ export default function ShopPage() {
                 <option value="pathao">Pathao</option>
                 <option value="steadfast">Steadfast</option>
               </select>
+            </div>
+          </div>
+
+          {/* Delivery Charges */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Delivery Charge (Inside District)</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">৳</span>
+                <input type="number" min="0" className="input-field pl-8" value={form.delivery_charge_inside} onChange={e => setForm({ ...form, delivery_charge_inside: Number(e.target.value) })} />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Delivery Charge (Outside District)</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">৳</span>
+                <input type="number" min="0" className="input-field pl-8" value={form.delivery_charge_outside} onChange={e => setForm({ ...form, delivery_charge_outside: Number(e.target.value) })} />
+              </div>
             </div>
           </div>
 
@@ -240,6 +308,68 @@ export default function ShopPage() {
               </div>
             </div>
           </div>
+        </motion.div>
+
+        {/* ── Payment API Integration ── */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="glass-card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-lg font-heading font-bold" style={{ color: 'var(--text-primary)' }}>Payment Verification Setup</h2>
+              <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>Configure how order payments are verified by the AI.</p>
+            </div>
+            <select 
+              className="input-field w-auto font-bold" 
+              value={form.payment_verification_mode} 
+              onChange={e => setForm({ ...form, payment_verification_mode: e.target.value })}
+            >
+              <option value="manual">👤 Manual Review</option>
+              <option value="auto">🤖 Auto API Verification</option>
+            </select>
+          </div>
+
+          {form.payment_verification_mode === 'manual' ? (
+            <div className="p-4 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-600 dark:text-orange-400 text-sm flex gap-3">
+              <Info className="w-5 h-5 shrink-0" />
+              <p>আপনি <strong>ম্যানুয়াল রিভিউ</strong> সিলেক্ট করেছেন। কাস্টমার পেমেন্ট ট্রানজেকশন আইডি বা স্ক্রিনশট দিলে সেটা আপনার ড্যাশবোর্ডে <strong>Manual Review</strong> ট্যাবে আসবে এবং আপনি হোয়াটসঅ্যাপে নোটিফিকেশন পাবেন। আপনাকে নিজে চেক করে Approve করতে হবে।</p>
+            </div>
+          ) : (
+            <div className="space-y-6 animate-in slide-in-from-top-2">
+              <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 text-primary text-sm flex gap-3">
+                <Brain className="w-5 h-5 shrink-0" />
+                <p>আপনি <strong>অটো ভেরিফিকেশন</strong> সিলেক্ট করেছেন। দয়া করে নিচের API Key গুলো সঠিকভাবে দিন। কাস্টমার টাকা পাঠালে AI নিজে নিজে চেক করে অর্ডার কনফার্ম করে দিবে।</p>
+              </div>
+
+              {/* bKash Tokenized Checkout API */}
+              <div className="p-4 rounded-xl shadow-sm border" style={{ borderColor: 'var(--border-color)', background: 'var(--bg-primary)' }}>
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-pink-600 dark:text-pink-400">bKash Tokenized API Integration</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>App Key</label>
+                    <input className="input-field" placeholder="bKash App Key" value={form.bkash_app_key} onChange={e => setForm({ ...form, bkash_app_key: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>App Secret <span className="text-[10px] text-gray-400">(leave blank if unchanged)</span></label>
+                    <input className="input-field" type="password" placeholder="bKash App Secret" value={form.bkash_app_secret} onChange={e => setForm({ ...form, bkash_app_secret: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Nagad API */}
+              <div className="p-4 rounded-xl shadow-sm border" style={{ borderColor: 'var(--border-color)', background: 'var(--bg-primary)' }}>
+                <h3 className="font-semibold mb-3 flex items-center gap-2 text-orange-600 dark:text-orange-400">Nagad API Integration</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Merchant ID</label>
+                    <input className="input-field" placeholder="Nagad Merchant ID" value={form.nagad_merchant_id} onChange={e => setForm({ ...form, nagad_merchant_id: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium mb-1" style={{ color: 'var(--text-secondary)' }}>Merchant Key <span className="text-[10px] text-gray-400">(leave blank if unchanged)</span></label>
+                    <input className="input-field" type="password" placeholder="Nagad Merchant Key" value={form.nagad_merchant_key} onChange={e => setForm({ ...form, nagad_merchant_key: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* ── Merchant Courier API Keys ── */}

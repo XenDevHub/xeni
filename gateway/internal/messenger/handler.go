@@ -275,10 +275,14 @@ func (h *Handler) handleIncomingMessage(pageID string, event MessagingEvent) {
 				"global_rules":      globalRules,
 				"shop_rules":        shopRules,
 				"shop_settings": map[string]interface{}{
-					"shop_name":             shop.ShopName,
-					"bkash_number":          shop.BkashMerchantNumber,
-					"nagad_number":          shop.NagadMerchantNumber,
-					"preferred_language":    shop.PreferredLanguage,
+					"shop_name":                  shop.ShopName,
+					"bkash_number":               shop.BkashMerchantNumber,
+					"nagad_number":               shop.NagadMerchantNumber,
+					"preferred_language":         shop.PreferredLanguage,
+					"payment_verification_mode":  shop.PaymentVerificationMode,
+					"district":                   shop.District,
+					"delivery_charge_inside":     shop.DeliveryChargeInside,
+					"delivery_charge_outside":    shop.DeliveryChargeOutside,
 				},
 				"active_order": func() interface{} {
 					if pendingOrder.ID == uuid.Nil {

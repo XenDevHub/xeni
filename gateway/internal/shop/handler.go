@@ -38,6 +38,10 @@ func (h *Handler) CreateShop(c *fiber.Ctx) error {
 		CourierPreference   string  `json:"courier_preference"`
 		BkashMerchantNumber *string `json:"bkash_merchant_number"`
 		NagadMerchantNumber *string `json:"nagad_merchant_number"`
+		OwnerMobile         *string `json:"owner_mobile"`
+		District            *string `json:"district"`
+		DeliveryChargeInside  *float64 `json:"delivery_charge_inside"`
+		DeliveryChargeOutside *float64 `json:"delivery_charge_outside"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return response.BadRequest(c, "Invalid request body")
@@ -61,6 +65,20 @@ func (h *Handler) CreateShop(c *fiber.Ctx) error {
 		CourierPreference:   req.CourierPreference,
 		BkashMerchantNumber: req.BkashMerchantNumber,
 		NagadMerchantNumber: req.NagadMerchantNumber,
+		OwnerMobile:         req.OwnerMobile,
+		District:            req.District,
+		PaymentVerificationMode: "manual",
+	}
+	if req.DeliveryChargeInside != nil {
+		shop.DeliveryChargeInside = *req.DeliveryChargeInside
+	}
+	if req.DeliveryChargeOutside != nil {
+		shop.DeliveryChargeOutside = *req.DeliveryChargeOutside
+	}
+
+	// Auto-set WhatsApp number from owner mobile if not already set
+	if req.OwnerMobile != nil && *req.OwnerMobile != "" {
+		shop.WhatsAppNumber = req.OwnerMobile
 	}
 
 	if err := h.DB.Create(&shop).Error; err != nil {
@@ -101,6 +119,15 @@ func (h *Handler) UpdateMyShop(c *fiber.Ctx) error {
 		CourierPreference   *string `json:"courier_preference"`
 		BkashMerchantNumber *string                 `json:"bkash_merchant_number"`
 		NagadMerchantNumber *string                 `json:"nagad_merchant_number"`
+		OwnerMobile         *string                 `json:"owner_mobile"`
+		District            *string                 `json:"district"`
+		DeliveryChargeInside  *float64               `json:"delivery_charge_inside"`
+		DeliveryChargeOutside *float64               `json:"delivery_charge_outside"`
+		PaymentVerificationMode *string              `json:"payment_verification_mode"`
+		BkashAppKey         *string                 `json:"bkash_app_key"`
+		BkashAppSecret      *string                 `json:"bkash_app_secret"`
+		NagadMerchantID     *string                 `json:"nagad_merchant_id"`
+		NagadMerchantKey    *string                 `json:"nagad_merchant_key"`
 		AutoReplyEnabled    *bool                   `json:"auto_reply_enabled"`
 		AutoOrderEnabled    *bool                   `json:"auto_order_enabled"`
 		Integrations        *map[string]interface{} `json:"integrations"`
@@ -131,6 +158,37 @@ func (h *Handler) UpdateMyShop(c *fiber.Ctx) error {
 	}
 	if req.NagadMerchantNumber != nil {
 		updates["nagad_merchant_number"] = *req.NagadMerchantNumber
+	}
+	if req.OwnerMobile != nil {
+		updates["owner_mobile"] = *req.OwnerMobile
+		// Sync WhatsApp number
+		if *req.OwnerMobile != "" {
+			updates["whatsapp_number"] = *req.OwnerMobile
+		}
+	}
+	if req.District != nil {
+		updates["district"] = *req.District
+	}
+	if req.DeliveryChargeInside != nil {
+		updates["delivery_charge_inside"] = *req.DeliveryChargeInside
+	}
+	if req.DeliveryChargeOutside != nil {
+		updates["delivery_charge_outside"] = *req.DeliveryChargeOutside
+	}
+	if req.PaymentVerificationMode != nil {
+		updates["payment_verification_mode"] = *req.PaymentVerificationMode
+	}
+	if req.BkashAppKey != nil {
+		updates["bkash_app_key"] = *req.BkashAppKey
+	}
+	if req.BkashAppSecret != nil {
+		updates["bkash_app_secret"] = *req.BkashAppSecret
+	}
+	if req.NagadMerchantID != nil {
+		updates["nagad_merchant_id"] = *req.NagadMerchantID
+	}
+	if req.NagadMerchantKey != nil {
+		updates["nagad_merchant_key"] = *req.NagadMerchantKey
 	}
 	if req.AutoReplyEnabled != nil {
 		updates["auto_reply_enabled"] = *req.AutoReplyEnabled
