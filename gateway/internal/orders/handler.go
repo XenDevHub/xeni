@@ -482,8 +482,18 @@ func (h *Handler) triggerPostPaymentWorkflow(order *models.Order, shop *models.S
 		"steadfast_secret_key": shop.SteadfastSecretKey,
 	}
 
-	b, _ := json.Marshal(payload)
-	h.RabbitMQ.Publish("ecommerce.agent.order.queue", string(b))
+	msg := &rabbitmq.TaskMessage{
+		TaskID:     "book_courier_" + order.ID.String(),
+		UserID:     shop.UserID.String(),
+		AgentType:  "order_agent",
+		Priority:   1,
+		RetryCount: 0,
+		CreatedAt:  time.Now().Format(time.RFC3339),
+		Payload:    payload,
+	}
+	if err := h.RabbitMQ.PublishTask(context.Background(), msg); err != nil {
+		slog.Error("failed to publish courier booking task", "error", err)
+	}
 
 	// 3. Send WebSocket event to dashboard
 	h.WSHub.SendToUser(shop.UserID.String(), websocket.Event{

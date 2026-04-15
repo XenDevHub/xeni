@@ -141,7 +141,7 @@ export default function IntegrationsPage() {
           Merchant API Integrations
         </h1>
         <p className="text-[var(--text-secondary)]">
-          Connect your payment and delivery gateways to fully automate your shop's operations. Xeni AI will automatically verify payments and book couriers on your behalf.
+          Connect your payment and delivery gateways to fully automate your shop&apos;s operations. Xeni AI will automatically verify payments and book couriers on your behalf.
         </p>
       </div>
 

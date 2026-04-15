@@ -559,8 +559,6 @@ class OrderAgent(BaseWorker):
 
     def _book_courier(self, payload: dict) -> dict:
         """Book courier using Pathao/Steadfast API if credentials are provided in payload."""
-        phone = payload.get("customer_phone", "")
-        address = payload.get("customer_address", "")
         amount = payload.get("amount", 0)
         courier_pref = payload.get("courier_preference", "pathao")
 
