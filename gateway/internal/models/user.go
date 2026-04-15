@@ -52,7 +52,7 @@ type User struct {
 	PreferredLanguage string       `gorm:"size:5;default:'en';not null" json:"preferred_language"`
 	LastLoginAt       *time.Time   `json:"last_login_at"`
 	SuspendedReason   *string      `gorm:"type:text" json:"suspended_reason"`
-	WhatsAppNumber    *string      `gorm:"size:20" json:"whatsapp_number"`
+	WhatsAppNumber    *string      `gorm:"column:whatsapp_number;size:20" json:"whatsapp_number"`
 	SuspendedAt       *time.Time   `json:"suspended_at"`
 	DeletedAt         *time.Time   `json:"deleted_at"`
 	AdminNote         *string      `gorm:"type:text" json:"admin_note"`
