@@ -125,10 +125,10 @@ export default function IntegrationsPage() {
   }
 
   const tabs = [
-    { id: 'bkash', name: 'bKash API', icon: CreditCardIcon, isConfigured: configured.bkash },
-    { id: 'nagad', name: 'Nagad API', icon: CreditCardIcon, isConfigured: configured.nagad },
-    { id: 'pathao', name: 'Pathao Courier', icon: TruckIcon, isConfigured: configured.pathao },
-    { id: 'steadfast', name: 'SteadFast Courier', icon: TruckIcon, isConfigured: configured.steadfast },
+    { id: 'bkash', name: 'bKash API', icon: CreditCard, isConfigured: configured.bkash },
+    { id: 'nagad', name: 'Nagad API', icon: CreditCard, isConfigured: configured.nagad },
+    { id: 'pathao', name: 'Pathao Courier', icon: Truck, isConfigured: configured.pathao },
+    { id: 'steadfast', name: 'SteadFast Courier', icon: Truck, isConfigured: configured.steadfast },
   ];
 
   return (
