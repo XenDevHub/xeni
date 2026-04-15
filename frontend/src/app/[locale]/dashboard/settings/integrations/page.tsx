@@ -161,9 +161,9 @@ export default function IntegrationsPage() {
                   <span>{tab.name}</span>
                 </div>
                 {tab.isConfigured ? (
-                  <CheckCircleIcon className="w-5 h-5 text-green-500" />
+                  <CheckCircle2 className="w-5 h-5 text-green-500" />
                 ) : (
-                  <ExclamationCircleIcon className="w-5 h-5 text-yellow-500 opacity-60" />
+                  <AlertCircle className="w-5 h-5 text-yellow-500 opacity-60" />
                 )}
               </button>
             ))}
@@ -184,7 +184,7 @@ export default function IntegrationsPage() {
                   </div>
                   {configured.bkash && (
                     <span className="px-3 py-1 bg-green-500/10 text-green-500 text-xs font-semibold rounded-full flex items-center gap-1">
-                      <CheckCircleIcon className="w-4 h-4" /> Connected
+                      <CheckCircle2 className="w-4 h-4" /> Connected
                     </span>
                   )}
                 </div>
@@ -260,7 +260,7 @@ export default function IntegrationsPage() {
                   </div>
                   {configured.nagad && (
                     <span className="px-3 py-1 bg-green-500/10 text-green-500 text-xs font-semibold rounded-full flex items-center gap-1">
-                      <CheckCircleIcon className="w-4 h-4" /> Connected
+                      <CheckCircle2 className="w-4 h-4" /> Connected
                     </span>
                   )}
                 </div>
@@ -312,7 +312,7 @@ export default function IntegrationsPage() {
                   </div>
                   {configured.pathao && (
                     <span className="px-3 py-1 bg-green-500/10 text-green-500 text-xs font-semibold rounded-full flex items-center gap-1">
-                      <CheckCircleIcon className="w-4 h-4" /> Connected
+                      <CheckCircle2 className="w-4 h-4" /> Connected
                     </span>
                   )}
                 </div>
@@ -384,7 +384,7 @@ export default function IntegrationsPage() {
                   </div>
                   {configured.steadfast && (
                     <span className="px-3 py-1 bg-green-500/10 text-green-500 text-xs font-semibold rounded-full flex items-center gap-1">
-                      <CheckCircleIcon className="w-4 h-4" /> Connected
+                      <CheckCircle2 className="w-4 h-4" /> Connected
                     </span>
                   )}
                 </div>
