@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { fetchAPI } from "@/lib/api";
+import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 import { 
-  BuildingStorefrontIcon, 
-  CreditCardIcon, 
-  TruckIcon, 
-  CheckCircleIcon,
-  ExclamationCircleIcon,
-  ChevronRightIcon
-} from "@heroicons/react/24/outline";
+  Store, 
+  CreditCard, 
+  Truck, 
+  CheckCircle2,
+  AlertCircle,
+  ChevronRight
+} from "lucide-react";
 
 export default function IntegrationsPage() {
   const [loading, setLoading] = useState(true);
@@ -49,30 +49,30 @@ export default function IntegrationsPage() {
   const loadIntegrations = async () => {
     try {
       setLoading(true);
-      const res = await fetchAPI("/shops/integrations");
-      if (res.success && res.data) {
+      const res = await api.get("/shops/integrations");
+      if (res.data?.success && res.data?.data) {
         setConfigured({
-          bkash: res.data.bkash?.is_configured || false,
-          nagad: res.data.nagad?.is_configured || false,
-          pathao: res.data.pathao?.is_configured || false,
-          steadfast: res.data.steadfast?.is_configured || false,
+          bkash: res.data.data.bkash?.is_configured || false,
+          nagad: res.data.data.nagad?.is_configured || false,
+          pathao: res.data.data.pathao?.is_configured || false,
+          steadfast: res.data.data.steadfast?.is_configured || false,
         });
         
         // If configured, we display them as masked passwords "********" so the user 
         // knows it's there. The backend ignores "********" on save.
         setFormData({
-          bkash_app_key: res.data.bkash?.is_configured ? "********" : "",
-          bkash_app_secret: res.data.bkash?.is_configured ? "********" : "",
-          bkash_username: res.data.bkash?.is_configured ? "********" : "",
-          bkash_password: res.data.bkash?.is_configured ? "********" : "",
-          nagad_merchant_id: res.data.nagad?.is_configured ? "********" : "",
-          nagad_merchant_key: res.data.nagad?.is_configured ? "********" : "",
-          pathao_client_id: res.data.pathao?.is_configured ? "********" : "",
-          pathao_client_secret: res.data.pathao?.is_configured ? "********" : "",
-          pathao_username: res.data.pathao?.is_configured ? "********" : "",
-          pathao_password: res.data.pathao?.is_configured ? "********" : "",
-          steadfast_api_key: res.data.steadfast?.is_configured ? "********" : "",
-          steadfast_secret_key: res.data.steadfast?.is_configured ? "********" : "",
+          bkash_app_key: res.data.data.bkash?.is_configured ? "********" : "",
+          bkash_app_secret: res.data.data.bkash?.is_configured ? "********" : "",
+          bkash_username: res.data.data.bkash?.is_configured ? "********" : "",
+          bkash_password: res.data.data.bkash?.is_configured ? "********" : "",
+          nagad_merchant_id: res.data.data.nagad?.is_configured ? "********" : "",
+          nagad_merchant_key: res.data.data.nagad?.is_configured ? "********" : "",
+          pathao_client_id: res.data.data.pathao?.is_configured ? "********" : "",
+          pathao_client_secret: res.data.data.pathao?.is_configured ? "********" : "",
+          pathao_username: res.data.data.pathao?.is_configured ? "********" : "",
+          pathao_password: res.data.data.pathao?.is_configured ? "********" : "",
+          steadfast_api_key: res.data.data.steadfast?.is_configured ? "********" : "",
+          steadfast_secret_key: res.data.data.steadfast?.is_configured ? "********" : "",
         });
       }
     } catch (err: any) {
@@ -101,16 +101,13 @@ export default function IntegrationsPage() {
         }
       });
 
-      const res = await fetchAPI("/shops/integrations", {
-        method: "PUT",
-        body: JSON.stringify(payload),
-      });
+      const res = await api.put("/shops/integrations", payload);
 
-      if (res.success) {
+      if (res.data?.success) {
         toast.success(`${integrationType.charAt(0).toUpperCase() + integrationType.slice(1)} integration updated successfully!`);
         loadIntegrations();
       } else {
-        toast.error(res.message || "Failed to update integration");
+        toast.error(res.data?.message || "Failed to update integration");
       }
     } catch (err: any) {
       toast.error(err.message || "An error occurred");
