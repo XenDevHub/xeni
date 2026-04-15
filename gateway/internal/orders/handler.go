@@ -268,7 +268,36 @@ func (h *Handler) UpdateOrder(c *fiber.Ctx) error {
 	}
 
 	h.DB.First(&order, order.ID)
+
+	// Send manual update notification using the same workflow mechanism if tracking is provided
+	if req.DeliveryStatus != nil && *req.DeliveryStatus != string(models.DeliveryPending) {
+		go h.notifyCustomerDeliveryUpdate(&order, shop)
+	}
+
 	return response.Success(c, order)
+}
+
+// notifyCustomerDeliveryUpdate sends a message to the customer when delivery status changes
+func (h *Handler) notifyCustomerDeliveryUpdate(order *models.Order, shop *models.Shop) {
+	if order.CustomerPSID == nil || *order.CustomerPSID == "" {
+		return
+	}
+
+	var page models.ConnectedPage
+	if err := h.DB.Where("shop_id = ? AND is_active = true", shop.ID).First(&page).Error; err != nil {
+		return
+	}
+
+	reply := fmt.Sprintf("📦 আপনার অর্ডারটির ডেলিভারি স্ট্যাটাস আপডেট হয়েছে: %s।", string(order.DeliveryStatus))
+	if order.TrackingNumber != nil && *order.TrackingNumber != "" {
+		courier := "কুরিয়ার"
+		if order.CourierName != nil && *order.CourierName != "" {
+			courier = *order.CourierName
+		}
+		reply = fmt.Sprintf("🚚 আপনার অর্ডারটি %s-এ বুক করা হয়েছে! ট্র্যাকিং নাম্বার: %s", courier, *order.TrackingNumber)
+	}
+
+	h.sendMessengerMessage(*order.CustomerPSID, reply, page.PageAccessToken)
 }
 
 // GetOrderStats handles GET /api/orders/stats — get order statistics.
@@ -334,19 +363,23 @@ func (h *Handler) ConfirmPayment(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		AdminNote *string `json:"admin_note"`
+		AdminNote    *string `json:"admin_note"`
+		PaymentTrxID *string `json:"payment_trx_id"`
 	}
 	c.BodyParser(&req)
 
 	now := time.Now()
 	verifiedBy := "seller"
 	updates := map[string]interface{}{
-		"payment_status": models.OrderPayVerified,
-		"verified_by":    verifiedBy,
-		"verified_at":    &now,
+		"payment_status":  models.OrderPayVerified,
+		"verified_by":     verifiedBy,
+		"verified_at":     &now,
 	}
 	if req.AdminNote != nil {
 		updates["admin_note"] = *req.AdminNote
+	}
+	if req.PaymentTrxID != nil {
+		updates["payment_trx_id"] = *req.PaymentTrxID
 	}
 
 	h.DB.Model(&order).Updates(updates)
@@ -423,7 +456,36 @@ func (h *Handler) triggerPostPaymentWorkflow(order *models.Order, shop *models.S
 		}
 	}
 
-	// 2. Send WebSocket event to dashboard
+	// 2. Dispatch to AI Order Courier (If Merchant API integrated)
+	phone := ""
+	if order.CustomerPhone != nil {
+		phone = *order.CustomerPhone
+	}
+	address := ""
+	if order.CustomerAddress != nil {
+		address = *order.CustomerAddress
+	}
+
+	payload := map[string]interface{}{
+		"action": "book_courier",
+		"order_id": order.ID.String(),
+		"amount": order.TotalAmount,
+		"customer_phone": phone,
+		"customer_address": address,
+		"shop_id": shop.ID.String(),
+		"courier_preference": shop.CourierPreference,
+		"pathao_client_id": shop.PathaoClientID,
+		"pathao_client_secret": shop.PathaoClientSecret,
+		"pathao_username": shop.PathaoUsername,
+		"pathao_password": shop.PathaoPassword,
+		"steadfast_api_key": shop.SteadfastAPIKey,
+		"steadfast_secret_key": shop.SteadfastSecretKey,
+	}
+
+	b, _ := json.Marshal(payload)
+	h.RabbitMQ.Publish("ecommerce.agent.order.queue", string(b))
+
+	// 3. Send WebSocket event to dashboard
 	h.WSHub.SendToUser(shop.UserID.String(), websocket.Event{
 		EventType: "payment.confirmed",
 		Payload: map[string]interface{}{

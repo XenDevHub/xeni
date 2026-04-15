@@ -28,8 +28,16 @@ type Shop struct {
 	PaymentVerificationMode string `gorm:"size:10;default:'manual';not null" json:"payment_verification_mode"`
 	BkashAppKey         *string   `gorm:"size:255" json:"bkash_app_key"`
 	BkashAppSecret      *string   `gorm:"size:255" json:"-"`
+	BkashUsername       *string   `gorm:"size:100" json:"-"`
+	BkashPassword       *string   `gorm:"size:255" json:"-"`
 	NagadMerchantID     *string   `gorm:"size:255" json:"nagad_merchant_id"`
 	NagadMerchantKey    *string   `gorm:"size:255" json:"-"`
+	PathaoClientID      *string   `gorm:"size:255" json:"-"`
+	PathaoClientSecret  *string   `gorm:"size:255" json:"-"`
+	PathaoUsername      *string   `gorm:"size:100" json:"-"`
+	PathaoPassword      *string   `gorm:"size:255" json:"-"`
+	SteadfastAPIKey     *string   `gorm:"size:255" json:"-"`
+	SteadfastSecretKey  *string   `gorm:"size:255" json:"-"`
 	AutoReplyEnabled    bool      `gorm:"default:true;not null" json:"auto_reply_enabled"`
 	AutoOrderEnabled    bool      `gorm:"default:true;not null" json:"auto_order_enabled"`
 	Integrations        JSON      `gorm:"type:jsonb;default:'{}'" json:"integrations"`

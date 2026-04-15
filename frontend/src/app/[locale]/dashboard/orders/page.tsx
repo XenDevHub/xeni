@@ -52,7 +52,12 @@ export default function OrdersPage() {
   const [manualReviewCount, setManualReviewCount] = useState(0);
   const [screenshotModal, setScreenshotModal] = useState<string | null>(null);
   const [confirmNote, setConfirmNote] = useState('');
+  const [paymentTrxId, setPaymentTrxId] = useState('');
   const [rejectReason, setRejectReason] = useState('');
+  const [isEditingDelivery, setIsEditingDelivery] = useState(false);
+  const [editTrackingNumber, setEditTrackingNumber] = useState('');
+  const [editCourierName, setEditCourierName] = useState('');
+  const [editDeliveryStatus, setEditDeliveryStatus] = useState('pending');
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -103,9 +108,13 @@ export default function OrdersPage() {
 
   const confirmPayment = async (id: string) => {
     try {
-      await api.put(`/orders/${id}/confirm-payment`, { admin_note: confirmNote || undefined });
+      await api.put(`/orders/${id}/confirm-payment`, { 
+        admin_note: confirmNote || undefined,
+        payment_trx_id: paymentTrxId || undefined
+      });
       toast.success('✅ Payment confirmed!');
       setConfirmNote('');
+      setPaymentTrxId('');
       fetchOrders();
       fetchManualReview();
       setSelectedOrder(null);
@@ -500,7 +509,16 @@ export default function OrdersPage() {
                {/* Manual Review Actions */}
                {selectedOrder.payment_status === 'manual_required' && (
                  <div className="space-y-3">
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                     <div>
+                       <input 
+                         type="text" 
+                         placeholder="Transaction ID (e.g. 9X2A...)" 
+                         value={paymentTrxId}
+                         onChange={(e) => setPaymentTrxId(e.target.value)}
+                         className="w-full dark:bg-white/5 bg-black/5 border dark:border-white/10 border-black/10 rounded-xl py-2 px-3 text-xs dark:text-white text-gray-900 focus:outline-none focus:border-brand/50"
+                       />
+                     </div>
                      <div>
                        <input 
                          type="text" 
@@ -537,31 +555,106 @@ export default function OrdersPage() {
                  </div>
                )}
 
-               {/* Standard Actions */}
-               <div className="flex flex-col md:flex-row gap-4">
-                 {selectedOrder.delivery_status === 'pending' && selectedOrder.payment_status === 'verified' ? (
-                   <button 
-                    onClick={() => dispatchToCourier(selectedOrder)}
-                    className="btn-primary flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2"
-                   >
-                     <Truck className="w-5 h-5" /> Dispatch via AI Agent
-                   </button>
-                 ) : selectedOrder.delivery_status !== 'pending' ? (
-                   <div className="flex-1 flex items-center gap-3 p-3 bg-success/5 border border-success/20 rounded-xl">
-                      <CheckCircle2 className="w-5 h-5 text-success" />
-                      <span className="text-xs text-success font-bold">Successfully Booked with {selectedOrder.courier_name}</span>
+               {/* Standard Actions / Full Edit Mode */}
+               <div className="flex flex-col gap-4">
+                 {isEditingDelivery ? (
+                   <div className="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-black/10 dark:border-white/10 space-y-4">
+                     <div className="flex items-center justify-between">
+                       <h4 className="text-sm font-bold text-gray-900 dark:text-white">✏️ Update Order Details</h4>
+                       <button onClick={() => setIsEditingDelivery(false)} className="text-xs text-danger font-medium hover:underline">Cancel</button>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div>
+                         <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Delivery Status</label>
+                         <select 
+                           value={editDeliveryStatus} 
+                           onChange={(e) => setEditDeliveryStatus(e.target.value)}
+                           className="w-full text-xs p-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none"
+                         >
+                           <option value="pending">Pending</option>
+                           <option value="booked">Booked</option>
+                           <option value="in_transit">In Transit</option>
+                           <option value="delivered">Delivered</option>
+                           <option value="returned">Returned</option>
+                         </select>
+                       </div>
+                       <div>
+                         <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Courier Name (optional)</label>
+                         <input 
+                           type="text" 
+                           value={editCourierName} 
+                           onChange={(e) => setEditCourierName(e.target.value)}
+                           className="w-full text-xs p-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none"
+                           placeholder="Pathao, Steadfast..."
+                         />
+                       </div>
+                       <div>
+                         <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Tracking Number (optional)</label>
+                         <input 
+                           type="text" 
+                           value={editTrackingNumber} 
+                           onChange={(e) => setEditTrackingNumber(e.target.value)}
+                           className="w-full text-xs p-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none"
+                           placeholder="Ex: PH-123456"
+                         />
+                       </div>
+                     </div>
+                     <div className="flex justify-end pt-2">
+                       <button 
+                         onClick={() => {
+                           updateOrder(selectedOrder.id, {
+                             delivery_status: editDeliveryStatus,
+                             tracking_number: editTrackingNumber || undefined,
+                             courier_name: editCourierName || undefined
+                           });
+                           setIsEditingDelivery(false);
+                         }}
+                         className="btn-primary py-2.5 px-6 text-xs font-bold"
+                       >
+                         Save Updates
+                       </button>
+                     </div>
                    </div>
-                 ) : null}
-                 <div className="flex gap-2">
-                   {selectedOrder.payment_status === 'pending' && (
-                     <button onClick={() => updateOrder(selectedOrder.id, { payment_status: 'verified' })} className="px-6 py-3 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10 flex items-center gap-2">
-                       <CreditCard className="w-4 h-4" /> Verify Manually
-                     </button>
-                   )}
-                   <button className="px-6 py-3 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10">
-                     Print Invoice
-                   </button>
-                 </div>
+                 ) : (
+                   <div className="flex flex-col md:flex-row gap-4">
+                     {selectedOrder.delivery_status === 'pending' && selectedOrder.payment_status === 'verified' ? (
+                       <button 
+                        onClick={() => dispatchToCourier(selectedOrder)}
+                        className="btn-primary flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2"
+                       >
+                         <Truck className="w-5 h-5" /> Dispatch via AI Agent
+                       </button>
+                     ) : selectedOrder.delivery_status !== 'pending' ? (
+                       <div className="flex-1 flex items-center gap-3 p-3 bg-success/5 border border-success/20 rounded-xl">
+                          <CheckCircle2 className="w-5 h-5 text-success" />
+                          <div className="flex flex-col">
+                            <span className="text-xs text-success font-bold">Successfully Booked with {selectedOrder.courier_name || 'Courier'}</span>
+                            {selectedOrder.tracking_number && <span className="text-[10px] text-success/80">Tracking: {selectedOrder.tracking_number}</span>}
+                          </div>
+                       </div>
+                     ) : null}
+                     
+                     <div className="flex gap-2 w-full md:w-auto">
+                       <button 
+                         onClick={() => {
+                           setEditDeliveryStatus(selectedOrder.delivery_status);
+                           setEditCourierName(selectedOrder.courier_name || '');
+                           setEditTrackingNumber(selectedOrder.tracking_number || '');
+                           setIsEditingDelivery(true);
+                         }} 
+                         className="px-6 py-3 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10 flex-1 md:flex-none flex items-center justify-center gap-2"
+                       >
+                         📝 Edit Delivery
+                       </button>
+
+                       {selectedOrder.payment_status === 'pending' && (
+                         <button onClick={() => updateOrder(selectedOrder.id, { payment_status: 'verified' })} className="px-6 py-3 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10 flex items-center gap-2">
+                           <CreditCard className="w-4 h-4" /> Verify Payment
+                         </button>
+                       )}
+                     </div>
+                   </div>
+                 )}
                </div>
             </div>
           </motion.div>

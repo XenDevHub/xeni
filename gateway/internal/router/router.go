@@ -128,6 +128,8 @@ func Setup(
 	shopGroup.Post("", shopHandler.CreateShop)
 	shopGroup.Get("/me", shopHandler.GetMyShop)
 	shopGroup.Put("/me", shopHandler.UpdateMyShop)
+	shopGroup.Get("/integrations", shopHandler.GetIntegrations)
+	shopGroup.Put("/integrations", shopHandler.UpdateIntegrations)
 	
 	// Shop Custom Rules
 	shopGroup.Get("/rules", rulesHandler.ListShopRules)
