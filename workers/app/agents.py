@@ -592,7 +592,7 @@ class OrderAgent(BaseWorker):
             }
 
         # Fallback if no keys provided
-        return None
+        return {"error": "No valid courier credentials provided"}
 
 
 class InventoryAgent(BaseWorker):
