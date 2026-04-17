@@ -375,7 +375,7 @@ func (h *Handler) HandleResult(result rabbitmq.ResultMessage) error {
 }
 
 func (h *Handler) createOrderFromAI(result rabbitmq.ResultMessage, details map[string]interface{}) {
-	slog.Info("Finalizing order from AI conversation", "task_id", result.TaskID)
+	slog.Info("Finalizing order from AI conversation", "task_id", result.TaskID, "details", details)
 	
 	shopIDStr, _ := result.Data["shop_id"].(string)
 	sid, _ := uuid.Parse(shopIDStr)
@@ -384,6 +384,8 @@ func (h *Handler) createOrderFromAI(result rabbitmq.ResultMessage, details map[s
 	name, _ := details["customer_name"].(string)
 	phone, _ := details["customer_phone"].(string)
 	addr, _ := details["customer_address"].(string)
+
+	slog.Info("AI order customer info", "name", name, "phone", phone, "address", addr, "psid", customerPSID, "shop_id", shopIDStr)
 	
 	// Duplicate Order Prevention (V5)
 	// Check if this same customer already has a pending order in this shop to prevent duplicate submissions
@@ -407,106 +409,149 @@ func (h *Handler) createOrderFromAI(result rabbitmq.ResultMessage, details map[s
 	}
 
 	items, ok := details["items"].([]interface{})
-	if ok && len(items) > 0 {
-		var verifiedItems []map[string]interface{}
-		serverCalculatedTotal := 0.0
-
-		tx := h.DB.Begin()
-		defer func() {
-			if r := recover(); r != nil {
-				tx.Rollback()
-			}
-		}()
-
-		for _, it := range items {
-			item, ok := it.(map[string]interface{})
-			if !ok { continue }
-			
-			pidStr, _ := item["product_id"].(string)
-			pid, _ := uuid.Parse(pidStr)
-			qty := 1
-			if q, ok := item["quantity"].(float64); ok { qty = int(q) }
-
-			// SECURITY ENSURANCE: Verify Product actually belongs to this Shop
-			var prod models.Product
-			if err := tx.Where("id = ? AND shop_id = ?", pid, sid).First(&prod).Error; err != nil {
-				slog.Warn("SECURITY_ALERT: AI processed a product not belonging to this shop", "product_id", pidStr, "shop_id", shopIDStr)
-				continue 
-			}
-
-			// Price Calculation & Stock Check (V2 & V3)
-			correctItemPrice := prod.Price
-			
-			if vidStr, ok := item["variant_id"].(string); ok && vidStr != "" {
-				vid, _ := uuid.Parse(vidStr)
-				var variant models.ProductVariant
-				if err := tx.Where("id = ? AND product_id = ?", vid, pid).First(&variant).Error; err != nil {
-					slog.Warn("SECURITY_ALERT: Invalid variant ID", "variant_id", vidStr)
-					continue
-				}
-
-				if variant.Stock < qty {
-					slog.Warn("SECURITY_ALERT: Stock overflow attempt (Variant)", "requested", qty, "available", variant.Stock)
-					continue // Reject over-ordering
-				}
-
-				correctItemPrice += variant.PriceModifier
-				if err := tx.Model(&models.ProductVariant{}).Where("id = ? AND stock >= ?", vid, qty).Update("stock", gorm.Expr("stock - ?", qty)).Error; err != nil {
-					slog.Error("Failed to update variant stock", "error", err)
-					continue
-				}
-				tx.Model(&models.Product{}).Where("id = ?", pid).Update("total_sold", gorm.Expr("total_sold + ?", qty))
-			} else {
-				if prod.CurrentStock < qty {
-					slog.Warn("SECURITY_ALERT: Stock overflow attempt (Product)", "requested", qty, "available", prod.CurrentStock)
-					continue // Reject over-ordering
-				}
-
-				if err := tx.Model(&models.Product{}).Where("id = ? AND current_stock >= ?", pid, qty).Updates(map[string]interface{}{
-					"current_stock": gorm.Expr("current_stock - ?", qty),
-					"total_sold":   gorm.Expr("total_sold + ?", qty),
-				}).Error; err != nil {
-					slog.Error("Failed to update product stock", "error", err)
-					continue
-				}
-			}
-
-			// Calculate correct subtotal
-			serverCalculatedTotal += correctItemPrice * float64(qty)
-			
-			// Store the verifed values for DB insertion, discarding AI price
-			item["price"] = correctItemPrice 
-			verifiedItems = append(verifiedItems, item)
-			
-			// Price discrepancy alert
-			if aiPrice, ok := item["price"].(float64); ok && aiPrice != correctItemPrice {
-				slog.Warn("SECURITY_ALERT: Price manipulation detected!", "product", prod.Name, "ai_price", aiPrice, "correct_price", correctItemPrice, "psid", customerPSID)
-			}
-		}
-
-		if len(verifiedItems) == 0 {
-			slog.Warn("Order creation aborted: no valid items remained after verification")
-			tx.Rollback()
-			return
-		}
-
-		b, _ := json.Marshal(verifiedItems)
-		order.OrderItems = b
-		order.TotalAmount = serverCalculatedTotal // V2: Set to DB-calculated total
-
-		// AI Total Discrepancy Alert
+	if !ok || len(items) == 0 {
+		slog.Warn("AI order has no items or items format is invalid — creating order with AI-provided total",
+			"items_raw", details["items"], "task_id", result.TaskID)
+		// Still create the order with AI-provided total so it appears in dashboard
 		aiTotal, _ := details["total"].(float64)
-		if aiTotal != serverCalculatedTotal {
-			slog.Warn("SECURITY_ALERT: Order Total manipulation detected!", "ai_total", aiTotal, "server_total", serverCalculatedTotal, "psid", customerPSID)
-		}
-
-		if err := tx.Create(&order).Error; err == nil {
-			tx.Commit()
-			slog.Info("Automated order created securely", "order_id", order.ID, "total", serverCalculatedTotal)
+		order.TotalAmount = aiTotal
+		if err := h.DB.Create(&order).Error; err != nil {
+			slog.Error("Failed to create AI order (no items)", "error", err)
 		} else {
-			slog.Error("Failed to create verified order", "error", err)
+			slog.Info("AI order created (no verified items, using AI total)", "order_id", order.ID, "total", aiTotal)
+		}
+		return
+	}
+
+	var verifiedItems []map[string]interface{}
+	serverCalculatedTotal := 0.0
+
+	tx := h.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
 			tx.Rollback()
 		}
+	}()
+
+	for idx, it := range items {
+		item, ok := it.(map[string]interface{})
+		if !ok {
+			slog.Warn("AI order item is not a map, skipping", "index", idx, "raw", it)
+			continue
+		}
+		
+		pidStr, _ := item["product_id"].(string)
+		pid, pidErr := uuid.Parse(pidStr)
+		if pidErr != nil {
+			slog.Warn("AI order item has invalid product_id", "index", idx, "product_id", pidStr)
+			continue
+		}
+		qty := 1
+		if q, ok := item["quantity"].(float64); ok { qty = int(q) }
+
+		// SECURITY ENSURANCE: Verify Product actually belongs to this Shop
+		var prod models.Product
+		if err := tx.Preload("Variants").Where("id = ? AND shop_id = ?", pid, sid).First(&prod).Error; err != nil {
+			slog.Warn("SECURITY_ALERT: AI processed a product not belonging to this shop or product not found", "product_id", pidStr, "shop_id", shopIDStr, "error", err)
+			continue 
+		}
+
+		slog.Info("AI order item verification", "index", idx, "product", prod.Name, "price", prod.Price, "has_variants", prod.HasVariants, "current_stock", prod.CurrentStock, "qty", qty)
+
+		// Price Calculation & Stock Check (V2 & V3)
+		correctItemPrice := prod.Price
+
+		// Check AI-provided price BEFORE overriding for manipulation alert
+		if aiPrice, ok := item["price"].(float64); ok && aiPrice != correctItemPrice {
+			slog.Warn("SECURITY_ALERT: Price discrepancy detected!", "product", prod.Name, "ai_price", aiPrice, "correct_price", correctItemPrice, "psid", customerPSID)
+		}
+		
+		if vidStr, ok := item["variant_id"].(string); ok && vidStr != "" {
+			vid, _ := uuid.Parse(vidStr)
+			var variant models.ProductVariant
+			if err := tx.Where("id = ? AND product_id = ?", vid, pid).First(&variant).Error; err != nil {
+				slog.Warn("SECURITY_ALERT: Invalid variant ID", "variant_id", vidStr, "error", err)
+				continue
+			}
+
+			if variant.Stock < qty {
+				slog.Warn("SECURITY_ALERT: Stock overflow attempt (Variant)", "requested", qty, "available", variant.Stock)
+				continue // Reject over-ordering
+			}
+
+			correctItemPrice += variant.PriceModifier
+			if err := tx.Model(&models.ProductVariant{}).Where("id = ? AND stock >= ?", vid, qty).Update("stock", gorm.Expr("stock - ?", qty)).Error; err != nil {
+				slog.Error("Failed to update variant stock", "error", err)
+				continue
+			}
+			tx.Model(&models.Product{}).Where("id = ?", pid).Update("total_sold", gorm.Expr("total_sold + ?", qty))
+		} else if prod.HasVariants && len(prod.Variants) > 0 {
+			// AI didn't provide variant_id but product has variants — pick first variant with stock
+			slog.Info("AI did not provide variant_id for variant product, auto-selecting first available variant", "product", prod.Name)
+			found := false
+			for _, v := range prod.Variants {
+				if v.Stock >= qty {
+					correctItemPrice += v.PriceModifier
+					if err := tx.Model(&models.ProductVariant{}).Where("id = ? AND stock >= ?", v.ID, qty).Update("stock", gorm.Expr("stock - ?", qty)).Error; err != nil {
+						slog.Error("Failed to update auto-selected variant stock", "error", err)
+						continue
+					}
+					tx.Model(&models.Product{}).Where("id = ?", pid).Update("total_sold", gorm.Expr("total_sold + ?", qty))
+					item["variant_id"] = v.ID.String()
+					found = true
+					slog.Info("Auto-selected variant", "variant_id", v.ID, "color", v.Color, "size", v.Size, "stock", v.Stock)
+					break
+				}
+			}
+			if !found {
+				slog.Warn("No variant with sufficient stock for variant product", "product", prod.Name, "requested", qty)
+				continue
+			}
+		} else {
+			if prod.CurrentStock < qty {
+				slog.Warn("SECURITY_ALERT: Stock overflow attempt (Product)", "product", prod.Name, "requested", qty, "available", prod.CurrentStock)
+				continue // Reject over-ordering
+			}
+
+			if err := tx.Model(&models.Product{}).Where("id = ? AND current_stock >= ?", pid, qty).Updates(map[string]interface{}{
+				"current_stock": gorm.Expr("current_stock - ?", qty),
+				"total_sold":   gorm.Expr("total_sold + ?", qty),
+			}).Error; err != nil {
+				slog.Error("Failed to update product stock", "error", err)
+				continue
+			}
+		}
+
+		// Calculate correct subtotal
+		serverCalculatedTotal += correctItemPrice * float64(qty)
+		
+		// Store the verified values for DB insertion, discarding AI price
+		item["price"] = correctItemPrice 
+		verifiedItems = append(verifiedItems, item)
+	}
+
+	if len(verifiedItems) == 0 {
+		slog.Warn("Order creation aborted: no valid items remained after verification", "task_id", result.TaskID)
+		tx.Rollback()
+		return
+	}
+
+	b, _ := json.Marshal(verifiedItems)
+	order.OrderItems = b
+	order.TotalAmount = serverCalculatedTotal // V2: Set to DB-calculated total
+
+	// AI Total Discrepancy Alert
+	aiTotal, _ := details["total"].(float64)
+	if aiTotal != serverCalculatedTotal {
+		slog.Warn("SECURITY_ALERT: Order Total manipulation detected!", "ai_total", aiTotal, "server_total", serverCalculatedTotal, "psid", customerPSID)
+	}
+
+	if err := tx.Create(&order).Error; err == nil {
+		tx.Commit()
+		slog.Info("Automated order created securely", "order_id", order.ID, "total", serverCalculatedTotal, "items_count", len(verifiedItems))
+	} else {
+		slog.Error("Failed to create verified order", "error", err)
+		tx.Rollback()
 	}
 }
 
@@ -687,7 +732,7 @@ func (h *Handler) dispatchPaymentVerification(payload map[string]interface{}) {
 	msg := &rabbitmq.TaskMessage{
 		TaskID:    taskID.String(),
 		UserID:    "",
-		AgentType: "order_tasks",
+		AgentType: "order",
 		Priority:  10,
 		CreatedAt: time.Now().UTC().Format(time.RFC3339),
 		Payload:   payload,

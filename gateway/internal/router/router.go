@@ -165,10 +165,10 @@ func Setup(
 	ordersGroup := api.Group("/orders", middleware.AuthMiddleware(jwtManager, redis), apiRateLimit)
 	ordersGroup.Get("", ordersHandler.ListOrders)
 	ordersGroup.Get("/stats", ordersHandler.GetOrderStats)
+	ordersGroup.Get("/manual-review", ordersHandler.GetManualReviewOrders)
 	ordersGroup.Get("/:id", ordersHandler.GetOrder)
 	ordersGroup.Post("", ordersHandler.CreateOrder)
 	ordersGroup.Put("/:id", ordersHandler.UpdateOrder)
-	ordersGroup.Get("/manual-review", ordersHandler.GetManualReviewOrders)
 	ordersGroup.Put("/:id/confirm-payment", ordersHandler.ConfirmPayment)
 	ordersGroup.Put("/:id/reject-payment", ordersHandler.RejectPayment)
 

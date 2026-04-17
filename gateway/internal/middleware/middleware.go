@@ -128,7 +128,7 @@ func SecurityHeadersMiddleware() fiber.Handler {
 		c.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 		c.Set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://www.googleapis.com https://accounts.google.com https://graph.facebook.com wss:; frame-src https://accounts.google.com https://www.facebook.com")
 		c.Set("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
-		c.Set("Cross-Origin-Opener-Policy", "same-origin-allow-popups")
+		c.Set("Cross-Origin-Opener-Policy", "unsafe-none")
 		return c.Next()
 	}
 }

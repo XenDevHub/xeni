@@ -238,6 +238,7 @@ func (h *Handler) UpdateOrder(c *fiber.Ctx) error {
 
 	var req struct {
 		PaymentStatus  *string `json:"payment_status"`
+		PaymentTrxID   *string `json:"payment_trx_id"`
 		DeliveryStatus *string `json:"delivery_status"`
 		TrackingNumber *string `json:"tracking_number"`
 		CourierName    *string `json:"courier_name"`
@@ -250,6 +251,9 @@ func (h *Handler) UpdateOrder(c *fiber.Ctx) error {
 	updates := make(map[string]interface{})
 	if req.PaymentStatus != nil {
 		updates["payment_status"] = *req.PaymentStatus
+	}
+	if req.PaymentTrxID != nil {
+		updates["payment_trx_id"] = *req.PaymentTrxID
 	}
 	if req.DeliveryStatus != nil {
 		updates["delivery_status"] = *req.DeliveryStatus
@@ -486,7 +490,7 @@ func (h *Handler) triggerPostPaymentWorkflow(order *models.Order, shop *models.S
 	msg := &rabbitmq.TaskMessage{
 		TaskID:     "book_courier_" + order.ID.String(),
 		UserID:     shop.UserID.String(),
-		AgentType:  "order_agent",
+		AgentType:  "order",
 		Priority:   1,
 		RetryCount: 0,
 		CreatedAt:  time.Now().Format(time.RFC3339),

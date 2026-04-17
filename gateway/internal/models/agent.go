@@ -37,11 +37,11 @@ var AgentSlugToType = map[string]AgentType{
 
 // AgentTypeToQueue maps agent types to RabbitMQ routing keys.
 var AgentTypeToQueue = map[AgentType]string{
-	AgentConversation: "conversation_tasks",
-	AgentOrder:        "order_tasks",
-	AgentInventory:    "inventory_tasks",
-	AgentCreative:     "creative_tasks",
-	AgentIntelligence: "intelligence_tasks",
+	AgentConversation: "conversation",
+	AgentOrder:        "order",
+	AgentInventory:    "inventory",
+	AgentCreative:     "creative",
+	AgentIntelligence: "intelligence",
 }
 
 // TaskStatus represents the status of an agent task.

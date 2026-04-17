@@ -58,6 +58,9 @@ export default function OrdersPage() {
   const [editTrackingNumber, setEditTrackingNumber] = useState('');
   const [editCourierName, setEditCourierName] = useState('');
   const [editDeliveryStatus, setEditDeliveryStatus] = useState('pending');
+  const [isEditingPayment, setIsEditingPayment] = useState(false);
+  const [editPaymentStatus, setEditPaymentStatus] = useState('pending');
+  const [editPaymentTrxId, setEditPaymentTrxId] = useState('');
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -557,57 +560,105 @@ export default function OrdersPage() {
 
                {/* Standard Actions / Full Edit Mode */}
                <div className="flex flex-col gap-4">
-                 {isEditingDelivery ? (
+                 {(isEditingDelivery || isEditingPayment) ? (
                    <div className="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-black/10 dark:border-white/10 space-y-4">
                      <div className="flex items-center justify-between">
-                       <h4 className="text-sm font-bold text-gray-900 dark:text-white">✏️ Update Order Details</h4>
-                       <button onClick={() => setIsEditingDelivery(false)} className="text-xs text-danger font-medium hover:underline">Cancel</button>
+                       <h4 className="text-sm font-bold text-gray-900 dark:text-white">
+                         {isEditingDelivery ? '✏️ Update Delivery Details' : '💳 Update Payment Details'}
+                       </h4>
+                       <button 
+                         onClick={() => {
+                           setIsEditingDelivery(false);
+                           setIsEditingPayment(false);
+                         }} 
+                         className="text-xs text-danger font-medium hover:underline"
+                       >
+                         Cancel
+                       </button>
                      </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                       <div>
-                         <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Delivery Status</label>
-                         <select 
-                           value={editDeliveryStatus} 
-                           onChange={(e) => setEditDeliveryStatus(e.target.value)}
-                           className="w-full text-xs p-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none"
-                         >
-                           <option value="pending">Pending</option>
-                           <option value="booked">Booked</option>
-                           <option value="in_transit">In Transit</option>
-                           <option value="delivered">Delivered</option>
-                           <option value="returned">Returned</option>
-                         </select>
+                     
+                     {isEditingDelivery ? (
+                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                         <div>
+                           <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Delivery Status</label>
+                           <select 
+                             value={editDeliveryStatus} 
+                             onChange={(e) => setEditDeliveryStatus(e.target.value)}
+                             className="w-full text-xs p-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none"
+                           >
+                             <option value="pending">Pending</option>
+                             <option value="booked">Booked</option>
+                             <option value="in_transit">In Transit</option>
+                             <option value="delivered">Delivered</option>
+                             <option value="returned">Returned</option>
+                           </select>
+                         </div>
+                         <div>
+                           <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Courier Name (optional)</label>
+                           <input 
+                             type="text" 
+                             value={editCourierName} 
+                             onChange={(e) => setEditCourierName(e.target.value)}
+                             className="w-full text-xs p-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none"
+                             placeholder="Pathao, Steadfast..."
+                           />
+                         </div>
+                         <div className="md:col-span-2 lg:col-span-1">
+                           <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Tracking Number (optional)</label>
+                           <input 
+                             type="text" 
+                             value={editTrackingNumber} 
+                             onChange={(e) => setEditTrackingNumber(e.target.value)}
+                             className="w-full text-xs p-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none"
+                             placeholder="Ex: PH-123456"
+                           />
+                         </div>
                        </div>
-                       <div>
-                         <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Courier Name (optional)</label>
-                         <input 
-                           type="text" 
-                           value={editCourierName} 
-                           onChange={(e) => setEditCourierName(e.target.value)}
-                           className="w-full text-xs p-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none"
-                           placeholder="Pathao, Steadfast..."
-                         />
+                     ) : (
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div>
+                           <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Payment Status</label>
+                           <select 
+                             value={editPaymentStatus} 
+                             onChange={(e) => setEditPaymentStatus(e.target.value)}
+                             className="w-full text-xs p-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none"
+                           >
+                             <option value="pending">Pending</option>
+                             <option value="verified">Verified</option>
+                             <option value="manual_required">Manual Required</option>
+                             <option value="failed">Failed</option>
+                           </select>
+                         </div>
+                         <div>
+                           <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Transaction ID</label>
+                           <input 
+                             type="text" 
+                             value={editPaymentTrxId} 
+                             onChange={(e) => setEditPaymentTrxId(e.target.value)}
+                             className="w-full text-xs p-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none"
+                             placeholder="Enter Trx ID..."
+                           />
+                         </div>
                        </div>
-                       <div>
-                         <label className="block text-xs font-medium text-slate-600 dark:text-gray-400 mb-1">Tracking Number (optional)</label>
-                         <input 
-                           type="text" 
-                           value={editTrackingNumber} 
-                           onChange={(e) => setEditTrackingNumber(e.target.value)}
-                           className="w-full text-xs p-2.5 rounded-lg bg-white dark:bg-[#1a1a1a] border border-black/10 dark:border-white/10 text-gray-900 dark:text-white focus:outline-none"
-                           placeholder="Ex: PH-123456"
-                         />
-                       </div>
-                     </div>
+                     )}
+
                      <div className="flex justify-end pt-2">
                        <button 
                          onClick={() => {
-                           updateOrder(selectedOrder.id, {
-                             delivery_status: editDeliveryStatus,
-                             tracking_number: editTrackingNumber || undefined,
-                             courier_name: editCourierName || undefined
-                           });
-                           setIsEditingDelivery(false);
+                           if (isEditingDelivery) {
+                             updateOrder(selectedOrder.id, {
+                               delivery_status: editDeliveryStatus,
+                               tracking_number: editTrackingNumber || undefined,
+                               courier_name: editCourierName || undefined
+                             });
+                             setIsEditingDelivery(false);
+                           } else {
+                             updateOrder(selectedOrder.id, {
+                               payment_status: editPaymentStatus,
+                               payment_trx_id: editPaymentTrxId || undefined
+                             });
+                             setIsEditingPayment(false);
+                           }
                          }}
                          className="btn-primary py-2.5 px-6 text-xs font-bold"
                        >
@@ -619,39 +670,55 @@ export default function OrdersPage() {
                    <div className="flex flex-col md:flex-row gap-4">
                      {selectedOrder.delivery_status === 'pending' && selectedOrder.payment_status === 'verified' ? (
                        <button 
-                        onClick={() => dispatchToCourier(selectedOrder)}
-                        className="btn-primary flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2"
+                         onClick={() => dispatchToCourier(selectedOrder)}
+                         className="btn-primary flex-1 py-3 text-sm font-bold flex items-center justify-center gap-2"
                        >
                          <Truck className="w-5 h-5" /> Dispatch via AI Agent
                        </button>
                      ) : selectedOrder.delivery_status !== 'pending' ? (
                        <div className="flex-1 flex items-center gap-3 p-3 bg-success/5 border border-success/20 rounded-xl">
                           <CheckCircle2 className="w-5 h-5 text-success" />
-                          <div className="flex flex-col">
+						  <div className="flex flex-col">
                             <span className="text-xs text-success font-bold">Successfully Booked with {selectedOrder.courier_name || 'Courier'}</span>
                             {selectedOrder.tracking_number && <span className="text-[10px] text-success/80">Tracking: {selectedOrder.tracking_number}</span>}
                           </div>
                        </div>
                      ) : null}
                      
-                     <div className="flex gap-2 w-full md:w-auto">
-                       <button 
-                         onClick={() => {
-                           setEditDeliveryStatus(selectedOrder.delivery_status);
-                           setEditCourierName(selectedOrder.courier_name || '');
-                           setEditTrackingNumber(selectedOrder.tracking_number || '');
-                           setIsEditingDelivery(true);
-                         }} 
-                         className="px-6 py-3 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10 flex-1 md:flex-none flex items-center justify-center gap-2"
-                       >
-                         📝 Edit Delivery
-                       </button>
+                     <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+                        <button 
+                          onClick={() => {
+                            setEditDeliveryStatus(selectedOrder.delivery_status);
+                            setEditCourierName(selectedOrder.courier_name || '');
+                            setEditTrackingNumber(selectedOrder.tracking_number || '');
+                            setIsEditingDelivery(true);
+                            setIsEditingPayment(false);
+                          }} 
+                          className="px-6 py-3 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10 flex-1 md:flex-none flex items-center justify-center gap-2 whitespace-nowrap"
+                        >
+                          📝 Edit Delivery
+                        </button>
 
-                       {selectedOrder.payment_status === 'pending' && (
-                         <button onClick={() => updateOrder(selectedOrder.id, { payment_status: 'verified' })} className="px-6 py-3 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10 flex items-center gap-2">
-                           <CreditCard className="w-4 h-4" /> Verify Payment
-                         </button>
-                       )}
+                        <button 
+                          onClick={() => {
+                            setEditPaymentStatus(selectedOrder.payment_status);
+                            setEditPaymentTrxId(selectedOrder.payment_trx_id || '');
+                            setIsEditingPayment(true);
+                            setIsEditingDelivery(false);
+                          }} 
+                          className="px-6 py-3 dark:bg-white/5 bg-black/5 hover:dark:bg-white/10 hover:bg-black/10 dark:text-white text-gray-900 rounded-xl text-xs font-bold transition-all border dark:border-white/10 border-black/10 flex-1 md:flex-none flex items-center justify-center gap-2 whitespace-nowrap"
+                        >
+                          💳 Edit Payment
+                        </button>
+
+                        {selectedOrder.payment_status === 'pending' && (
+                          <button 
+                            onClick={() => updateOrder(selectedOrder.id, { payment_status: 'verified' })} 
+                            className="px-6 py-3 dark:bg-green-500/10 bg-green-500/5 hover:bg-green-500/20 text-green-600 dark:text-green-400 rounded-xl text-xs font-bold transition-all border border-green-500/20 flex items-center gap-2 whitespace-nowrap"
+                          >
+                            <CreditCard className="w-4 h-4" /> Quick Verify
+                          </button>
+                        )}
                      </div>
                    </div>
                  )}
