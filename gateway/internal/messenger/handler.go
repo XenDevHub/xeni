@@ -66,9 +66,19 @@ func (h *Handler) WebhookReceive(c *fiber.Ctx) error {
 	// Process each entry
 	for _, entry := range webhook.Entry {
 		pageID := entry.ID
+		// Process Messenger Inbox
 		for _, messaging := range entry.Messaging {
 			if messaging.Message != nil {
 				go h.handleIncomingMessage(pageID, messaging)
+			}
+		}
+		// Process Feed Changes (Comments)
+		for _, change := range entry.Changes {
+			if change.Field == "feed" && change.Value.Item == "comment" && change.Value.Verb == "add" {
+				// Ignore if the page itself made the comment
+				if change.Value.From.ID != pageID {
+					go h.handleIncomingComment(pageID, change)
+				}
 			}
 		}
 	}
@@ -308,6 +318,107 @@ func (h *Handler) handleIncomingMessage(pageID string, event MessagingEvent) {
 	}
 }
 
+func (h *Handler) handleIncomingComment(pageID string, change WebhookChange) {
+	senderPSID := change.Value.From.ID // For Feed, this is the App-Scoped User ID
+	senderName := change.Value.From.Name
+
+	// 1. Validate connection
+	var page models.ConnectedPage
+	if err := h.DB.Where("page_id = ? AND is_active = true", pageID).First(&page).Error; err != nil {
+		slog.Warn("received comment for unconnected page", "page_id", pageID)
+		return
+	}
+
+	// 2. Fetch Shop
+	var shop models.Shop
+	if err := h.DB.First(&shop, page.ShopID).Error; err != nil {
+		return
+	}
+
+	// 3. Save comment to DB (optional initially, but good for persistence)
+	comment := models.PostComment{
+		ShopID:       shop.ID,
+		PageID:       pageID,
+		PostID:       change.Value.PostID,
+		CommentID:    change.Value.CommentID,
+		CustomerPSID: senderPSID,
+		CustomerName: &senderName,
+		Message:      change.Value.Message,
+		ActionTaken:  models.ActionIgnored,
+	}
+	
+	// Check for duplicate comment
+	if err := h.DB.Create(&comment).Error; err != nil {
+		slog.Error("failed to save comment (possible duplicate)", "comment_id", change.Value.CommentID, "error", err)
+		return
+	}
+
+	// 4. Dispatch task to RabbitMQ for AI moderation
+	if h.RabbitMQ != nil {
+		// Fetch rules
+		var adminRules []models.AgentRule
+		var storeRules []models.AgentRule
+		h.DB.Where("scope = ? AND is_active = ?", models.RuleScopeGlobal, true).Order("priority ASC").Find(&adminRules)
+		h.DB.Where("scope = ? AND shop_id = ? AND is_active = ?", models.RuleScopeShop, page.ShopID, true).Order("priority ASC").Find(&storeRules)
+
+		globalRules := ""
+		for _, r := range adminRules {
+			globalRules += "- [" + r.Category + "] " + r.Title + ": " + r.Rule + "\n"
+		}
+		shopRules := ""
+		for _, r := range storeRules {
+			shopRules += "- [" + r.Category + "] " + r.Title + ": " + r.Rule + "\n"
+		}
+
+		// Fetch products
+		var products []models.Product
+		h.DB.Where("shop_id = ? AND is_active = true", page.ShopID).Find(&products)
+		
+		var catalog []map[string]interface{}
+		for _, p := range products {
+			catalog = append(catalog, map[string]interface{}{
+				"id":           p.ID.String(),
+				"name":         p.Name,
+				"price":        p.Price,
+				"has_variants": p.HasVariants,
+				"sku":          p.SKU,
+				"stock":        p.CurrentStock,
+			})
+		}
+
+		taskID := uuid.New()
+		taskMsg := &rabbitmq.TaskMessage{
+			TaskID:    taskID.String(),
+			AgentType: "comment",
+			Priority:  8, // Normal priority
+			CreatedAt: time.Now().UTC().Format(time.RFC3339),
+			Payload: map[string]interface{}{
+				"comment_db_id":     comment.ID.String(),
+				"comment_id":        change.Value.CommentID,
+				"post_id":           change.Value.PostID,
+				"message":           change.Value.Message,
+				"customer_name":     senderName,
+				"customer_psid":     senderPSID,
+				"shop_id":           page.ShopID.String(),
+				"page_id":           pageID,
+				"page_access_token": page.PageAccessToken,
+				"catalog":           catalog,
+				"global_rules":      globalRules,
+				"shop_rules":        shopRules,
+				"shop_name":         shop.ShopName,
+			},
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := h.RabbitMQ.PublishTask(ctx, taskMsg); err != nil {
+			slog.Error("failed to dispatch comment task", "error", err)
+		} else {
+			slog.Info("comment task dispatched", "task_id", taskID)
+		}
+	}
+}
+
 func (h *Handler) verifySignature(body []byte, signature string) bool {
 	if len(signature) < 8 || signature[:7] != "sha256=" {
 		return false
@@ -328,7 +439,22 @@ type WebhookPayload struct {
 type WebhookEntry struct {
 	ID        string           `json:"id"`
 	Time      int64            `json:"time"`
-	Messaging []MessagingEvent `json:"messaging"`
+	Messaging []MessagingEvent `json:"messaging,omitempty"`
+	Changes   []WebhookChange  `json:"changes,omitempty"`
+}
+
+type WebhookChange struct {
+	Field string             `json:"field"`
+	Value WebhookChangeValue `json:"value"`
+}
+
+type WebhookChangeValue struct {
+	Item      string      `json:"item"`
+	Verb      string      `json:"verb"`
+	PostID    string      `json:"post_id,omitempty"`
+	CommentID string      `json:"comment_id,omitempty"`
+	Message   string      `json:"message,omitempty"`
+	From      WebhookUser `json:"from,omitempty"`
 }
 
 type MessagingEvent struct {
@@ -339,7 +465,8 @@ type MessagingEvent struct {
 }
 
 type WebhookUser struct {
-	ID string `json:"id"`
+	ID   string `json:"id"`
+	Name string `json:"name,omitempty"`
 }
 
 type WebhookMessage struct {

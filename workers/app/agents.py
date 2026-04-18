@@ -841,6 +841,125 @@ class IntelligenceAgent(BaseWorker):
         }
 
 
+class CommentAgent(BaseWorker):
+    """Moderates and replies to Facebook post comments automatically."""
+
+    def __init__(self):
+        super().__init__()
+        self.llm = ChatOpenAI(
+            model="gpt-4o-mini", 
+            api_key=settings.OPENAI_API_KEY, 
+            temperature=0.7,
+            model_kwargs={"response_format": {"type": "json_object"}}
+        )
+
+    def process_task(self, payload: dict[str, Any]) -> dict[str, Any]:
+        payload = payload.get("payload", payload)
+        comment_id = payload.get("comment_id", "")
+        message = payload.get("message", "")
+        customer_name = payload.get("customer_name", "Customer")
+        customer_psid = payload.get("customer_psid", "")
+        page_access_token = payload.get("page_access_token", "")
+        catalog = payload.get("catalog", [])
+        global_rules = payload.get("global_rules", "")
+        shop_rules = payload.get("shop_rules", "")
+        shop_name = payload.get("shop_name", "Our Shop")
+
+        # Format catalog gracefully
+        catalog_text = "No products available."
+        if catalog:
+            items = []
+            for p in catalog:
+                items.append(f"- {p.get('name')} (Price: ৳{p.get('price')})")
+            catalog_text = "\n".join(items)
+
+        safe_global_rules = global_rules.replace('{', '{{').replace('}', '}}') if global_rules else ""
+        safe_shop_rules = shop_rules.replace('{', '{{').replace('}', '}}') if shop_rules else ""
+
+        prompt = f"""
+        You are a highly efficient AI Comment Moderator for an E-commerce shop in Bangladesh named "{shop_name}".
+        
+        NEW COMMENT FROM {customer_name}:
+        "{message}"
+        
+        PRODUCT CATALOG (Only source for prices):
+        {catalog_text}
+        
+        GLOBAL RULES:
+        {safe_global_rules}
+        
+        SHOP RULES:
+        {safe_shop_rules}
+        
+        Evaluate the comment and choose the BEST action from:
+        - "public_reply": For general questions (price, details, delivery). Provide a polite reply.
+        - "private_reply": To send a direct message (e.g. for confirming orders, asking for personal details, or sending specific links).
+        - "hidden": If the comment contains severe profanity, competitors links, spam, or blatant price manipulation/fraud claims.
+        - "ignored": If the comment is just tagging someone, a generic 'nice' or 'up', or irrelevant.
+        
+        Return your response strictly as a JSON object:
+        {{
+            "action": "public_reply" | "private_reply" | "hidden" | "ignored",
+            "reply_text": "The text to reply with, if action is public_reply or private_reply (leave empty otherwise)",
+            "reason": "Brief explanation of why this action was chosen"
+        }}
+        """
+
+        try:
+            ai_response = self.llm.invoke(prompt)
+            data = json.loads(ai_response.content)
+            action = data.get("action", "ignored")
+            reply_text = data.get("reply_text", "")
+            reason = data.get("reason", "")
+        except Exception as e:
+            logger.error(f"Error calling LLM for comment moderation: {e}")
+            action = "ignored"
+            reply_text = ""
+            reason = "Failed LLM call"
+
+        # Execute FB Graph API commands
+        if page_access_token:
+            if action == "public_reply" and reply_text:
+                self._reply_to_comment(comment_id, page_access_token, reply_text)
+            elif action == "private_reply" and reply_text:
+                self._private_reply(comment_id, page_access_token, reply_text)
+            elif action == "hidden":
+                self._hide_comment(comment_id, page_access_token)
+
+        return {
+            "summary": f"Comment {comment_id} {action}. Reason: {reason}",
+            "comment_id": comment_id,
+            "customer_psid": customer_psid,
+            "action": action,
+            "ai_reply": reply_text,
+            "reason": reason
+        }
+
+    def _reply_to_comment(self, comment_id: str, token: str, message: str):
+        url = f"https://graph.facebook.com/v19.0/{comment_id}/comments?access_token={token}"
+        payload = {"message": message}
+        try:
+            httpx.post(url, json=payload, timeout=10.0)
+        except Exception as e:
+            logger.error(f"Failed to public reply to comment: {e}")
+
+    def _private_reply(self, comment_id: str, token: str, message: str):
+        url = f"https://graph.facebook.com/v19.0/{comment_id}/private_replies?access_token={token}"
+        payload = {"message": message}
+        try:
+            httpx.post(url, json=payload, timeout=10.0)
+        except Exception as e:
+            logger.error(f"Failed to private reply to comment: {e}")
+
+    def _hide_comment(self, comment_id: str, token: str):
+        url = f"https://graph.facebook.com/v19.0/{comment_id}?access_token={token}"
+        payload = {"is_hidden": True}
+        try:
+            httpx.post(url, json=payload, timeout=10.0)
+        except Exception as e:
+            logger.error(f"Failed to hide comment: {e}")
+
+
 # Agent registry — maps AGENT_TYPE env var to class
 AGENT_REGISTRY: dict[str, type[BaseWorker]] = {
     "conversation": ConversationAgent,
@@ -848,4 +967,5 @@ AGENT_REGISTRY: dict[str, type[BaseWorker]] = {
     "inventory": InventoryAgent,
     "creative": CreativeAgent,
     "intelligence": IntelligenceAgent,
+    "comment": CommentAgent,
 }
