@@ -63,6 +63,9 @@ func (h *Handler) WebhookReceive(c *fiber.Ctx) error {
 		return c.SendStatus(200) // Always return 200 to Meta
 	}
 
+	// DEBUG: Log incoming webhook for troubleshooting
+	slog.Info("incoming messenger webhook", "object", webhook.Object, "entries", len(webhook.Entry))
+
 	// Process each entry
 	for _, entry := range webhook.Entry {
 		pageID := entry.ID
