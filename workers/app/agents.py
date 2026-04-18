@@ -911,6 +911,7 @@ class CommentAgent(BaseWorker):
             action = data.get("action", "ignored")
             reply_text = data.get("reply_text", "")
             reason = data.get("reason", "")
+            logger.info(f"Comment moderation decision: {action} (Reason: {reason}) for comment {comment_id}")
         except Exception as e:
             logger.error(f"Error calling LLM for comment moderation: {e}")
             action = "ignored"
@@ -939,9 +940,11 @@ class CommentAgent(BaseWorker):
         url = f"https://graph.facebook.com/v19.0/{comment_id}/comments?access_token={token}"
         payload = {"message": message}
         try:
-            httpx.post(url, json=payload, timeout=10.0)
+            res = httpx.post(url, json=payload, timeout=10.0)
+            res.raise_for_status()
+            logger.info(f"Successfully posted public reply to comment {comment_id}")
         except Exception as e:
-            logger.error(f"Failed to public reply to comment: {e}")
+            logger.error(f"Failed to public reply to comment {comment_id}: {e}")
 
     def _private_reply(self, comment_id: str, token: str, message: str):
         url = f"https://graph.facebook.com/v19.0/{comment_id}/private_replies?access_token={token}"

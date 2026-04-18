@@ -79,10 +79,15 @@ func (h *Handler) WebhookReceive(c *fiber.Ctx) error {
 		}
 		// Process Feed Changes (Comments)
 		for _, change := range entry.Changes {
-			if change.Field == "feed" && change.Value.Item == "comment" && change.Value.Verb == "add" {
+			slog.Info("webhook change detected", "field", change.Field, "item", change.Value.Item, "verb", change.Value.Verb)
+			
+			if change.Field == "feed" && change.Value.Item == "comment" && (change.Value.Verb == "add" || change.Value.Verb == "created") {
 				// Ignore if the page itself made the comment
 				if change.Value.From.ID != pageID {
+					slog.Info("processing valid comment", "comment_id", change.Value.CommentID, "from", change.Value.From.Name)
 					go h.handleIncomingComment(pageID, change)
+				} else {
+					slog.Debug("ignoring self-comment from page", "page_id", pageID)
 				}
 			}
 		}
