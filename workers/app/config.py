@@ -1,9 +1,15 @@
 """XENI AI Workers — Configuration."""
 
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="ignore",
+        case_sensitive=False
+    )
+    
     # RabbitMQ
     RABBITMQ_URI: str = "amqp://xeni:xeni_secret@rabbitmq:5672/xeni_vhost"
 
@@ -55,9 +61,6 @@ class Settings(BaseSettings):
     MAX_RETRIES: int = 3
     PORT: int = 8001
     AGENT_TYPE: str = "conversation"
-
-    class Config:
-        env_file = ".env"
 
 
 settings = Settings()
