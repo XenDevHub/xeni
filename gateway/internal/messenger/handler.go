@@ -48,9 +48,11 @@ func (h *Handler) WebhookVerify(c *fiber.Ctx) error {
 
 // WebhookReceive handles POST /api/webhooks/messenger — receive messages from Meta.
 func (h *Handler) WebhookReceive(c *fiber.Ctx) error {
+	body := c.Body()
+	slog.Info("raw webhook received", "path", c.Path(), "body_len", len(body))
+
 	// Validate X-Hub-Signature-256
 	signature := c.Get("X-Hub-Signature-256")
-	body := c.Body()
 
 	if h.Config.Meta.AppSecret != "" && !h.verifySignature(body, signature) {
 		slog.Warn("Invalid messenger webhook signature")

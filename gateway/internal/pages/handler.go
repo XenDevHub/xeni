@@ -289,7 +289,15 @@ func (h *Handler) OAuthCallback(c *fiber.Ctx) error {
 		subURL := fmt.Sprintf("https://graph.facebook.com/v19.0/%s/subscribed_apps?subscribed_fields=messages,messaging_postbacks,feed&access_token=%s", p.ID, p.AccessToken)
 		if req, err := http.NewRequest("POST", subURL, nil); err == nil {
 			client := &http.Client{}
-			client.Do(req)
+			resp, err := client.Do(req)
+			if err != nil {
+				slog.Error("failed to call facebook subscription api", "page_id", p.ID, "error", err)
+			} else {
+				var res map[string]interface{}
+				json.NewDecoder(resp.Body).Decode(&res)
+				slog.Info("facebook subscription response", "page_id", p.ID, "status", resp.StatusCode, "response", res)
+				resp.Body.Close()
+			}
 		}
 
 		// Save/Update in DB
