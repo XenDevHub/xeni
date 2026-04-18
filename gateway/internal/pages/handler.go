@@ -209,7 +209,7 @@ func (h *Handler) OAuthLogin(c *fiber.Ctx) error {
 	}
 
 	redirectURI := c.BaseURL() + "/api/oauth/pages/facebook/callback"
-	url := fmt.Sprintf("https://www.facebook.com/v19.0/dialog/oauth?client_id=%s&redirect_uri=%s&state=%s&scope=pages_show_list,pages_messaging,pages_manage_posts,pages_manage_metadata,pages_read_engagement&response_type=code&auth_type=rerequest",
+	url := fmt.Sprintf("https://www.facebook.com/v19.0/dialog/oauth?client_id=%s&redirect_uri=%s&state=%s&scope=pages_show_list,pages_messaging,pages_manage_posts,pages_manage_metadata,pages_read_engagement,pages_manage_engagement,pages_read_user_content&response_type=code&auth_type=rerequest",
 		h.Cfg.Facebook.AppID, redirectURI, tokenStr)
 
 	return c.Redirect(url)
