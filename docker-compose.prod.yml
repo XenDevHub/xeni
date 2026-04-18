@@ -48,3 +48,9 @@ services:
     build: null
     profiles: []
     restart: always
+
+  worker-comment:
+    image: ghcr.io/xendevhub/xeni/workers:latest
+    build: null
+    profiles: []
+    restart: always
