@@ -242,6 +242,17 @@ services:
     ports:
       - "8005:8005"
 
+  worker-comment:
+    <<: *worker-common
+    container_name: xeni-worker-comment
+    environment:
+      AGENT_TYPE: comment
+      TASK_QUEUE: comment_tasks
+      DLQ_NAME: comment_tasks_dlq
+      PORT: "8006"
+    ports:
+      - "8006:8006"
+
 # ──────────────────────────────────────────────────────────
 # VOLUMES
 # ──────────────────────────────────────────────────────────
