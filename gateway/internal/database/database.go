@@ -79,6 +79,7 @@ func autoMigrate(db *gorm.DB) error {
 		&models.Order{},
 		&models.Conversation{},
 		&models.Message{},
+		&models.PostComment{},
 		&models.Plan{},
 		&models.Subscription{},
 		&models.Payment{},

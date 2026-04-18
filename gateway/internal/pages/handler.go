@@ -286,7 +286,7 @@ func (h *Handler) OAuthCallback(c *fiber.Ctx) error {
 	// 3. Save all granted pages to the database
 	for _, p := range accountsRes.Data {
 		// Attempt to subscribe page to webhook automatically
-		subURL := fmt.Sprintf("https://graph.facebook.com/v19.0/%s/subscribed_apps?subscribed_fields=messages,messaging_postbacks&access_token=%s", p.ID, p.AccessToken)
+		subURL := fmt.Sprintf("https://graph.facebook.com/v19.0/%s/subscribed_apps?subscribed_fields=messages,messaging_postbacks,feed&access_token=%s", p.ID, p.AccessToken)
 		if req, err := http.NewRequest("POST", subURL, nil); err == nil {
 			client := &http.Client{}
 			client.Do(req)
