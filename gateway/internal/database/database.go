@@ -67,6 +67,16 @@ func autoMigrate(db *gorm.DB) error {
 		}
 	}
 
+	// Ensure enum values exist for databases created before these values were added
+	enumUpgrades := []string{
+		"ALTER TYPE order_payment_status ADD VALUE IF NOT EXISTS 'manual_required'",
+	}
+	for _, stmt := range enumUpgrades {
+		if err := db.Exec(stmt).Error; err != nil {
+			slog.Warn("could not add enum value (may already exist)", "stmt", stmt, "error", err)
+		}
+	}
+
 	modelsToMigrate := []interface{}{
 		&models.User{},
 		&models.RefreshToken{},
