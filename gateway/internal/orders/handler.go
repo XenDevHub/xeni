@@ -445,23 +445,21 @@ func (h *Handler) triggerPostPaymentWorkflow(order *models.Order, shop *models.S
 			h.sendMessengerMessage(*order.CustomerPSID, reply, page.PageAccessToken)
 
 			// Save outbound message
-			if order.MessengerThreadID != nil {
-				var conv models.Conversation
-				if err := h.DB.Where("shop_id = ? AND customer_psid = ?", shop.ID, *order.CustomerPSID).First(&conv).Error; err == nil {
-					h.DB.Create(&models.Message{
-						ConversationID: conv.ID,
-						Direction:      models.DirectionOutbound,
-						SenderType:     models.SenderAI,
-						ContentType:    models.ContentText,
-						ContentText:    &reply,
-						SentAt:         time.Now(),
-					})
-				}
+			var conv models.Conversation
+			if err := h.DB.Where("shop_id = ? AND customer_psid = ?", shop.ID, *order.CustomerPSID).First(&conv).Error; err == nil {
+				h.DB.Create(&models.Message{
+					ConversationID: conv.ID,
+					Direction:      models.DirectionOutbound,
+					SenderType:     models.SenderAI,
+					ContentType:    models.ContentText,
+					ContentText:    &reply,
+					SentAt:         time.Now(),
+				})
 			}
 		}
 	}
 
-	// 2. Dispatch to AI Order Courier (If Merchant API integrated)
+	// 2. Dispatch to courier (If Merchant API integrated) or notify owner for manual booking
 	phone := ""
 	if order.CustomerPhone != nil {
 		phone = *order.CustomerPhone
@@ -471,33 +469,67 @@ func (h *Handler) triggerPostPaymentWorkflow(order *models.Order, shop *models.S
 		address = *order.CustomerAddress
 	}
 
-	payload := map[string]interface{}{
-		"action": "book_courier",
-		"order_id": order.ID.String(),
-		"amount": order.TotalAmount,
-		"customer_phone": phone,
-		"customer_address": address,
-		"shop_id": shop.ID.String(),
-		"courier_preference": shop.CourierPreference,
-		"pathao_client_id": shop.PathaoClientID,
-		"pathao_client_secret": shop.PathaoClientSecret,
-		"pathao_username": shop.PathaoUsername,
-		"pathao_password": shop.PathaoPassword,
-		"steadfast_api_key": shop.SteadfastAPIKey,
-		"steadfast_secret_key": shop.SteadfastSecretKey,
+	hasDeliveryAPI := false
+	if shop.CourierPreference == "steadfast" && shop.SteadfastAPIKey != nil && *shop.SteadfastAPIKey != "" {
+		hasDeliveryAPI = true
+	} else if shop.PathaoClientID != nil && *shop.PathaoClientID != "" {
+		hasDeliveryAPI = true
 	}
 
-	msg := &rabbitmq.TaskMessage{
-		TaskID:     "book_courier_" + order.ID.String(),
-		UserID:     shop.UserID.String(),
-		AgentType:  "order",
-		Priority:   1,
-		RetryCount: 0,
-		CreatedAt:  time.Now().Format(time.RFC3339),
-		Payload:    payload,
-	}
-	if err := h.RabbitMQ.PublishTask(context.Background(), msg); err != nil {
-		slog.Error("failed to publish courier booking task", "error", err)
+	if hasDeliveryAPI {
+		payload := map[string]interface{}{
+			"action":             "book_courier",
+			"order_id":           order.ID.String(),
+			"amount":             order.TotalAmount,
+			"customer_phone":     phone,
+			"customer_address":   address,
+			"shop_id":            shop.ID.String(),
+			"courier_preference": shop.CourierPreference,
+		}
+
+		// Safely dereference pointer fields
+		if shop.PathaoClientID != nil {
+			payload["pathao_client_id"] = *shop.PathaoClientID
+		}
+		if shop.PathaoClientSecret != nil {
+			payload["pathao_client_secret"] = *shop.PathaoClientSecret
+		}
+		if shop.PathaoUsername != nil {
+			payload["pathao_username"] = *shop.PathaoUsername
+		}
+		if shop.PathaoPassword != nil {
+			payload["pathao_password"] = *shop.PathaoPassword
+		}
+		if shop.SteadfastAPIKey != nil {
+			payload["steadfast_api_key"] = *shop.SteadfastAPIKey
+		}
+		if shop.SteadfastSecretKey != nil {
+			payload["steadfast_secret_key"] = *shop.SteadfastSecretKey
+		}
+
+		msg := &rabbitmq.TaskMessage{
+			TaskID:     "book_courier_" + order.ID.String(),
+			UserID:     shop.UserID.String(),
+			AgentType:  "order",
+			Priority:   1,
+			RetryCount: 0,
+			CreatedAt:  time.Now().Format(time.RFC3339),
+			Payload:    payload,
+		}
+		if err := h.RabbitMQ.PublishTask(context.Background(), msg); err != nil {
+			slog.Error("failed to publish courier booking task", "error", err)
+		}
+	} else {
+		// No delivery API — notify shop owner via WhatsApp for manual booking
+		slog.Info("No delivery API configured — notifying shop owner for manual courier booking", "shop_id", shop.ID, "order_id", order.ID)
+
+		if h.NotifSvc != nil {
+			custName := ""
+			if order.CustomerName != nil {
+				custName = *order.CustomerName
+			}
+			h.NotifSvc.SendDeliveryManualAlert(shop.ID, order.ID.String()[:8], custName, address, order.TotalAmount)
+		}
 	}
 
 	// 3. Send WebSocket event to dashboard

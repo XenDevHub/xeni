@@ -299,6 +299,14 @@ func (h *Handler) HandleResult(result rabbitmq.ResultMessage) error {
 			}
 		}
 
+		// 2b. Fallback: if AI returned order_details but forgot the action field, still create the order
+		if action == "" || action == "null" {
+			if orderData, ok := result.Data["order_details"].(map[string]interface{}); ok && len(orderData) > 0 {
+				slog.Warn("AI returned order_details without action=finalize_order — applying fallback", "task_id", result.TaskID)
+				h.createOrderFromAI(result, orderData)
+			}
+		}
+
 		// 3. Verify Payment via Screenshot (OCR)
 		if action == "verify_payment_screenshot" {
 			go h.handleVerifyPaymentScreenshot(result)
@@ -680,7 +688,35 @@ func (h *Handler) handleVerifyPaymentTrxID(result rabbitmq.ResultMessage) {
 		sid, customerPSID, models.OrderPayPending).Order("created_at DESC").First(&pendingOrder)
 
 	if pendingOrder.ID == uuid.Nil {
-		slog.Warn("verify_payment_trxid: no pending order found", "psid", customerPSID)
+		slog.Warn("verify_payment_trxid: no pending order found — notifying customer and shop owner", "psid", customerPSID, "trx_id", trxID)
+
+		// Reply to customer asking them to confirm order first
+		if pageID != "" && customerPSID != "" {
+			var page models.ConnectedPage
+			if err := h.DB.Where("page_id = ?", pageID).First(&page).Error; err == nil {
+				reply := "ধন্যবাদ ট্রানজেকশন আইডি পাঠানোর জন্য! তবে আপনার অর্ডার এখনো তৈরি হয়নি। দয়া করে আগে 'Order Confirm' লিখে অর্ডার কনফার্ম করুন, তারপর TrxID পাঠাবেন। 🙏"
+				h.sendMessengerMessage(customerPSID, reply, page.PageAccessToken)
+
+				// Save outbound message
+				if convIDStr != "" {
+					if convID, err := uuid.Parse(convIDStr); err == nil {
+						h.DB.Create(&models.Message{
+							ConversationID: convID,
+							Direction:      models.DirectionOutbound,
+							SenderType:     models.SenderAI,
+							ContentType:    models.ContentText,
+							ContentText:    &reply,
+							SentAt:         time.Now(),
+						})
+					}
+				}
+			}
+		}
+
+		// Also notify shop owner via WhatsApp about the orphan TrxID
+		if h.NotifSvc != nil {
+			h.NotifSvc.SendPaymentAlert(sid, trxID, "(unknown - no order)", 0, true)
+		}
 		return
 	}
 
@@ -811,12 +847,8 @@ func (h *Handler) handlePaymentVerificationResult(result rabbitmq.ResultMessage)
 			h.NotifSvc.SendPaymentAlert(sid, orderIDStr[:8], custName, order.TotalAmount, false)
 		}
 
-		// Trigger courier booking
-		go h.dispatchPaymentVerification(map[string]interface{}{
-			"verify_action": "",
-			"order_id":      orderIDStr,
-			"shop_id":       shopIDStr,
-		})
+		// Trigger courier booking with full credentials
+		go h.triggerCourierBooking(&order, &shop)
 
 	case "manual_required":
 		messengerReply = "ধন্যবাদ! স্ক্রিনশটটি দেখছি। আমরা যাচাই করে শীঘ্রই নিশ্চিত করব। সাধারণত ১৫ মিনিটের মধ্যে confirm হয়। 🙏"
@@ -889,5 +921,101 @@ type AgentResult struct {
 	ReportURL   *string         `json:"s3_report_url"`
 	CreatedAt   string          `json:"created_at"`
 	CompletedAt *string         `json:"completed_at"`
+}
+
+// triggerCourierBooking dispatches a courier booking task if the shop has delivery API credentials,
+// otherwise sends a WhatsApp notification to the shop owner for manual booking.
+func (h *Handler) triggerCourierBooking(order *models.Order, shop *models.Shop) {
+	hasDeliveryAPI := false
+
+	if shop.CourierPreference == "steadfast" && shop.SteadfastAPIKey != nil && *shop.SteadfastAPIKey != "" {
+		hasDeliveryAPI = true
+	} else if shop.PathaoClientID != nil && *shop.PathaoClientID != "" {
+		hasDeliveryAPI = true
+	}
+
+	phone := ""
+	if order.CustomerPhone != nil {
+		phone = *order.CustomerPhone
+	}
+	address := ""
+	if order.CustomerAddress != nil {
+		address = *order.CustomerAddress
+	}
+
+	if hasDeliveryAPI {
+		// Dispatch to AI Order worker for courier booking
+		payload := map[string]interface{}{
+			"action":           "book_courier",
+			"order_id":         order.ID.String(),
+			"amount":           order.TotalAmount,
+			"customer_phone":   phone,
+			"customer_address": address,
+			"shop_id":          shop.ID.String(),
+			"courier_preference": shop.CourierPreference,
+		}
+
+		// Include courier credentials
+		if shop.PathaoClientID != nil {
+			payload["pathao_client_id"] = *shop.PathaoClientID
+		}
+		if shop.PathaoClientSecret != nil {
+			payload["pathao_client_secret"] = *shop.PathaoClientSecret
+		}
+		if shop.PathaoUsername != nil {
+			payload["pathao_username"] = *shop.PathaoUsername
+		}
+		if shop.PathaoPassword != nil {
+			payload["pathao_password"] = *shop.PathaoPassword
+		}
+		if shop.SteadfastAPIKey != nil {
+			payload["steadfast_api_key"] = *shop.SteadfastAPIKey
+		}
+		if shop.SteadfastSecretKey != nil {
+			payload["steadfast_secret_key"] = *shop.SteadfastSecretKey
+		}
+
+		taskID := uuid.New()
+		msg := &rabbitmq.TaskMessage{
+			TaskID:    taskID.String(),
+			UserID:    shop.UserID.String(),
+			AgentType: "order",
+			Priority:  1,
+			CreatedAt: time.Now().UTC().Format(time.RFC3339),
+			Payload:   payload,
+		}
+
+		if h.RabbitMQ != nil {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			if err := h.RabbitMQ.PublishTask(ctx, msg); err != nil {
+				slog.Error("failed to dispatch courier booking task", "error", err, "order_id", order.ID)
+			} else {
+				slog.Info("Courier booking task dispatched", "task_id", taskID, "order_id", order.ID)
+			}
+		}
+	} else {
+		// No delivery API — send WhatsApp notification to shop owner for manual booking
+		slog.Info("No delivery API configured — notifying shop owner for manual courier booking", "shop_id", shop.ID, "order_id", order.ID)
+
+		if h.NotifSvc != nil {
+			custName := ""
+			if order.CustomerName != nil {
+				custName = *order.CustomerName
+			}
+			h.NotifSvc.SendDeliveryManualAlert(shop.ID, order.ID.String()[:8], custName, address, order.TotalAmount)
+		}
+
+		// Also send WebSocket event so dashboard shows it
+		h.WSHub.SendToUser(shop.UserID.String(), websocket.Event{
+			EventType: "delivery.manual_required",
+			Payload: map[string]interface{}{
+				"order_id":         order.ID.String(),
+				"customer_name":    order.CustomerName,
+				"customer_address": address,
+				"amount":           order.TotalAmount,
+			},
+		})
+	}
 }
 

@@ -166,29 +166,49 @@ class ConversationAgent(BaseWorker):
         {json.dumps(shop_settings)}
         ---
 
+        ╔══════════════════════════════════════════════════════════════╗
+        ║  🎯 ACTION RULES — YOU MUST SET "action" CORRECTLY           ║
+        ╠══════════════════════════════════════════════════════════════╣
+        ║ A. ORDER CONFIRMATION:                                        ║
+        ║    If the customer says "Order Confirm", "অর্ডার কনফার্ম",   ║
+        ║    "confirm", "কনফার্ম", "yes confirm", or any clear          ║
+        ║    confirmation AND there is NO `active_order`:               ║
+        ║    → You MUST set "action": "finalize_order"                  ║
+        ║    → You MUST include "order_details" with all customer info  ║
+        ║    → NEVER skip the action field on confirmation!             ║
+        ║                                                                ║
+        ║ B. TRANSACTION ID DETECTION:                                  ║
+        ║    If you see a TrxID pattern (8+ chars alphanumeric):        ║
+        ║    → You MUST set "action": "verify_payment_trxid"           ║
+        ║    → You MUST include "trx_id" and "payment_method"          ║
+        ║                                                                ║
+        ║ C. ALL OTHER MESSAGES:                                        ║
+        ║    → Set "action": null                                       ║
+        ╚══════════════════════════════════════════════════════════════╝
+
         Instructions:
         - Maintain the context of the conversation. If a customer has already provided info, don't ask for it again.
         - Product Codes: If a customer mentions a specific SKU, identify the exact product/variant immediately.
         - PRICE INTEGRITY: When showing order summary, ALWAYS use catalog price.
-        - Order Finalization: If you have already given a summary AND there is NO `active_order` AND the user explicitly says "Order Confirm", "অর্ডার কনফার্ম", or a very clear confirmation, set "action" to "finalize_order".
+        - Order Finalization: If you have already given a summary AND there is NO `active_order` AND the user explicitly says "Order Confirm", "অর্ডার কনফার্ম", or a very clear confirmation, you MUST set "action" to "finalize_order" and include full "order_details". This is CRITICAL — without the action field, the order will NOT be created.
         - Post-Order Guidance: If an "active_order" is present (status pending), your PRIMARY goal is to help the customer complete the payment. Provide the bKash/Nagad numbers from SHOP SETTINGS and ask for the Transaction ID or screenshot. Do NOT create another order.
         - TrxID Detection: If you see a Transaction ID pattern in the message (8-10 character alphanumeric for bKash, 10-12 digit numeric for Nagad), set action to "verify_payment_trxid" and include "trx_id" and "payment_method" (bkash/nagad/unknown) in your response.
         - Confirmation Phrase: Always ask the customer to write "Order Confirm" specifically to finalize their order. E.g., "(অর্ডারটি ফাইনাল করতে দয়া করে 'Order Confirm' লিখে মেসেজ দিন)".
         - Use emojis naturally to stay friendly.
         
         Return your response strictly as a JSON object with:
-        - "reply": the text message to send back to the customer.
-        - "intent": the classified intent (e.g. "product_inquiry", "greeting", "order_confirmation", "payment_trxid", "price_dispute", "suspicious_activity", "general").
-        - "action": (Optional) set to "finalize_order" if confirming order OR "verify_payment_trxid" if a TrxID is detected.
-        - "trx_id": (Optional) the extracted Transaction ID string if action is verify_payment_trxid.
-        - "payment_method": (Optional) "bkash", "nagad", or "unknown" if action is verify_payment_trxid.
-        - "order_details": (Optional — ONLY when finalizing) a dictionary with:
+        - "reply": (REQUIRED) the text message to send back to the customer.
+        - "intent": (REQUIRED) the classified intent (e.g. "product_inquiry", "greeting", "order_confirmation", "payment_trxid", "price_dispute", "suspicious_activity", "general").
+        - "action": (REQUIRED) set to "finalize_order" if confirming order, "verify_payment_trxid" if a TrxID is detected, or null otherwise. NEVER omit this field.
+        - "trx_id": (Required if action is verify_payment_trxid) the extracted Transaction ID string.
+        - "payment_method": (Required if action is verify_payment_trxid) "bkash", "nagad", or "unknown".
+        - "order_details": (Required if action is finalize_order) a dictionary with:
             - "customer_name": Name from conversation
             - "customer_phone": Phone number from conversation
             - "customer_address": Delivery address from conversation
             - "items": list of objects, each with:
                 - "product_id": the product UUID from catalog
-                - "variant_id": variant UUID (or empty if no variant)
+                - "variant_id": variant UUID (or empty string if no variant)
                 - "quantity": number of units (MUST NOT exceed available stock)
                 - "price": the EXACT catalog price (NEVER a customer-claimed price)
             - "total": MUST equal SUM(quantity × catalog_price) for all items. NEVER use a customer-claimed total.

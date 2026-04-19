@@ -152,3 +152,51 @@ func (s *Service) SendPaymentAlert(shopID uuid.UUID, orderIDShort string, custom
 		}
 	}()
 }
+
+// SendDeliveryManualAlert sends a WhatsApp alert to the shop owner when no delivery API is configured,
+// prompting them to manually book a courier from the dashboard.
+func (s *Service) SendDeliveryManualAlert(shopID uuid.UUID, orderIDShort string, customerName string, customerAddress string, amount float64) {
+	if s.WhatsApp == nil {
+		slog.Warn("WhatsApp client not initialized, skipping delivery notification")
+		return
+	}
+
+	var shop models.Shop
+	if err := s.DB.Preload("User").Where("id = ?", shopID).First(&shop).Error; err != nil {
+		slog.Error("failed to find shop for delivery alert", "shop_id", shopID, "error", err)
+		return
+	}
+
+	// Priority: owner_mobile > whatsapp_number > user whatsapp
+	to := ""
+	if shop.OwnerMobile != nil && *shop.OwnerMobile != "" {
+		to = *shop.OwnerMobile
+	} else if shop.WhatsAppNumber != nil && *shop.WhatsAppNumber != "" {
+		to = *shop.WhatsAppNumber
+	} else if shop.User.WhatsAppNumber != nil && *shop.User.WhatsAppNumber != "" {
+		to = *shop.User.WhatsAppNumber
+	}
+
+	if to == "" {
+		slog.Warn("no whatsapp/mobile number found for delivery alert", "shop_id", shopID)
+		return
+	}
+
+	if customerName == "" {
+		customerName = "একজন কাস্টমার"
+	}
+
+	amountStr := fmt.Sprintf("%.0f", amount)
+	// Template: delivery_manual_booking_bn
+	// Example: "📦 নতুন অর্ডার #{{1}} পেমেন্ট কনফার্ম হয়েছে! কাস্টমার: {{2}}, ঠিকানা: {{3}}, মোট: ৳{{4}}। দয়া করে ড্যাশবোর্ড থেকে কুরিয়ার বুক করুন।"
+	templateName := "delivery_manual_booking_bn"
+	params := []string{orderIDShort, customerName, customerAddress, amountStr}
+
+	go func() {
+		if err := s.WhatsApp.SendTemplate(to, templateName, "bn", params); err != nil {
+			slog.Error("failed to send delivery manual whatsapp alert", "to", to, "error", err)
+		} else {
+			slog.Info("delivery manual whatsapp alert sent", "to", to, "order", orderIDShort)
+		}
+	}()
+}
