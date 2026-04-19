@@ -64,7 +64,10 @@ class ConversationAgent(BaseWorker):
             items = []
             for p in catalog:
                 base_price = p.get('price', 0)
-                info = f"- {p.get('name')}"
+                product_id = p.get('id', '')
+                stock = p.get('stock', 0)
+                # Show product ID prominently so AI can use it as product_id in order_details
+                info = f"- [ID: {product_id}] {p.get('name')}"
                 if p.get('sku'):
                     info += f" (SKU: {p.get('sku')})"
                 
@@ -81,11 +84,14 @@ class ConversationAgent(BaseWorker):
                         # Calculate and show the final price for each variant
                         modifier = v.get('price_modifier', 0) or 0
                         variant_final_price = base_price + modifier
-                        v_info = f"  * Variant: {' / '.join(v_label)} (SKU: {v.get('sku')}, Price: ৳{variant_final_price}, Stock: {v.get('stock')})"
+                        v_info = f"  * Variant [ID: {v.get('id', '')}]: {' / '.join(v_label)} (SKU: {v.get('sku')}, Price: ৳{variant_final_price}, Stock: {v.get('stock')})"
                         vars_text.append(v_info)
                     info += "\n" + "\n".join(vars_text)
                 else:
-                    info += f" (OFFICIAL PRICE: ৳{base_price}, Stock: {p.get('stock')})"
+                    if stock == 0:
+                        info += f" (OFFICIAL PRICE: ৳{base_price}, OUT OF STOCK)"
+                    else:
+                        info += f" (OFFICIAL PRICE: ৳{base_price}, Available: {stock})"
                 items.append(info)
             catalog_text = "\n".join(items)
 
@@ -129,16 +135,28 @@ class ConversationAgent(BaseWorker):
         ║    `finalize_order` again. Instead, guide the customer to      ║
         ║    complete the payment for their existing order.              ║
         ║                                                                ║
-        ║ 5. In order_details, items[].price MUST EXACTLY match the      ║
+        ║ 5. PRODUCT_ID MUST BE UUID: In order_details items[].product_id  ║
+        ║    you MUST use the exact UUID from the catalog [ID: ...] field.║
+        ║    Example correct: "1232fc92-e0f9-4f86-b885-6e266066ad0d"     ║
+        ║    Example WRONG: "Xeni30230", "tshirt_001", "T-shirt"         ║
+        ║    Using wrong product_id = ORDER WILL FAIL = BUSINESS LOSS!  ║
+        ║                                                                ║
+        ║ 6. In order_details, items[].price MUST EXACTLY match the      ║
         ║    CATALOG price. total = SUM(quantity × catalog_price).       ║
         ║                                                                ║
-        ║ 6. SELF-CHECK: Before finalizing any order, verify that        ║
-        ║    every item's price matches the catalog. If it doesn't,      ║
-        ║    CORRECT IT before responding.                               ║
+        ║ 7. SELF-CHECK: Before finalizing any order, verify that        ║
+        ║    every item's product_id is a valid UUID from catalog AND    ║
+        ║    every item's price matches the catalog. CORRECT if wrong.   ║
         ║                                                                ║
-        ║ 7. STOCK CHECK: If product stock is 0, inform the customer    ║
+        ║ 8. STOCK CHECK: If product stock is 0, inform the customer    ║
         ║    the product is unavailable. NEVER create an order with      ║
-        ║    quantity exceeding available stock.                         ║
+        ║    quantity exceeding available stock. But NEVER tell the      ║
+        ║    customer the exact stock number — just say the max you can  ║
+        ║    provide (e.g. "সর্বোচ্চ ৫টি দেওয়া সম্ভব হবে").              ║
+        ║                                                                ║
+        ║ 9. NEVER FABRICATE DATA: Never make up customer name, phone,  ║
+        ║    or address. If customer says "use previous address" and it  ║
+        ║    exists in history, use it. Otherwise ask again.             ║
         ╚══════════════════════════════════════════════════════════════╝
 
         ---
@@ -207,8 +225,8 @@ class ConversationAgent(BaseWorker):
             - "customer_phone": Phone number from conversation
             - "customer_address": Delivery address from conversation
             - "items": list of objects, each with:
-                - "product_id": the product UUID from catalog
-                - "variant_id": variant UUID (or empty string if no variant)
+                - "product_id": the product UUID from catalog's [ID: ...] field. MUST be a valid UUID like "1232fc92-e0f9-4f86-b885-6e266066ad0d". NEVER use a made-up code.
+                - "variant_id": variant UUID from catalog's Variant [ID: ...] field (or empty string if no variant)
                 - "quantity": number of units (MUST NOT exceed available stock)
                 - "price": the EXACT catalog price (NEVER a customer-claimed price)
             - "total": MUST equal SUM(quantity × catalog_price) for all items. NEVER use a customer-claimed total.
@@ -223,6 +241,10 @@ class ConversationAgent(BaseWorker):
             action = data.get("action", None)
             order_details = data.get("order_details", None)
             should_escalate = data.get("escalate", False)
+
+            # ── POST-PROCESSING: Auto-correct product_id if AI used wrong format ──
+            if action == "finalize_order" and order_details and catalog:
+                order_details = self._fix_product_ids(order_details, catalog)
 
             result = {
                 "reply": reply,
@@ -261,6 +283,65 @@ class ConversationAgent(BaseWorker):
             "should_escalate": should_escalate,
             "language_detected": "unknown",
         }
+
+    def _fix_product_ids(self, order_details: dict, catalog: list) -> dict:
+        """Auto-correct product_ids: if AI used a name/code instead of UUID, find the real UUID from catalog."""
+        import re
+        uuid_pattern = re.compile(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$')
+        
+        # Build lookup maps from catalog
+        name_to_id = {}  # lowercase product name → UUID
+        sku_to_id = {}   # SKU → UUID
+        for p in catalog:
+            pid = p.get('id', '')
+            name = (p.get('name') or '').strip().lower()
+            sku = (p.get('sku') or '').strip().lower()
+            if pid and name:
+                name_to_id[name] = pid
+            if pid and sku:
+                sku_to_id[sku] = pid
+
+        items = order_details.get('items', [])
+        if not isinstance(items, list):
+            return order_details
+
+        for item in items:
+            pid = str(item.get('product_id', '')).strip()
+            
+            # If already a valid UUID, skip
+            if uuid_pattern.match(pid):
+                continue
+            
+            # Try to match by name (case-insensitive)
+            pid_lower = pid.lower()
+            matched_id = None
+            
+            # Exact name match
+            if pid_lower in name_to_id:
+                matched_id = name_to_id[pid_lower]
+            # SKU match
+            elif pid_lower in sku_to_id:
+                matched_id = sku_to_id[pid_lower]
+            else:
+                # Fuzzy: check if any catalog product name contains or is contained in the AI's product_id
+                for name, real_id in name_to_id.items():
+                    if pid_lower in name or name in pid_lower:
+                        matched_id = real_id
+                        break
+            
+            if matched_id:
+                logger.warning(f"Auto-corrected product_id: '{pid}' → '{matched_id}'")
+                item['product_id'] = matched_id
+            else:
+                # If only 1 product in catalog and AI clearly meant it, use that
+                if len(catalog) == 1:
+                    only_id = catalog[0].get('id', '')
+                    logger.warning(f"Auto-corrected product_id (single product): '{pid}' → '{only_id}'")
+                    item['product_id'] = only_id
+                else:
+                    logger.error(f"Could not auto-correct product_id: '{pid}' — no catalog match found")
+
+        return order_details
 
     def _send_facebook_action(self, psid: str, token: str, action: str):
         url = f"https://graph.facebook.com/v19.0/me/messages?access_token={token}"

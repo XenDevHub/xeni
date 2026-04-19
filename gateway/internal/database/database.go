@@ -111,6 +111,20 @@ func autoMigrate(db *gorm.DB) error {
 			return err // Return error for model migrations
 		}
 	}
+
+	// Ensure payment verification columns exist on orders table.
+	// GORM AutoMigrate can silently skip adding pointer fields to existing tables.
+	columnEnsures := []string{
+		"ALTER TABLE orders ADD COLUMN IF NOT EXISTS verified_by VARCHAR(20) DEFAULT NULL",
+		"ALTER TABLE orders ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ DEFAULT NULL",
+		"ALTER TABLE orders ADD COLUMN IF NOT EXISTS admin_note TEXT DEFAULT NULL",
+	}
+	for _, stmt := range columnEnsures {
+		if err := db.Exec(stmt).Error; err != nil {
+			slog.Warn("could not ensure column exists", "stmt", stmt, "error", err)
+		}
+	}
+
 	return nil
 }
 
