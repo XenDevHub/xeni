@@ -109,12 +109,13 @@ func autoMigrate(db *gorm.DB) error {
 	for _, m := range modelsToMigrate {
 		if err := db.AutoMigrate(m); err != nil {
 			slog.Error("failed to migrate model", "model", m, "error", err)
-			return err // Return error for model migrations
+			// Continue to next model instead of returning immediately
 		}
 	}
 
+	// Move columnEnsures earlier if needed, but since we no longer return early above,
+	// it can stay here or just execute unconditionally.
 	// Ensure payment verification columns exist on orders table.
-	// GORM AutoMigrate can silently skip adding pointer fields to existing tables.
 	columnEnsures := []string{
 		"ALTER TABLE orders ADD COLUMN IF NOT EXISTS verified_by VARCHAR(20) DEFAULT NULL",
 		"ALTER TABLE orders ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ DEFAULT NULL",
