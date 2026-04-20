@@ -57,6 +57,7 @@ func autoMigrate(db *gorm.DB) error {
 		"stock_movement_type":        "CREATE TYPE stock_movement_type AS ENUM ('sale', 'restock', 'adjustment', 'return')",
 		"conversation_handling_mode": "CREATE TYPE conversation_handling_mode AS ENUM ('ai', 'human')",
 		"review_status":              "CREATE TYPE review_status AS ENUM ('pending', 'approved', 'rejected')",
+		"comment_action":             "CREATE TYPE comment_action AS ENUM ('ignored', 'public_reply', 'private_reply', 'hidden')",
 	}
 
 	for typeName, createStmt := range types {
