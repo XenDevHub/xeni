@@ -106,6 +106,10 @@ func autoMigrate(db *gorm.DB) error {
 		&models.AgentRule{},
 	}
 
+	// Workaround: GORM frequently tries to drop "uni_users_email" constraint when changing from unique constraint to uniqueIndex.
+	// If the constraint doesn't exist, GORM crashes the migration for that model. So we tentatively create it first.
+	db.Exec(`ALTER TABLE "users" ADD CONSTRAINT "uni_users_email" UNIQUE ("email")`)
+
 	for _, m := range modelsToMigrate {
 		if err := db.AutoMigrate(m); err != nil {
 			slog.Error("failed to migrate model", "model", m, "error", err)
