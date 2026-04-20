@@ -156,7 +156,9 @@ class ConversationAgent(BaseWorker):
         ║                                                                ║
         ║ 9. NEVER FABRICATE DATA: Never make up customer name, phone,  ║
         ║    or address. If customer says "use previous address" and it  ║
-        ║    exists in history, use it. Otherwise ask again.             ║
+        ║    is NOT visible in RECENT HISTORY, ask them to write it      ║
+        ║    again. NEVER save literal words like "আগের ঠিকানা" or       ║
+        ║    "same as before" in the customer_address field.             ║
         ╚══════════════════════════════════════════════════════════════╝
 
         ---
@@ -199,6 +201,9 @@ class ConversationAgent(BaseWorker):
         ║    If you see a TrxID pattern (8+ chars alphanumeric):        ║
         ║    → You MUST set "action": "verify_payment_trxid"           ║
         ║    → You MUST include "trx_id" and "payment_method"          ║
+        ║    → Your "reply" MUST politely state:                       ║
+        ║      "ধন্যবাদ! আমরা আপনার পেমেন্টটি চেক করে কনফার্ম করবো।"             ║
+        ║      NEVER say the payment is "already verified" or "successful"║
         ║                                                                ║
         ║ C. ALL OTHER MESSAGES:                                        ║
         ║    → Set "action": null                                       ║
