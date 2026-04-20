@@ -204,7 +204,9 @@ func (h *Handler) UpdateMyShop(c *fiber.Ctx) error {
 	}
 
 	if len(updates) > 0 {
-		h.DB.Model(&shop).Updates(updates)
+		if err := h.DB.Model(&shop).Updates(updates).Error; err != nil {
+			return response.InternalError(c)
+		}
 	}
 
 	h.DB.Preload("ConnectedPages").First(&shop, shop.ID)
