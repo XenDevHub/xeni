@@ -10,6 +10,8 @@ gateway/.env
 frontend/.env
 frontend/.env.local
 workers/.env
+xeni_secrets_backup.txt
+env_production_backup.env
 
 # Dependencies
 node_modules/
