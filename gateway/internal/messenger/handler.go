@@ -113,7 +113,7 @@ func (h *Handler) handleIncomingMessage(pageID string, event MessagingEvent) {
 	if err == gorm.ErrRecordNotFound {
 		// Try to fetch customer name from Graph API
 		customerName := senderPSID
-		reqURL := fmt.Sprintf("https://graph.facebook.com/v19.0/%s?fields=first_name,last_name&access_token=%s", senderPSID, page.PageAccessToken)
+		reqURL := fmt.Sprintf("https://graph.facebook.com/v21.0/%s?fields=first_name,last_name&access_token=%s", senderPSID, page.PageAccessToken)
 		if resp, err := http.Get(reqURL); err == nil {
 			defer resp.Body.Close()
 			if resp.StatusCode == 200 {

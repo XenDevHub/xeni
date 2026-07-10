@@ -161,7 +161,7 @@ func (h *Handler) SendMessage(c *fiber.Ctx) error {
 	}
 	fbPayloadBytes, _ := json.Marshal(fbPayload)
 
-	reqURL := fmt.Sprintf("https://graph.facebook.com/v19.0/me/messages?access_token=%s", page.PageAccessToken)
+	reqURL := fmt.Sprintf("https://graph.facebook.com/v21.0/me/messages?access_token=%s", page.PageAccessToken)
 	resp, reqErr := http.Post(reqURL, "application/json", bytes.NewBuffer(fbPayloadBytes))
 	if reqErr != nil {
 		slog.Error("Failed to send message to Facebook", "error", reqErr)

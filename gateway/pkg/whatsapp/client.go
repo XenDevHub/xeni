@@ -17,7 +17,7 @@ type Client struct {
 // NewClient creates a new WhatsApp client.
 func NewClient(token, phoneID, version string) *Client {
 	if version == "" {
-		version = "v19.0"
+		version = "v21.0"
 	}
 	return &Client{
 		AccessToken:   token,

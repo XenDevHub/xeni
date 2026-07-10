@@ -151,7 +151,7 @@ func (h *Handler) PublishPost(c *fiber.Ctx) error {
 	}
 
 	// Publish to Facebook Graph API
-	graphURL := fmt.Sprintf("https://graph.facebook.com/v19.0/%s", page.PageID)
+	graphURL := fmt.Sprintf("https://graph.facebook.com/v21.0/%s", page.PageID)
 
 	payload := map[string]string{
 		"access_token": page.PageAccessToken,
@@ -209,7 +209,7 @@ func (h *Handler) OAuthLogin(c *fiber.Ctx) error {
 	}
 
 	redirectURI := c.BaseURL() + "/api/oauth/pages/facebook/callback"
-	url := fmt.Sprintf("https://www.facebook.com/v19.0/dialog/oauth?client_id=%s&redirect_uri=%s&state=%s&scope=pages_show_list,pages_messaging,pages_manage_posts,pages_manage_metadata,pages_read_engagement,pages_manage_engagement,pages_read_user_content&response_type=code&auth_type=rerequest",
+	url := fmt.Sprintf("https://www.facebook.com/v21.0/dialog/oauth?client_id=%s&redirect_uri=%s&state=%s&scope=pages_show_list,pages_messaging,pages_manage_posts,pages_manage_metadata&response_type=code&auth_type=rerequest",
 		h.Cfg.Facebook.AppID, redirectURI, tokenStr)
 
 	return c.Redirect(url)
@@ -238,7 +238,7 @@ func (h *Handler) OAuthCallback(c *fiber.Ctx) error {
 	redirectURI := c.BaseURL() + "/api/oauth/pages/facebook/callback"
 
 	// 1. Exchange code for access token
-	tokenURL := fmt.Sprintf("https://graph.facebook.com/v19.0/oauth/access_token?client_id=%s&redirect_uri=%s&client_secret=%s&code=%s",
+	tokenURL := fmt.Sprintf("https://graph.facebook.com/v21.0/oauth/access_token?client_id=%s&redirect_uri=%s&client_secret=%s&code=%s",
 		h.Cfg.Facebook.AppID, redirectURI, h.Cfg.Facebook.AppSecret, code)
 
 	resp, err := http.Get(tokenURL)
@@ -258,7 +258,7 @@ func (h *Handler) OAuthCallback(c *fiber.Ctx) error {
 	// Debug: token
 	slog.Info("full token", "token", tokenRes.AccessToken)
 
-	pagesURL := fmt.Sprintf("https://graph.facebook.com/v19.0/me/accounts?access_token=%s", tokenRes.AccessToken)
+	pagesURL := fmt.Sprintf("https://graph.facebook.com/v21.0/me/accounts?access_token=%s", tokenRes.AccessToken)
 	slog.Info("fetching pages", "url", pagesURL[:80])
 	pagesResp, err := http.Get(pagesURL)
 	if err != nil || pagesResp.StatusCode != 200 {
@@ -286,7 +286,7 @@ func (h *Handler) OAuthCallback(c *fiber.Ctx) error {
 	// 3. Save all granted pages to the database
 	for _, p := range accountsRes.Data {
 		// Attempt to subscribe page to webhook automatically
-		subURL := fmt.Sprintf("https://graph.facebook.com/v19.0/%s/subscribed_apps?subscribed_fields=messages,messaging_postbacks,feed&access_token=%s", p.ID, p.AccessToken)
+		subURL := fmt.Sprintf("https://graph.facebook.com/v21.0/%s/subscribed_apps?subscribed_fields=messages,messaging_postbacks,feed&access_token=%s", p.ID, p.AccessToken)
 		if req, err := http.NewRequest("POST", subURL, nil); err == nil {
 			client := &http.Client{}
 			resp, err := client.Do(req)

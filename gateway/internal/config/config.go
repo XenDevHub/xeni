@@ -152,7 +152,7 @@ func Load() (*Config, error) {
 		Meta: MetaConfig{
 			AppSecret:             getEnv("META_APP_SECRET", ""),
 			WebhookVerifyToken:    getEnv("FACEBOOK_WEBHOOK_VERIFY_TOKEN", ""),
-			APIVersion:            getEnv("META_PAGE_API_VERSION", "v19.0"),
+			APIVersion:            getEnv("META_PAGE_API_VERSION", "v21.0"),
 			WhatsAppPhoneNumberID: getEnv("META_WHATSAPP_PHONE_NUMBER_ID", ""),
 			WhatsAppBusinessID:    getEnv("META_WHATSAPP_BUSINESS_ACCOUNT_ID", ""),
 			WhatsAppAccessToken:   getEnv("META_WHATSAPP_ACCESS_TOKEN", ""),

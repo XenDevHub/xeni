@@ -564,7 +564,7 @@ func (h *Handler) createOrderFromAI(result rabbitmq.ResultMessage, details map[s
 }
 
 func (h *Handler) sendMessengerMessage(psid, text, token string) {
-	url := fmt.Sprintf("https://graph.facebook.com/v19.0/me/messages?access_token=%s", token)
+	url := fmt.Sprintf("https://graph.facebook.com/v21.0/me/messages?access_token=%s", token)
 	payload := map[string]interface{}{
 		"recipient": map[string]string{"id": psid},
 		"message":   map[string]string{"text": text},
