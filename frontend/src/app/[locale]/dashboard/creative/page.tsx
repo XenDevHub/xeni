@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
+
 import { motion } from 'framer-motion';
 import { Image as ImageIcon, Send, Sparkles, Wand2, Type, Hash, Loader2, CheckCircle2, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -224,7 +224,7 @@ export default function CreativePage() {
               
               {result.imageUrl && (
                 <div className="relative w-full min-h-[300px] rounded-lg overflow-hidden flex items-center justify-center">
-                  <Image src={result.imageUrl} alt="Generated AI Image" fill className="object-contain rounded-lg shadow-xl" />
+                  <img src={result.imageUrl} alt="Generated AI Image" className="object-contain w-full max-h-[500px] rounded-lg shadow-xl" />
                 </div>
               )}
 
