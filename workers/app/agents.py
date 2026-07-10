@@ -797,10 +797,9 @@ class CreativeAgent(BaseWorker):
                 client = OpenAI(api_key=settings.OPENAI_API_KEY)
                 dalle_prompt = f"Professional commercial product photography of: {product_name}. High quality, well lit."
                 response = client.images.generate(
-                    model="dall-e-3",
+                    model="dall-e-2",
                     prompt=dalle_prompt,
-                    size="1024x1024",
-                    quality="standard",
+                    size="512x512",
                     n=1,
                 )
                 image_url = ""
