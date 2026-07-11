@@ -796,15 +796,25 @@ class CreativeAgent(BaseWorker):
                 from openai import OpenAI
                 client = OpenAI(api_key=settings.OPENAI_API_KEY)
                 dalle_prompt = f"Professional commercial product photography of: {product_name}. High quality, well lit."
-                response = client.images.generate(
-                    model="dall-e-2",
-                    prompt=dalle_prompt,
-                    size="512x512",
-                    n=1,
-                )
                 image_url = ""
-                if response.data:
-                    image_url = response.data[0].url or ""
+                last_error = None
+                for model, size in [("gpt-image-1", "1024x1024"), ("dall-e-3", "1024x1024"), ("dall-e-2", "512x512")]:
+                    try:
+                        kwargs: dict = {"model": model, "prompt": dalle_prompt, "size": size, "n": 1}
+                        if model == "dall-e-3":
+                            kwargs["quality"] = "standard"
+                        response = client.images.generate(**kwargs)
+                        if response.data:
+                            image_url = response.data[0].url or ""
+                        logger.info(f"Image generated successfully with model: {model}")
+                        break
+                    except Exception as model_err:
+                        logger.warning(f"Model {model} failed: {model_err}")
+                        last_error = model_err
+                        continue
+                if not image_url and last_error:
+                    raise last_error
+
                 content_data: dict[str, Any] = {
                     "caption_en": "Image Generated Successfully",
                     "caption_bn": "ইমেজ তৈরি হয়েছে",
