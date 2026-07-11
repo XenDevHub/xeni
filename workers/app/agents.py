@@ -771,6 +771,48 @@ class InventoryAgent(BaseWorker):
         }
 
 
+def upload_base64_to_spaces(b64_data: str) -> str:
+    """Decodes base64 data and uploads it to DigitalOcean Spaces/S3."""
+    import base64
+    import boto3
+    import uuid
+    
+    if not b64_data or not b64_data.startswith("data:image/"):
+        return b64_data
+        
+    try:
+        header, encoded = b64_data.split(",", 1)
+        mime_type = header.split(";")[0].split(":")[1]
+        extension = mime_type.split("/")[1]
+        
+        image_data = base64.b64decode(encoded)
+        filename = f"creative-images/{uuid.uuid4()}.{extension}"
+        
+        session = boto3.session.Session()
+        client = session.client(
+            's3',
+            region_name=settings.DO_SPACES_REGION,
+            endpoint_url=settings.DO_SPACES_ENDPOINT,
+            aws_access_key_id=settings.DO_SPACES_KEY,
+            aws_secret_access_key=settings.DO_SPACES_SECRET
+        )
+        
+        client.put_object(
+            Bucket=settings.DO_SPACES_BUCKET,
+            Key=filename,
+            Body=image_data,
+            ACL='public-read',
+            ContentType=mime_type
+        )
+        
+        if settings.DO_SPACES_CDN_BASE:
+            return f"{settings.DO_SPACES_CDN_BASE.rstrip('/')}/{filename}"
+        return f"{settings.DO_SPACES_ENDPOINT.rstrip('/')}/{settings.DO_SPACES_BUCKET}/{filename}"
+    except Exception as e:
+        logger.error(f"Failed to upload image to DO Spaces: {e}")
+        return b64_data
+
+
 class CreativeAgent(BaseWorker):
     """Generates AI content — product descriptions, Bangla/English captions, social media posts."""
 
@@ -830,12 +872,16 @@ class CreativeAgent(BaseWorker):
                 if not image_url and last_error:
                     raise last_error
 
+                # Upload to DO Spaces if it's base64 to avoid HTTP 413 Payload Too Large on publish
+                public_url = upload_base64_to_spaces(image_url)
+                logger.info(f"Final image URL for response: {public_url}")
+
                 content_data: dict[str, Any] = {
                     "caption_en": "Image Generated Successfully",
                     "caption_bn": "ইমেজ তৈরি হয়েছে",
                     "hashtags": [],
                     "image_prompt": dalle_prompt,
-                    "image_url": image_url
+                    "image_url": public_url
                 }
             except Exception as e:
                 logger.error(f"Error calling DALL-E: {e}")

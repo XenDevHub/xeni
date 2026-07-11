@@ -39,7 +39,12 @@ class Settings(BaseSettings):
     # Google Cloud Vision (OCR for payment screenshots)
     GOOGLE_CLOUD_VISION_KEY: str = ""
 
-    # DigitalOcean Spaces CDN
+    # DigitalOcean Spaces Config
+    DO_SPACES_KEY: str = ""
+    DO_SPACES_SECRET: str = ""
+    DO_SPACES_REGION: str = "sgp1"
+    DO_SPACES_BUCKET: str = ""
+    DO_SPACES_ENDPOINT: str = ""
     DO_SPACES_CDN_BASE: str = ""
 
     # Resend Email
