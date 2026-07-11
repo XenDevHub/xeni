@@ -798,7 +798,7 @@ class CreativeAgent(BaseWorker):
                 dalle_prompt = f"Professional commercial product photography of: {product_name}. High quality, well lit."
                 image_url = ""
                 last_error = None
-                for model, size in [("gpt-image-1", "1024x1024"), ("dall-e-3", "1024x1024"), ("dall-e-2", "512x512")]:
+                for model, size in [("gpt-image-2", "1024x1024"), ("gpt-image-1-mini", "1024x1024"), ("dall-e-3", "1024x1024"), ("dall-e-2", "512x512")]:
                     try:
                         kwargs: dict = {"model": model, "prompt": dalle_prompt, "size": size, "n": 1}
                         if model == "dall-e-3":
