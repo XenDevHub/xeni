@@ -806,7 +806,7 @@ class CreativeAgent(BaseWorker):
                         response = client.images.generate(**kwargs)
                         if response.data:
                             image_url = response.data[0].url or ""
-                        logger.info(f"Image generated successfully with model: {model}")
+                        logger.info(f"Image generated successfully with model: {model}, URL: {image_url}")
                         break
                     except Exception as model_err:
                         logger.warning(f"Model {model} failed: {model_err}")

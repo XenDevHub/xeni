@@ -33,6 +33,7 @@ export default function CreativePage() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        console.log("WebSocket received event:", data);
         // Only handle events for our pending task
         if (data.task_id && data.task_id !== pendingTaskIdRef.current) return;
 
@@ -87,6 +88,7 @@ export default function CreativePage() {
 
     setLoading(true);
     setTaskStatus('queued');
+    setResult({ caption: null, imageUrl: null });
 
     try {
       const response = await api.post('/agents/creative/run', {
