@@ -805,8 +805,23 @@ class CreativeAgent(BaseWorker):
                             kwargs["quality"] = "standard"
                         response = client.images.generate(**kwargs)
                         if response.data:
-                            image_url = response.data[0].url or ""
-                        logger.info(f"Image generated successfully with model: {model}, URL: {image_url}")
+                            item = response.data[0]
+                            # Try attribute access first
+                            val_url = getattr(item, "url", None)
+                            val_b64 = getattr(item, "b64_json", None)
+                            
+                            # Fallback to dictionary access
+                            if val_url is None and isinstance(item, dict):
+                                val_url = item.get("url")
+                            if val_b64 is None and isinstance(item, dict):
+                                val_b64 = item.get("b64_json")
+                                
+                            if val_url:
+                                image_url = val_url
+                            elif val_b64:
+                                image_url = f"data:image/png;base64,{val_b64}"
+                                
+                        logger.info(f"Image generated successfully with model: {model}, URL length: {len(image_url) if image_url else 0}")
                         break
                     except Exception as model_err:
                         logger.warning(f"Model {model} failed: {model_err}")
