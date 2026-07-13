@@ -20,7 +20,7 @@ type Shop struct {
 	CourierPreference   string    `gorm:"size:20;default:'pathao';not null" json:"courier_preference"`
 	BkashMerchantNumber *string   `gorm:"size:20" json:"bkash_merchant_number"`
 	NagadMerchantNumber *string   `gorm:"size:20" json:"nagad_merchant_number"`
-	WhatsAppNumber      *string   `gorm:"size:20" json:"whatsapp_number"`
+	WhatsAppNumber      *string   `gorm:"column:whatsapp_number;size:20" json:"whatsapp_number"`
 	OwnerMobile         *string   `gorm:"size:20" json:"owner_mobile"`
 	District            *string   `gorm:"size:100" json:"district"`
 	DeliveryChargeInside  float64 `gorm:"type:decimal(8,2);default:60;not null" json:"delivery_charge_inside"`
